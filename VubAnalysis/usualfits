@@ -1,0 +1,306 @@
+#FULL SET ON DATA
+
+setenv MXCUT        1.55
+setenv CHLOW        -.5
+setenv CHHIGH       .5
+setenv DOBDECWEIGHT     1
+setenv DODDECWEIGHT     1 
+setenv USECB        1 
+setenv BLIND        0
+setenv FITMC        0
+setenv MNULOW     -1000.
+setenv LEPTCUT      1.
+setenv BTYPE        2
+setenv LEPTTYPE     2
+setenv FIXARG2      0
+setenv DOBRECOWEIGHT 0
+setenv DOPSTARWEIGHT 0
+setenv DOMM2WEIGHT 0
+setenv LEPTCUT      1.
+setenv MULTIFIT     1
+setenv MININTPUR    0.   
+setenv MAXINTPUR    1000.   
+setenv RUN          0   
+setenv FITTOTSHAPE  2
+setenv FITOPTION  0
+
+#ENRICHED
+
+setenv DEPL         0
+setenv FILEDATA      /u/ec/ursl/root/anaQA-j00/csx-data.root 
+setenv FILEVUBDSTAR 
+setenv FILEVUBDC 
+setenv FILEVUBDSTAR0 
+setenv FILEVUBD0 
+setenv FILEVCB       /u/ec/ursl/root/anaQA-j00/csx-genb-new.root
+setenv FILEVUBTOTAL  /u/ec/ursl/root/anaQA-j00/csx-vubmix.root
+setenv BTYPE        2
+setenv LEPTTYPE     2
+setenv MNUHIGH      .5
+setenv DELTAMB      
+setenv DELTAA       
+setenv PSTARCOR     1.13152
+
+setenv FITTOTSHAPE  1
+setenv MULTIFIT     1
+setenv TEST  B0datathesis_multi
+scriptfit.csh
+
+setenv FITTOTSHAPE  2
+setenv FILEVUBTOTAL  /u/ec/ursl/root/anaQA-j00/csx-vubnre.root
+setenv MULTIFIT     0
+setenv TEST  datathesis_nre
+scriptfit.csh
+
+
+setenv FITTOTSHAPE  2
+setenv FILEVUBTOTAL  /u/ec/ursl/root/anaQA-j00/csx-vubmix.root
+setenv MULTIFIT     0
+setenv TEST  datathesis
+scriptfit.csh
+
+
+setenv BTYPE        0
+setenv TEST  B0datathesis
+scriptfit.csh
+
+
+setenv BTYPE        1
+setenv TEST  Bchdatathesis
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     0
+setenv TEST  eledatathesis
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     1
+setenv TEST  mudatathesis
+scriptfit.csh
+
+setenv BTYPE        2
+setenv LEPTTYPE     2
+
+setenv MININTPUR    0.8   
+setenv MAXINTPUR    1000.   
+setenv TEST  sb1datathesis
+scriptfit.csh
+
+setenv MININTPUR    0.5   
+setenv MAXINTPUR    0.8   
+setenv TEST  sb2datathesis
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    0.5   
+setenv TEST  sb3datathesis
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    1000.   
+
+setenv RUN    1 
+setenv TEST  run1datathesis
+scriptfit.csh
+
+setenv RUN    2 
+setenv TEST  run2datathesis
+scriptfit.csh
+
+
+# DEPLETED
+
+
+setenv RUN    0
+setenv BTYPE        2
+setenv LEPTTYPE     2
+setenv DEPL         1
+
+setenv TEST  datathesisdepl
+scriptfit.csh
+
+
+setenv BTYPE        0
+setenv TEST  B0datathesisdepl
+scriptfit.csh
+
+
+setenv BTYPE        1
+setenv TEST  Bchdatathesisdepl
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     0
+setenv TEST  eledatathesisdepl
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     1
+setenv TEST  mudatathesisdepl
+scriptfit.csh
+
+setenv BTYPE        2
+setenv LEPTTYPE     2
+
+setenv MININTPUR    0.8   
+setenv MAXINTPUR    1000.   
+setenv TEST  sb1datathesisdepl
+scriptfit.csh
+
+setenv MININTPUR    0.5   
+setenv MAXINTPUR    0.8   
+setenv TEST  sb2datathesisdepl
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    0.5   
+setenv TEST  sb3datathesisdepl
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    1000.   
+
+setenv RUN    1 
+setenv TEST  run1datathesisdepl
+scriptfit.csh
+
+setenv RUN    2 
+setenv TEST  run2datathesisdepl
+scriptfit.csh
+
+
+setenv DEPL         0
+
+
+setenv CHLOW        -1.5
+setenv CHHIGH       1.5
+
+
+setenv FITTOTSHAPE  1
+setenv MULTIFIT     1
+setenv TEST  datathesisq1_multi
+scriptfit.csh
+
+setenv FITTOTSHAPE  2
+setenv MULTIFIT     0
+setenv TEST  datathesisq1
+scriptfit.csh
+
+
+setenv BTYPE        0
+setenv TEST  B0datathesisq1
+scriptfit.csh
+
+
+setenv BTYPE        1
+setenv TEST  Bchdatathesisq1
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     0
+setenv TEST  eledatathesisq1
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     1
+setenv TEST  mudatathesisq1
+scriptfit.csh
+
+setenv BTYPE        2
+setenv LEPTTYPE     2
+
+setenv MININTPUR    0.8   
+setenv MAXINTPUR    1000.   
+setenv TEST  sb1datathesisq1
+scriptfit.csh
+
+setenv MININTPUR    0.5   
+setenv MAXINTPUR    0.8   
+setenv TEST  sb2datathesisq1
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    0.5   
+setenv TEST  sb3datathesisq1
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    1000.   
+
+setenv RUN    1 
+setenv TEST  run1datathesisq1
+scriptfit.csh
+
+setenv RUN    2 
+setenv TEST  run2datathesisq1
+scriptfit.csh
+
+
+# DEPLETED
+
+
+setenv RUN    0
+setenv BTYPE        2
+setenv LEPTTYPE     2
+setenv DEPL         1
+
+setenv TEST  datathesisq1depl
+scriptfit.csh
+
+
+setenv BTYPE        0
+setenv TEST  B0datathesisq1depl
+scriptfit.csh
+
+
+setenv BTYPE        1
+setenv TEST  Bchdatathesisq1depl
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     0
+setenv TEST  eledatathesisq1depl
+scriptfit.csh
+
+
+setenv BTYPE        2
+setenv LEPTTYPE     1
+setenv TEST  mudatathesisq1depl
+scriptfit.csh
+
+setenv BTYPE        2
+setenv LEPTTYPE     2
+
+setenv MININTPUR    0.8   
+setenv MAXINTPUR    1000.   
+setenv TEST  sb1datathesisq1depl
+scriptfit.csh
+
+setenv MININTPUR    0.5   
+setenv MAXINTPUR    0.8   
+setenv TEST  sb2datathesisq1depl
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    0.5   
+setenv TEST  sb3datathesisq1depl
+scriptfit.csh
+
+setenv MININTPUR    0.   
+setenv MAXINTPUR    1000.   
+
+setenv RUN    1 
+setenv TEST  run1datathesisq1depl
+scriptfit.csh
+
+setenv RUN    2 
+setenv TEST  run2datathesisq1depl
+scriptfit.csh

@@ -1,0 +1,43 @@
+# -- Cuts for "b2uNtp" recoil analysis
+# ------------------------------------
+# -- breco
+purity           0.0
+intPurity        0.0
+ipurDstar        0.24
+ipurDc           0.09
+ipurDstar0       0.08
+ipurD0           0.09
+# -- Particle ID
+idEl             32
+idMu             8
+idKa             4
+# -- PidTables
+#    Note: PidTables MUST come AFTER the following settings
+shiftElPidTables 0.
+shiftElMisTables 0.
+shiftMuPidTables 0.
+shiftMuMisTables 0.
+shiftKaPidTables 0.
+shiftKaMisTables 0.
+PidTables        ../RecoilAnalysis/PidTables-200x.032403.txt
+# -- Particles
+TrackSelection   0
+elBremCone       0.08
+elMomLo          0.4
+elThetaLo        23.5
+elThetaHi        135.8
+muMomLo          0.4
+muThetaLo        15.0
+muThetaHi        165.0
+piMomLo          0.05
+piThetaLo        20.0
+piThetaHi        150.
+kaMomLo          0.3
+kaThetaLo        20.0
+kaThetaHi        150.
+PhotonSelection  1
+gammaELo         0.08
+gammaThetaLo     23.5
+# b2u gammaThetaHi     138.0
+gammaThetaHi     145.5
+KlSelection      0

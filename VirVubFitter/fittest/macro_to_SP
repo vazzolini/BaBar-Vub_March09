@@ -1,0 +1,365 @@
+######################################################################
+#
+# This is an ugly collection of commands. Any volunteers wishing 
+# to write an equivalent perl script will be greatly appreciated. 
+#
+######################################################################
+#
+# The set of commands below allow to produce a correction file which 
+# gives S/P(data enriched) as a function of mX bins. 
+#
+# The correction file is then input to VVF via the flag 
+#	-fixSBratio <correction file>
+#
+# It can also be given to fitDRplot.C which fits it with a N-th 
+# order polynomial (default: N=1) and produces another correction file 
+# resulting from the fit. 
+#
+# The systematics due to these corrections on BRBR can be obtained 
+# by submitting 100  VVF jobs with the flags: 
+#	-fixSBratio <correction file> 
+# 	-SPseed `date +%s`
+# and computing the ratio: <rms of the 100 fits>/<mean of 100 fits> 
+#
+#
+# The default cut on the integrated purity is 0 (which means a cut of about 10%
+# due to the semiexclusive skim). If you want to run with a different 
+# purity cut you should add the flag -intpur <purity_cut> to the commands below. 
+#
+#######################################################################
+#
+#
+# WARNING: when running submit.pl you will create a number of files.
+#          In particular, the one named 
+#                     <dataset>_<ksele>_<cuts>_<intpur>.txt
+#		where <dataset> = bkg, sig, allMC, data
+#		      <ksele> = enr or depl
+#		      <cuts> = SL or AC (lepton cuts, all cuts)
+# 		      <intpur> = cut on integrated purity	
+#	   contain the yields of signal and background events 
+#	   as a function of the mx cut, and ARE NOT OVERWRITTEN. 
+#	   Therefore, if you run twice submit.pl with 
+#	   exactly the same commands you will append one or more 
+#          lines to the above files. Please be careful and check 
+#          what you are doing and remove the above files in case 
+#	   of trouble and submit.pl again. 
+#
+#	   To store previous work somewhere else use saveMyWork:
+#	        prompt > setenv MYDIR <directory name>
+#               prompt > source saveMyWork
+#
+#######################################################################
+#
+# do some cleanup
+rm -Rf *_SL.txt
+rm -Rf *_AC.txt
+rm -Rf *_params.txt
+#
+#######################################################################
+#
+# First of all, we must determine on MC the PDF parameters 
+# for the enriched and depleted samples to be used in subsequent fits 
+# we do this by fitting the CCB from non-truth matched events and 
+# by fitting the SIGNAL from truth-matched events. We have two  
+# possibilities:
+#
+# ####################################################################
+# 1) using lepton cuts
+#
+#	Determine the CCB PDF parameters 
+./submit.pl -MC -bkg -lepcut -depl -dumppar -mxl 0 -mxh 5 >&! bkg_SL_depl.log
+./submit.pl -MC -bkg -lepcut -enr -dumppar -mxl 0 -mxh 5 >&! bkg_SL_enr.log
+#	Determine the SIGNAL PDF parameters
+./submit.pl -MC -sig -lepcut -depl -dumppar -mxl 0 -mxh 5 >&! sig_SL_depl.log
+./submit.pl -MC -sig -lepcut -enr -dumppar -mxl 0 -mxh 5 >&! sig_SL_enr.log
+#
+# 2) using all cuts 
+#
+#	Determine the CCB PDF parameters 
+./submit.pl -MC -bkg -allcut -depl -dumppar -mxl 0 -mxh 5 >&! bkg_AC_depl.log
+./submit.pl -MC -bkg -allcut -enr -dumppar -mxl 0 -mxh 5 >&! bkg_AC_enr.log
+#	Determine the SIGNAL PDF parameters
+./submit.pl -MC -sig -allcut -depl -dumppar -mxl 0 -mxh 5 >&! sig_AC_depl.log
+./submit.pl -MC -sig -allcut -enr -dumppar -mxl 0 -mxh 5 >&! sig_AC_enr.log
+#
+#
+# up to now we use 1) because 2) was instable. We should 
+# check again if by using the new datasets and reweigthings 2) gives 
+# better results
+# 
+# Each command above produces a *params.txt file, containing the 
+# values of the fitted parameters. You should have: 
+#
+# SL cuts: 
+# bkg_depl_SL_params.txt  bkg_enr_SL_params.txt  sig_depl_SL_params.txt  sig_enr_SL_params.txt
+# ALL cuts:
+# bkg_depl_AC_params.txt  bkg_enr_AC_params.txt  sig_depl_AC_params.txt  sig_enr_AC_params.txt
+#
+########################################################################
+#
+#
+# prepare now the file containing the PDF parameters to be used 
+# in single mX bins fits... 
+# we need 4 files: MC, enriched, SL cuts, to be used for MC fits
+#		   MC, depleted, SL cuts, to be used for MC fits
+#		   DATA, enriched, SL cuts, to be used for DATA fits
+#		   DATA, depleted, SL cuts, to be used for DATA fits
+# 
+# and another 4 which describe the PDFs parameters obtained with allcuts (AC) 
+#
+###############################################################################
+#
+# The MC files can be build by merging the corresponding MC files, e.g.:
+# 
+# parameters determined from MC, SL cuts:
+#
+awk '{print $0}' *_depl_SL_params.txt > MC_depl_SL_params.txt
+awk '{print $0}' *_enr_SL_params.txt  > MC_enr_SL_params.txt
+#
+# and adding information (starting point, min and max values, etc.) for the yields: 
+#
+# depleted
+#SIGNAL yield 
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" thofrac  1500000 0 0. 3500000 0 53686.390963 >> MC_depl_SL_params.txt
+#ARGUS BKG   
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 700000 0 0. 3000000  0 16523.000000 >> MC_depl_SL_params.txt   
+#PEAKING BKG
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac   150000 0 0. 1200000 0 3540.000000 >> MC_depl_SL_params.txt 
+# enriched
+#SIGNAL yield 
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" thofrac 1500000 0 0. 3500000 0 53686.390963 >> MC_enr_SL_params.txt
+#ARGUS BKG   
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 700000 0 0. 3000000  0 16523.000000 >> MC_enr_SL_params.txt   
+#PEAKING BKG
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac 150000 0 0. 1200000 0 3540.000000 >> MC_enr_SL_params.txt 
+# 
+# the same by using MC parameters determined with ALL cuts:
+#
+awk '{print $0}' *_depl_AC_params.txt > MC_depl_AC_params.txt
+awk '{print $0}' *_enr_AC_params.txt  > MC_enr_AC_params.txt
+#
+# depleted
+#SIGNAL yield 
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" thofrac 1500000 0 0. 3500000 0 53686.390963 >> MC_depl_AC_params.txt
+#ARGUS BKG   
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 700000 0 0. 3000000  0 16523.000000 >> MC_depl_AC_params.txt   
+#PEAKING BKG
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac 150000 0 0. 1200000 0 3540.000000 >> MC_depl_AC_params.txt 
+# enriched
+#SIGNAL yield 
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" thofrac 1500000 0 0. 3500000 0 53686.390963 >> MC_enr_AC_params.txt  
+#ARGUS BKG 
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 700000 0 0. 3000000  0 16523.000000 >> MC_enr_AC_params.txt   
+#PEAKING BKG
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac 150000 0 0. 1200000 0 3540.000000 >> MC_enr_AC_params.txt 
+#
+#######
+#   For data, we need to allow the endpoint to float, i.e. set the flag "IsFixed" (next-to-last column) to 0 instead of 1
+#   We do this and merge in one step:  
+#######  
+#
+awk '{if($1~/cutoff/ || $1~/cbendpoint/){printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n",$1,$2,$4,$5,$6,0,$8}else{print $0}}' bkg_depl_SL_params.txt > DATA_depl_SL_params.txt
+awk '{if($1~/cutoff/ || $1~/cbendpoint/){printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n",$1,$2,$4,$5,$6,0,$8}else{print $0}}' bkg_depl_SL_params.txt > DATA_enr_SL_params.txt
+#
+#Add signal parameters as well...
+#
+awk '{print $0}' sig_depl_SL_params.txt >> DATA_depl_SL_params.txt
+awk '{print $0}' sig_enr_SL_params.txt >> DATA_enr_SL_params.txt
+#
+#
+# Now we add information (starting point, min and max values, etc.) for the yields: 
+# Since the events in data and MC are different, the yields initializations will be different too: 
+#
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n"  thofrac  50000  0    0.  400000  0  53686.390963 >> DATA_depl_SL_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 27000  0    0.  800000  0  16523.000000  >> DATA_depl_SL_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac   20000  0    0.  200000  0  3540.000000 >> DATA_depl_SL_params.txt
+#
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n"  thofrac  50000  0    0.  400000  0  53686.390963 >> DATA_enr_SL_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 27000  0    0.  800000  0  16523.000000  >> DATA_enr_SL_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac   20000  0    0.  200000  0  3540.000000 >> DATA_enr_SL_params.txt
+#
+# The same for parameters determined from MC, ALL cuts
+#
+awk '{if($1~/cutoff/ || $1~/cbendpoint/){printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n",$1,$2,$4,$5,$6,0,$8}else{print $0}}' bkg_depl_AC_params.txt > DATA_depl_AC_params.txt
+awk '{if($1~/cutoff/ || $1~/cbendpoint/){printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n",$1,$2,$4,$5,$6,0,$8}else{print $0}}' bkg_depl_AC_params.txt > DATA_enr_AC_params.txt
+#
+#Add signal parameters as well...
+#
+awk '{print $0}' sig_depl_AC_params.txt >> DATA_depl_AC_params.txt
+awk '{print $0}' sig_enr_AC_params.txt >> DATA_enr_AC_params.txt
+#
+#
+# Now we add information (starting point, min and max values, etc.) for the yields: 
+# Since the events in data and MC are different, the yields initializations will be different too: 
+#
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n"  thofrac  50000  0    0.  400000  0  53686.390963 >> DATA_depl_AC_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 27000  0    0.  800000  0  16523.000000  >> DATA_depl_AC_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac   20000  0    0.  200000  0  3540.000000 >> DATA_depl_AC_params.txt
+#
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n"  thofrac  50000  0    0.  400000  0  53686.390963 >> DATA_enr_AC_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" argusfrac 27000  0    0.  800000  0  16523.000000  >> DATA_enr_AC_params.txt
+printf "%8s\t %f\t +- %f\t %f\t %f\t %d\t%f\n" ccbfrac   20000  0    0.  200000  0  3540.000000 >> DATA_enr_AC_params.txt
+#
+#
+#
+################################################################################
+#
+# At this point setup is complete and we can start by scanning the mx variable!
+#
+################################################################################
+#
+#
+#
+# First, we determine S/P for MC depleted 
+# note we use the PDF parameters we just determined by using the -parfile flag
+# To get better accuracy, we count signal events, whereas we fit for peaking background events: 
+# The only way the following is working right now is by using a spreadsheet (excel/oocal). 
+# You can copy the one (SoverP.sxc) committed in fittest and paste the numbers coming from the following 
+# instructions. Beware: you might need to change all radq() functions in sqrt() 
+# [my ooffice is in italian...]  
+#
+# NOTE: If you want to scan by taking the PDF parameters as coming from fits to samples with all cuts 
+#	instead of lepton cuts, you need to change
+#			-parfile MC_depl_SL_params.txt to -parfile MC_depl_AC_params.txt 
+# 			-parfile MC_enr_SL_params.txt to -parfile MC_enr_AC_params.txt
+#			-parfile DATA_depl_SL_params.txt to -parfile DATA_depl_AC_params.txt
+#			-parfile DATA_enr_SL_params.txt to -parfile DATA_enr_AC_params.txt
+#
+#
+# We fit bkg only for P
+./submit.pl -MC -bkg -allcut -depl -parfile MC_depl_SL_params.txt -scanmx >&! scan_bkg_depl_SL.log
+#
+# Get the peaking background yields and paste them in cells L3-L13 of the spreadsheet 
+# (the first number corresponds to the entire sample and has been obtained earlier)
+echo ' ---- Now printing the peaking background yields for MC depleted sample              ------ '
+echo ' ---- Take the following 11 numbers and put them in cells L3-L13 of the spreadsheet  ------ '
+awk '{print $3}' bkg_depl_AC.txt
+echo ' ================= '
+#
+# Get the error on peaking background yields and paste them in cells N3-N13 of the spreadsheet
+# (the first number corresponds to the entire sample and has been obtained earlier)
+echo ' ---- Now printing the peaking background errors for MC depleted sample              ------ '
+echo ' ---- Take the following 11 numbers and put them in cells N3-N13 of the spreadsheet  ------ '
+awk '{print $5}' bkg_depl_AC.txt
+echo ' ================= '
+# 
+# Count the number of signal events S
+./submit.pl -MC -sig -allcut -depl -parfile MC_depl_SL_params.txt -scanmx >&! scan_sig_depl_SL.log
+#
+# get the number of entries for mES>5.27, you should have 10 numbers instead of 11 as in the background case
+# put them in cells O4-O13 (O3 is defined as the sum of o4:o13). The error is automatically computed in column Q
+echo ' ---- Now printing the signal yields for MC depleted sample                          ------ '
+echo ' ---- Take the following 10 numbers and put them in cells O4-O13 of the spreadsheet  ------ '
+grep -i "Events in dataset mES" scan_sig_depl_SL.log
+echo ' ================= '
+#
+#
+# The S/P ratio and error for the MC depleted sample is automatically computed in columns R and T respectively
+#
+#######################
+#
+# we do the same for MC enriched (note we use the PDFs parameters for the enriched sample, -parfile flag)
+#
+#######################
+# We fit bkg only for P
+./submit.pl -MC -bkg -allcut -enr -parfile MC_enr_SL_params.txt -scanmx >&! scan_bkg_enr_SL.log
+#
+# Get the peaking background yields and paste them in cells C3-C13 of the spreadsheet 
+# (the first number corresponds to the entire sample and has been obtained earlier)
+echo ' ---- Now printing the peaking background yields for MC enriched sample              ------ '
+echo ' ---- Take the following 11 numbers and put them in cells C3-C13 of the spreadsheet  ------ '
+awk '{print $3}' bkg_enr_AC.txt
+echo ' ================= '
+#
+# Get the error on peaking background yields and paste them in cells E3-E13 of the spreadsheet
+# (the first number corresponds to the entire sample and has been obtained earlier)
+echo ' ---- Now printing the peaking background errors for MC enriched sample             ------ '
+echo ' ---- Take the following 11 numbers and put them in cells E3-E13 of the spreadsheet  ------ '
+awk '{print $5}' bkg_enr_AC.txt
+echo ' ================= '
+# 
+# Count the number of signal events S
+./submit.pl -MC -sig -allcut -enr -parfile MC_enr_SL_params.txt -scanmx >&! scan_sig_enr_SL.log
+#
+# get the number of entries for mES>5.27, you should have 10 numbers instead of 11 as in the background case
+# put them in cells F4-F13 (F3 is defined as the sum of F4:F13). The error is automatically computed in column H
+echo ' ---- Now printing the signal yields for MC enriched sample,                         ------ '
+echo ' ---- Take the following 10 numbers and put them in cells F4-F13 of the spreadsheet  ------ '
+grep -i "Events in dataset mES" scan_sig_enr_SL.log
+echo ' ================= '
+#
+#
+# The S/P ratio and error for the MC enriched sample is automatically computed in columns I and K respectively
+#
+#
+# The double S/P ratio and error for MC enriched/MC depleted is automatically computed in columns R and T respectively
+#
+############################################################
+#
+# Now we determine S/P on data depleted
+#
+./submit.pl -DATA -all -allcut -depl -parfile DATA_depl_SL_params.txt -scanmx  >&! scan_DATA_depl_SL.log
+# 
+# We are fitting simultaneously signal, peaking BKG, combinatorial background, we 
+# Take the results from the scan 
+# peaking background yields and uncertainties, put in cols L18-L27 and N18-N27 respectively
+echo ' ---- Now printing the peaking background yields for data depleted sample             ------ '
+echo ' ---- Take the following 10 numbers and put them in cells L18-L27 of the spreadsheet  ------ '
+awk '{print $3}' data_depl_AC.txt
+echo ' ================= '
+echo ' ---- Now printing the peaking background errors for data depleted sample             ------ '
+echo ' ---- Take the following 10 numbers and put them in cells N18-N27 of the spreadsheet  ------ '
+awk '{print $5}' data_depl_AC.txt
+echo ' ================= '
+# signal yields and uncertainties, put in cols O18-O27 and Q18-Q27 respectively
+echo ' ---- Now printing the signal yields for data depleted sample                         ------ '
+echo ' ---- Take the following 10 numbers and put them in cells O18-O27 of the spreadsheet  ------ '
+awk '{print $9}' data_depl_AC.txt
+echo ' ================= '
+echo ' ---- Now printing the signal errors for data depleted sample                         ------ '
+echo ' ---- Take the following 10 numbers and put them in cells Q18-Q27 of the spreadsheet  ------ '
+awk '{print $11}' data_depl_AC.txt
+echo ' ================= '
+#
+# We can also cross-check S/P on data enriched 
+./submit.pl -DATA -all -allcut -enr -parfile DATA_enr_SL_params.txt -scanmx  >&! scan_DATA_enr_SL.log
+# Take the results from the scan 
+# peaking background yields and uncertainties, put in cols C18-C27 and E18-E27 respectively
+echo ' ---- Now printing the peaking background yields for data enriched sample             ------ '
+echo ' ---- Take the following 10 numbers and put them in cells C18-C27 of the spreadsheet  ------ '
+awk '{print $3}' data_enr_AC.txt
+echo ' ================= '
+echo ' ---- Now printing the peaking background errors for data enriched sample             ------ '
+echo ' ---- Take the following 10 numbers and put them in cells E18-E27 of the spreadsheet  ------ '
+awk '{print $5}' data_enr_AC.txt
+echo ' ================= '
+# peaking background yields and uncertainties, put in cols F18-F27 and H18-H27 respectively
+echo ' ---- Now printing the signal yields for data enriched sample                         ------ '
+echo ' ---- Take the following 10 numbers and put them in cells F18-F27 of the spreadsheet  ------ '
+awk '{print $9}' data_enr_AC.txt
+echo ' ================= '
+echo ' ---- Now printing the signal errors for data enriched sample                         ------ '
+echo ' ---- Take the following 10 numbers and put them in cells H18-H27 of the spreadsheet  ------ '
+awk '{print $11}' data_enr_AC.txt
+echo ' ================= '
+#
+#
+##############################################################
+#
+#
+##  The S/P for data depleted will appear in cells R18-R27, the error in T18-T27. 
+#   The correction ratio and error will appear in cells U32-U41 and W32-W41
+# 
+#	At this point you can create a file like 
+#	the one in VVF/corrratiomx.txt 
+#	which contains the mx bins and correction ratios, i.e.
+#	cells A32-A41, B32-B41, U32-U41, V32-V41, W32-W41 
+#	and use it at your wish! 
+#
+##############################################################
+
+##########################################################################################################
+#### ALL THE MX SCANS ON MC ENRICHED, MC DEPLETED, DATA DEPLETED AND DATA ENRICHED CAN BE EASILY REPEATED BY 
+#### USING THE PDF PARAMETERS DETERMINED WITH ALLCUTS. SIMPLY CHANGE THE PARAMETERS FILE WHEN LAUNCHING THE 
+#### SCANS FROM THE ONES CONTAINING _SL_ TO THE ONES CONTAINING _AC_
+##########################################################################################################

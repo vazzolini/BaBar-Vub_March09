@@ -1,0 +1,96 @@
+ROOTCFLAGS    = $(shell $(ROOTSYS)/bin/root-config --cflags)
+ROOTLIBS      = $(shell $(ROOTSYS)/bin/root-config --libs)
+ROOTGLIBS     = $(shell $(ROOTSYS)/bin/root-config --glibs)
+ 
+# -- Solaris
+ifeq ($(BFARCH),SunOS58)
+CXX           = CC -compat=4
+CXX           = CC
+CXXFLAGS      = -g -KPIC
+LD            = CC -compat=4
+LD            = CC 
+LDFLAGS       = -g
+SOFLAGS       = -G
+endif
+
+# -- Linux with egcs
+ifeq ($(BFARCH),Linux2)
+CXX           = g++-2.95.2
+CXXFLAGS      = -g -Wall -fPIC
+LD            = g++-2.95
+LDFLAGS       = -g
+SOFLAGS       = -shared
+endif
+
+ifeq ($(BFARCH),Linux24)
+CXX           = g++-2.95.3
+CXXFLAGS      = -g -Wall -fPIC
+CXXFLAGS      = -g -Wall -fPIC
+LD            = g++-2.95
+LDFLAGS       = -g
+SOFLAGS       = -shared
+endif
+
+
+NGLIBS         = $(ROOTGLIBS) 
+NGLIBS        += -lMinuit
+NGLIBS        += /u/ec/ursl/macros/lib/libEmcUtil-$(VERSION).so
+NGLIBS        += /u/ec/ursl/macros/lib/libFsxUtil-$(VERSION).so
+NGLIBS        += ../shlib/$(BFARCH)/libRecoilAnalysis.so
+NGLIBS        += ../shlib/$(BFARCH)/libMbWTool.so
+NGLIBS        += ../shlib/$(BFARCH)/libFit.so
+GLIBS          = $(filter-out -lNew, $(NGLIBS))
+
+NGLIBB         = $(ROOTGLIBS) 
+NGLIBB        += -lMinuit
+NGLIBB        += /u/ec/ursl/macros/lib/libEmcUtil-$(VERSION).so
+NGLIBB        += /u/ec/ursl/macros/lib/libFsxUtil-$(VERSION).so
+NGLIBB        += ../shlib/$(BFARCH)/libRecoilAnalysis.so
+NGLIBB        += ../shlib/$(BFARCH)/libFit.so
+NGLIBB        += ../shlib/$(BFARCH)/libTheorTool.so
+GLIBB          = $(filter-out -lNew, $(NGLIBB))
+
+CXXFLAGS      += $(ROOTCFLAGS)
+#CXX           += -I/u/ec/ursl/macros
+LIBS           = $(ROOTLIBS) 
+
+NTUPLES = MbWTool.o MbWToolDict.o
+NTUPLEB = TheorTool.o TheorToolDict.o
+
+$(addprefix ../tmp/$(BFARCH)/VubAnalysis/, %.o) : %.cc
+	$(CXX) $(CXXFLAGS) -I../ -c $< -o $@
+# ================================================================================
+lib:  $(addprefix ../tmp/$(BFARCH)/VubAnalysis/, $(NTUPLEB))
+#---------------------------------------------------------------
+	$(CXX) $(SOFLAGS) $(addprefix ../tmp/$(BFARCH)/VubAnalysis/, $(NTUPLEB)) -o ../shlib/$(BFARCH)/libTheorTool.so
+
+TheorToolDict.cc:  TheorTool.hh
+	$(ROOTSYS)/bin/rootcint -f TheorToolDict.cc -c -I../ TheorTool.hh
+
+# ================================================================================
+Theo:  ../tmp/$(BFARCH)/VubAnalysis/Theor.o lib
+# -----------------------------------------------------------------------------
+	$(LD) $(LDFLAGS)  -o ../bin/$(BFARCH)/Theo ../tmp/$(BFARCH)/VubAnalysis/Theor.o $(GLIBB) 
+
+# ================================================================================
+MbW:  $(addprefix ../tmp/$(BFARCH)/VubAnalysis/, $(NTUPLES))
+#---------------------------------------------------------------
+	$(CXX) $(SOFLAGS) $(addprefix ../tmp/$(BFARCH)/VubAnalysis/, $(NTUPLES)) -o ../shlib/$(BFARCH)/libMbWTool.so
+
+MbWToolDict.cc:  MbWTool.hh
+	$(ROOTSYS)/bin/rootcint -f MbWToolDict.cc -c -I../ MbWTool.hh
+
+# ================================================================================
+MbWApp:  ../tmp/$(BFARCH)/VubAnalysis/MbW.o MbW
+# -----------------------------------------------------------------------------
+	$(LD) $(LDFLAGS)  -o ../bin/$(BFARCH)/MbWApp ../tmp/$(BFARCH)/VubAnalysis/MbW.o $(GLIBS) 
+
+
+# ================================================================================
+clean:
+	rm -f ../shlib/$(BFARCH)/libTheorTool.so
+	rm -f ../tmp/$(BFARCH)/VubAnalysis/TheorTool.o
+	rm -f ../tmp/$(BFARCH)/VubAnalysis/TheorToolDict.o
+	rm -f ../bin/$(BFARCH)/Theo
+
+

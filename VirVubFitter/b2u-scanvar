@@ -1,0 +1,140 @@
+#! /usr/local/bin/perl
+
+# ./b2u-scanvar -s mxhadfit -i path/to/input/reduced/trees/ -o path/to/vvffit-output/ -f text
+
+print "-----------------------------------------------------------------------------------------\n";
+print "This script will run b2uFit, scanning over a user specified variable. \n";
+print "In doing so, it will call subB2uFit.pl, so please make certain of subB2uFit.pl's health. \n";
+print "Or, in layman's terms - if you encounter problems, make sure it isn't subB2uFit.pl that \n";
+print "  is causing you the insufferable grief before you come crying to me! \n";
+print "-----------------------------------------------------------------------------------------\n";
+
+use Getopt::Std;
+getopts('vs:i:o:f:');
+my $var2scan  = "UNSET";                                   if ($opt_s) {$var2scan = $opt_s;}  # -s . which var to scan
+my $input  = "/u/ec/ejhill/scratch/results/ntuples/a02/";  if ($opt_i) {$input = $opt_i;}     # -i where input it
+my $output = "/u/ec/ejhill/scratch/results/fitout/";       if ($opt_o) {$output = $opt_o;}    # -o where output it
+my $addflag = "";                                          if ($opt_f) {$addflag = $opt_f;}   # -f addn'l flag
+
+##use Getopt::Long;
+##&GetOptions('s=s',\$var2scan,'i=s',\$input,'o=s',\$output);
+
+my $ERROR = 0;
+
+
+if ($opt_v) {print "Submitting jobs to scan the variable $var2scan . . . \n";}
+
+
+if ($opt_v) {print "Looking for reduced trees in this path --> $input  . . . ";}
+if (-d "$input") {
+    # do nothing
+    if ($opt_v) {print "OK \n";}
+} else {
+    print "ERROR ... invalid input path, way to go brainiac\n";
+    $ERROR = 1;
+}
+
+if ($opt_v) {print "Making sure that $output exists  . . . ";}
+if (-d "$output") {
+    # do nothing
+    if ($opt_v) {print "OK \n";}
+} else {
+    print "ERROR ... invalid output path, come on now - this isn't that difficult \n";
+    $ERROR = 1;
+}
+
+
+if ($var2scan eq "mm2") {
+    @cutvals = (0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.5,2.0,2.5,3.0,4.0,5.0);
+}
+if ($var2scan eq "pcms") {
+    @cutvals = (1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0);
+}
+if ($var2scan eq "mxhadfit") {
+    @cutvals = (1.15,1.2,1.25,1.3,1.35,1.4,1.45,1.5,1.55,1.6,1.65,1.67,1.7,1.75,1.8,1.85,1.9,1.95,2.0,2.05,2.1,2.15,2.2,2.25,2.3,2.4,2.5);
+}
+if ($var2scan eq "qtot") {
+    @cutvals = (0,1);
+}
+
+if ($var2scan ne "mm2") {
+    if ($var2scan ne "mxhadfit") {
+	if ($var2scan ne "pcms") {
+	    if ($var2scan ne "qtot") {
+		$ERROR = 1;
+		print "$var2scan???  What is that crap???  ERROR ... please pick a variable that actually exists in the reduced tree!\n";
+	    }
+	}
+    }
+}
+
+my $written;
+my $qtottemp;
+if ($ERROR < 1) {
+    foreach $cut (@cutvals) {
+
+	if ($opt_v) {print "\nsubmitting job for $var2scan cut = $cut\n";}
+        my $flag = "scan-$addflag-$var2scan-$cut";
+        if ($var2scan eq "mxhadfit") {$flag = "scan-$addflag-mx-$cut";}
+
+
+	open OUT,">./tempBsub.pl" ;
+	open INPUT,"subB2uFit.pl";
+
+	while (<INPUT>){ 
+
+	    $written = 0;
+
+	    if ($var2scan eq "mm2") {
+		if (/{MNUHIGH}=       .5;/) {
+		    print OUT "\$ENV{MNUHIGH}=       $cut; \n";
+		    $written = 1;
+		}
+	    }
+#	    if ($var2scan eq "mxhadfit") {
+#		if (/ENV{MXBIN}=        1.67;/) {
+#		    print OUT "\$ENV{MXBIN}=       $cut; \n";
+#		    $written = 1;
+#		}
+#	    }
+	    if ($var2scan eq "pcms") {
+		if (/ENV{LEPTCUT}=       1.;/) {
+		    print OUT "\$ENV{LEPTCUT}=       $cut; \n";
+		    $written = 1;
+		}
+	    }
+	    if ($var2scan eq "qtot") {
+		if (/ENV{CHLOW}=      -.5;/) {
+		    $qtottemp = -$cut-0.5;
+		    print OUT "\$ENV{CHLOW}=       $qtottemp; \n";
+		    $written = 1;
+		}
+		if (/ENV{CHHIGH}=      .5;/) {
+		    $qtottemp = $cut+0.5;
+		    print OUT "\$ENV{CHHIGH}=      $qtottemp; \n";
+		    $written = 1;
+		}
+	    }
+
+
+	    if ($written < 1) {print OUT;}
+
+	}
+
+	close OUT;
+
+	if ($var2scan ne "mxhadfit") {
+ 	  system("perl tempBsub.pl -FF -d -b -rew 10 -wF sysWd/belle3d_0.inc -flag $flag -dirS $input -dirO $output -merged -mxfit -newbin");
+	  if ($opt_v) {print  "tempBsub.pl -FF -d -b -rew 10 -wF sysWd/belle3d_0.inc -flag $flag -dirS $input -dirO $output -merged -mxfit -newbin \n";}
+        } else {
+ 	  system("perl tempBsub.pl -FF -d -b -rew 10 -wF sysWd/belle3d_0.inc -flag $flag -dirS $input -dirO $output -mxbin $cut -merged -mxfit -newbin");
+   	  if ($opt_v) {print  "tempBsub.pl -FF -d -b -rew 10 -wF sysWd/belle3d_0.inc -flag $flag -dirS $input -dirO $output -mxbin $cut -merged -mxfit -newbin \n";}
+        }
+        system("rm tempBsub.pl");
+    }
+} else {
+    print "Not submitting b/c of earlier error(s) \n";
+}
+
+
+

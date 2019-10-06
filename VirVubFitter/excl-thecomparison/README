@@ -1,0 +1,51 @@
+0) Dependencies
+=======================================
+You need to have a valid Root installation i.e. with $ROOTSYS configured.
+
+1) Compiling
+========================================
+
+This version of "thecomparison" uses shared libraries.
+These below are needed to compile libthecomparison.so:
+
+libmesData.so
+librecoilAnalysis.so (<- Note: this is not the same library you can build from RecoilAnalysis by running gmake -f Makefile lib !!) 
+librecoilDSys.so
+
+To build the shared libraries simply run:
+
+gmake -f Makefile lib
+
+it'll create, compile and link and all the files needed.
+
+2) Running
+========================================
+
+Once you have libthecomparison.so you can run thecomparison.
+The steps are:
+
+a) Modify settings.dat:
+	- file1 and file2 are the names of the files (or chains)
+	- tree1 (tree2) is the name of the tree in file1 (file2)
+	- outdir is the full path of the dir where postscript filse will be created. If this dir doesn't exist, the program will create it.
+        - cutFile is the name of the file that contains all cuts values for a decay mode 
+
+	Add the names of variables you wish to compare, providing also the range (min,max) number of bins, shift and smear.
+
+b) Check out if comp.C calls Loop and FitMes methods with appropriate values
+
+c) run compare.pl
+
+
+3) Options for compare.pl
+======================================
+
+-int			interactive mode (by def. it runs in batch mode)
+-que <queue name>	specify queue type
+-set <filename> 	specify settings file name
+-help 			shows help for compare.pl
+======================================
+
+Last modified: April 26 2006
+dorazioa@slac.stanford.edu
+

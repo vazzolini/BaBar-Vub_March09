@@ -1,0 +1,98 @@
+#!/bin/tcsh -m
+#
+# official options for the fit on data
+#-----------------------
+totalStat           270. 
+totalStatModel      270.
+BRRatioGenValue     0.0017
+BRRatioValueTail    0.0017
+pstarfact           1.13152
+mxCut               1.55
+useCB               1
+fixMeanValue        1
+fixSigma            1
+fixArgus1           0
+fixArgus2           0
+fixCB1              1
+fixCB2              1
+leptonPCut          1.
+prmm2Cut           -3
+q2Cut               0.
+mnuSqLow            -1000.
+mnuSqHigh           0.5
+chLow               -.5
+chHigh              .5
+depl                1
+minintpur           0.8
+maxintpur           9999.0
+Btype               2       # 0 only B0, 1 only Bch, 2 all
+lepttype            2       # 0 electron, 1 muon, 2 all
+fittotshape         2
+mixcorr             2       # 0 no mix corr, 1 mix corr
+fitMC               0      
+fitOption           0     # 0 : default; 1: vcb and other component forced to same scaling
+toyMC               0.    # toyMC>0 throws the toy and the value tells the fraction of the MC one has to use as model
+multifit            0
+blinding            0
+blindsize           .4
+randomseed          990717  # OFFICIAL BLINDING!!!!!
+issmearAll          0
+smearAllMeanValue   0.1
+smearAllSigma       .001
+issmearBkg          0
+smearBkgMeanValue   0.
+smearBkgSigma       .1
+########
+#
+# reweighting
+#
+########
+dotrkreweight       0
+doneureweight       0
+doBdecreweight      1
+doDdecreweight      1
+dobrecoreweight     0
+# ...
+theomxweight  1 
+bin0    1
+bin1    0.909665
+bin2    1.29246
+bin3    1.46582
+bin4    1.76568
+bin5    1.94114
+bin6    2.13178
+bin7    2.11563
+bin8    2.16758
+bin9    2.2164
+bin10    2.27013
+bin11    2.20734
+bin12    2.32989
+bin13    2.32402
+bin14    2.31334
+bin15    2.27502
+bin16    2.19471
+bin17    2.24343
+bin18    2.21447
+bin19    1.74
+bin20    1.37081
+bin0    1
+bin1    0.98063
+bin2    1.68834
+bin3    1.27842
+bin4    1.63197
+bin5    1.46869
+bin6    2.04555
+bin7    2.18231
+bin8    2.25036
+bin9    2.30336
+bin10    2.32756
+bin11    2.26239
+bin12    2.34353
+bin13    2.28631
+bin14    2.3182
+bin15    2.35627
+bin16    2.23975
+bin17    2.24854
+bin18    1.96504
+bin19    2.43041
+bin20    2.43041

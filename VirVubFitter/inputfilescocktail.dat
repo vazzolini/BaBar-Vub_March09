@@ -1,0 +1,6 @@
+#
+# input files for the fit
+#--------------------------
+fileVubTotal            exclchains/cocktailSP8     1
+fileVcb                 exclchains/cocktailSP8     1
+fileData                exclchains/cocktailSP8     1

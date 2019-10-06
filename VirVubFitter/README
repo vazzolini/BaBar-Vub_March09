@@ -1,0 +1,44 @@
+==========================================================================
+
+         VubAnalysis -- New Root Code for the Vub Fit analysis 
+		     	
+--------------------------------------------------------------------------
+
+briefly:
+at this point of our analysis we need a new Root Code for the Vub Fit that will  approach in a better way the C++like phylosophy, will be probably more compact, ordered and homogenous respect the present one.
+It takes place in 2 steps:
+first, I tend to reproduce present results with the new fitter;
+In a second time it will be possible switch from a variable of interest to whatever other variable.
+
+Today....code development in course!!
+
+
+--------------------------------------------------------------------------
+     for any question send me a mail: azzolini@SLAC.Stanford.EDU
+==========================================================================
+
+
+=====>  PUT ALL THE INFO ABOUT NEW CODE HERE AND IN THE HISTORY FILE
+
+
+
+	Name 			Description			Obsolete?
+---------------------------------------------------------------------------
+
+Fit code:
+
+	|VirClass.cc|		Methods for Fitting
+	|VirInit.cc|		Initialize fit
+	|VirUtil.cc|		Mes and output utilities
+
+
+Fit tables
+
+	||
+	||
+
+Miscellanea:
+
+	||
+	||
+	||

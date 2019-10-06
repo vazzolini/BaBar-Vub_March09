@@ -1,0 +1,73 @@
+# -- Cuts for recoil analysis
+# ---------------------------
+# -- breco
+mesSignalLo     5.27
+mesSignalHi     5.29
+mesSidebandLo   5.20
+mesSidebandHi   5.26
+mesSignalbandLo -0.1
+mesSignalbandHi -0.1
+deSignalLo      -0.1
+deSignalHi       0.1
+purity           0.0
+intPurity        0.0
+ipurDstar        0.24
+ipurDc           0.09
+ipurDstar0       0.08
+ipurD0           0.09
+# -- lepton
+pcmsLo           1.0
+plabLo           0.5
+tlabLo           23.5
+tlabHi           135.8
+nLepton          1
+elmomLo          1.0
+mumomLo          1.0
+kamomLo          0.3
+idEl             32
+idMu             8
+idKa             4
+# -- recoil
+prmm2            -3.0
+mm2Lo            -9999
+mm2Hi            0.5
+reqChargeCoor    1
+reqTotalCharge   1
+kspipLo          0.486
+kspipHi          0.510
+kspipRlo         -0.5
+kspizLo          0.2 
+kspizHi          0.8
+gammaELo         0.080
+gammaEHi         100.
+# -- kFit parametrizations: 
+#    0   July 2002
+#    101 mmiss
+#    102 cos(theta)
+#    103 energy
+kFitPara         102
+# -- TrkTables and PidTables
+TrkTables        ../RecoilAnalysis/TrkTables.txt
+smearTrkPx       1.30
+smearTrkPy       1.30
+sigmaNeut	 0.02
+shiftNeut        -0.0075
+# Note: PidTables MUST come AFTER the following settings
+# Note: it's not smearing, but shifting (despite the name)
+smearElPidTables 0.
+smearElMisTables 0.
+smearMuPidTables 0.
+smearMuMisTables 0.
+smearKaPidTables 0.
+smearKaMisTables 0.
+PidTables        ../RecoilAnalysis/PidTables-200x.011403.txt
+trackSelection   7
+trackKilling     0
+photonSelection  8
+trackKill        0.013
+slowPionKill     0.016
+#ReweightTrkTables tablechg.dat
+#ReweightNeuTables tableneu.dat
+# -- B and D BF reweigthing
+DoBdecayWeight   1
+DoDdecayWeight   1

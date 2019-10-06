@@ -1,0 +1,60 @@
+macro check 1=1 2=1
+**************************************
+*
+* kumac to show/print all histograms
+*
+* 1=print(1) or not(0)
+* 2=wait(1) or not(0)
+*
+**************************************
+set *
+option *
+opt a4 
+zone 3 4
+option stat
+option fit
+set stat 11111111111
+option nbox
+option zfl1
+set gsiz 0.5
+set ygti 1.0
+id=1
+i=1
+while $HEXIST([i]) do
+  mess 'Shown:'
+  title 'Histogram '//$sigma([i])//' to '//$sigma([i]+11)
+  do id=$sigma([i]),$sigma([i]+11)
+    j=$sigma([id]-[i])
+    j=$sigma([j]-3*int([j]/3.0))
+    if [j].eq.0 then
+      mess [id] $sigma([id]+1) $sigma([id]+2)
+    endif
+    if $HEXIST([id]) then
+      hi/plot [Id]
+      if $HEXIST([id]+2000) then
+        hi/plot $sigma([Id]+2000) s
+      endif
+    else
+      breakl
+    endif
+  enddo
+  if [2].gt.0 then
+    wait 'return for next page'
+  endif
+  if [1].gt.0 then
+    if [id].lt.$sigma([i]+11) then
+      pic/print check_//$sigma(([i]-1)*12+1)//_//$sigma([id]-2)//.ps
+    else
+      pic/print check_//$sigma(([i]-1)*12+1)//_//$sigma([id])//.ps
+    endif
+  endif
+  i=[i]+12
+endwhile
+zone 1 1
+title 'Chi2 distribution'
+hi/plot $sigma([id]-1)
+wait 'return for next page'
+set *
+option *
+return
+

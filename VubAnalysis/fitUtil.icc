@@ -1,0 +1,1443 @@
+
+TVector2 fitNtp::sighisto(TH1D *histo, double &resmean, double &ressigma, double &resalpha, double &resn, int fixpar, double mean, double sigma, double alpha,  double n, double argus){
+
+  recoilAnalysis b;
+  mesData themes;
+  double thesigma = -1111111;
+  double themean = -1111111;
+  double theargus = -1111111;
+  double thealpha = -1111111;
+  double then = -1111111;
+
+  if (fixpar){
+    if (FIXMEANVALUE) themean = mean;
+    if (FIXSIGMA) thesigma = sigma;
+    if (FIXCB1) thealpha = alpha;
+    if (FIXCB2) then = n;
+    if (FIXARGUS1) theargus = argus;
+    if (USECB) { 
+      mesData tempthemes(*(b.vubMes(histo, resmean, ressigma, resalpha, resn, 1, 1, themean, thesigma, thealpha, then, theargus)));
+      themes = tempthemes;
+    }else{
+      mesData tempthemes(*(b.vubMes(histo, resmean, ressigma, resalpha, resn, 1, 0, themean, thesigma, thealpha, then, theargus)));
+      themes = tempthemes;
+    }
+     
+  }else{
+    if (USECB) { 
+      mesData tempthemes(*(b.vubMes(histo, resmean, ressigma, resalpha, resn, 1,1, themean, thesigma, thealpha, then, theargus)));
+      themes = tempthemes;
+    }else{
+      mesData tempthemes(*(b.vubMes(histo, resmean, ressigma, resalpha, resn, 1, 0, themean, thesigma, thealpha, then, theargus)));
+      themes = tempthemes;
+    }
+  }
+  TVector2 temp(themes.theSig(),themes.theErrSig()); 
+  return temp;
+
+}
+
+void fitNtp::Fitmessub(const char* comp){
+  // fit to mes distribution and fill of the Mx plots...
+
+  fHistFile->cd();
+  char lgroup[100], flavcat[100], mc[100];
+  char *thecompVub = "uvub";
+  char *thecompVcb = "cvcb";
+  char *thecompoth = "oth";
+  char *thecompdata = "data";
+  char *thecompVublept = "lvublept";
+  sprintf(mc, "mc");
+  if (*comp == *thecompVub) {sprintf(lgroup, "vub");}
+  else if (*comp == *thecompVcb) {sprintf(lgroup, "vcb");}
+  else if (*comp == *thecompoth) {sprintf(lgroup, "oth");}
+  else if (*comp == *thecompdata) {sprintf(lgroup, "");sprintf(mc, "data");}
+  else {cout << "Vub fit: unknown category" << endl; return;}
+  int i;
+  char nameps[100], preine[100], preich[100], prefix[100];  
+  char prefixps[100];
+
+  char name[100];
+  char namebch[100];
+  char nameb0os[100];
+  char nameb0ss[100];
+  char name2[100];
+  char le[100];
+  double sigs[13];
+  double errsigs[13];
+  double tempbin;
+  double tempbinchb;
+  double tempbinb0os;
+  double tempbinb0ss;
+  double temperr;
+  double temperrchb;
+  double temperrb0os;
+  double temperrb0ss;
+  double chid = 0.181;
+  int ia;
+  int is;
+  int ich;
+  int ine;
+  double foomean;
+  double foosigma;
+  double fooalpha;
+  double foon;
+  double usedmean;
+  double usedsigma;
+  double usedalpha;
+  double usedn;   
+
+  bool doToy= (isToyMC()>0) && (comp == "data");
+  //extracting the signal fit parameters 
+  sprintf(name, "%s%s",lgroup,"allcutsmc");
+  if(*comp == *thecompdata) sprintf(name, "allcutsdata");
+  TH1D* histo = makeMesHist(name,doToy);
+  if (*comp == *thecompVub) {TVector2 signal = sighisto(histo,usedmean,usedsigma,usedalpha,usedn,1,mesvubcuts[0],mesvubcuts[1],mesvubcuts[2],5.,-1111111.);}
+  else if (*comp == *thecompVcb) {TVector2 signal = sighisto(histo,usedmean,usedsigma,usedalpha,usedn,1,mesvcbcuts[0],mesvcbcuts[1],mesvcbcuts[2],5.,-1111111.);}
+  else if (*comp == *thecompoth) {TVector2 signal = sighisto(histo,usedmean,usedsigma,usedalpha,usedn,1,mesothcuts[0],mesothcuts[1],mesothcuts[2],5.,-1111111.);}
+  else if (*comp == *thecompdata) {TVector2 signal = sighisto(histo,usedmean,usedsigma,usedalpha,usedn,1,mesdatacuts[0],mesdatacuts[1],mesdatacuts[2],5.,-1111111.);}
+  
+  cout << "mes result for: " << name << " is, MEAN " << usedmean << " SIGMA " << usedsigma << " ALPHA " << usedalpha << " N " << usedn << endl;
+
+  for (int t = 3; t < 6; t++){
+
+    sprintf(prefixps, "%s", "mesplots-Bch");
+    if(t==4) sprintf(prefixps, "%s", "mesplots-B0os");
+    if(t==5) sprintf(prefixps, "%s", "mesplots-B0ss");   
+
+    if(t==3) sprintf(flavcat, "%s", "bch");
+    if(t==4) sprintf(flavcat, "%s", "bos");
+    if(t==5) sprintf(flavcat, "%s", "bss");
+
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),prefixps,comp,".eps");  
+    
+    c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+    c1->Clear();
+    c1->Divide(4, 3);
+    openEpsFile(nameps);
+    closeEpsFile();
+
+    c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+    c1->Clear();
+    c1->Divide(4, 3);
+    
+    openEpsFile(nameps);
+    
+    for (i = 1;  i < 15; i++) { 
+
+      ia = i - 3;
+      is = i;
+      if (i == 14) is = 1;
+      
+      // put the result of the fit in each Mx bin
+      
+      if (i==14) {sprintf(name, "%s%s%s%s%s",lgroup,"allcuts",mc,"1bin",flavcat);}
+      else{sprintf(name, "%s%s%s%s%s%d",lgroup,"allcuts",mc,flavcat,"bin",is);}
+      if (i<5) {c1->cd(2);}else{c1->cd(i-3);}
+      if (i==14) c1->cd(1);
+      TH1D* histoToFit = makeMesHist(name,doToy);
+      TVector2 signal = sighisto(histoToFit,foomean,foosigma,fooalpha,foon,1,usedmean,usedsigma,usedalpha,usedn,-1111111);
+      delete histoToFit;
+      sigs[is-1] = signal.X();
+      errsigs[is-1] =  signal.Y();
+      sprintf(name, "%s%s%s","mx",lgroup,flavcat);
+      if(*comp == *thecompdata) sprintf(name, "%s%s%s","mx","data",flavcat);
+      if(i==14){
+	sprintf(name, "%s%s%s","mxoneb",lgroup,flavcat);
+	if(*comp == *thecompdata) sprintf(name, "%s%s%s","mxoneb","data",flavcat);
+      }
+      ((TH1D*)gDirectory->Get(name))->SetBinContent(is, sigs[is-1]);
+      ((TH1D*)gDirectory->Get(name))->SetBinError(is, errsigs[is-1]);
+      
+      if(i>4 && i<14 ){
+	sprintf(name, "%s%s%s","mxoneb",lgroup,flavcat);
+	if(*comp == *thecompdata) sprintf(name, "%s%s%s","mxoneb","data",flavcat);
+	((TH1D*)gDirectory->Get(name))->SetBinContent(ia, sigs[is-1]);
+	((TH1D*)gDirectory->Get(name))->SetBinError(ia, errsigs[is-1]);
+      }
+    }  
+    
+    sprintf(name,"%s%s%s","mxoneb",lgroup,flavcat);
+    if(*comp == *thecompdata) sprintf(name, "%s%s%s","mxoneb","data",flavcat);
+    c1->cd(11);
+    cout << name << endl;
+    ((TH1D*)gDirectory->Get(name))->SetMarkerSize(8.);	
+    ((TH1D*)gDirectory->Get(name))->SetMarkerColor(kRed);	
+    ((TH1D*)gDirectory->Get(name))->SetStats(0);
+    ((TH1D*)gDirectory->Get(name))->SetXTitle("Mx(GeV)");
+    ((TH1D*)gDirectory->Get(name))->Draw();
+    
+    closeEpsFile();
+
+    if(DOVARSTU) {
+      //Var study
+      char varN[200];
+      for (int iVar = 0;  iVar < 6; iVar++) {       
+	if(iVar == 0) {
+	  sprintf(varN,"mqb");
+	} else if(iVar == 1) {
+	  sprintf(varN,"q2");
+	} else if(iVar == 2) {
+	  sprintf(varN,"csi");
+	} else if(iVar == 3) {
+	  sprintf(varN,"w");
+	} else if(iVar == 4) {
+	  sprintf(varN,"x");
+	} else if(iVar == 5) {
+	  sprintf(varN,"lep");
+	} 
+	
+	for (i = 1;  i < 11; i++) {       
+	  // put the result of the fit in each Variable bin
+	  sprintf(name, "%s%s%s%s%s%s%d",lgroup,varN,"allcuts",mc,flavcat,"bin",i);
+	  TVector2 signal = sighisto(((TH1D*)gDirectory->Get(name)),foomean,foosigma,fooalpha,foon,1,usedmean,usedsigma,usedalpha,usedn,-1111111);
+	  sigs[i-1] = signal.X();
+	  errsigs[i-1] =  signal.Y();
+	  sprintf(name, "%s%s%s",varN,lgroup,flavcat);
+	  if(*comp == *thecompdata) {
+	    sprintf(name, "%s%s%s",varN,"data",flavcat);
+	  } 
+	  ((TH1D*)gDirectory->Get(name))->SetBinContent(i, sigs[i-1]);
+	  ((TH1D*)gDirectory->Get(name))->SetBinError(i, errsigs[i-1]);
+	}  
+      }  
+    }
+  }
+  // add histos to correct mixing effect
+  
+  sprintf(name, "%s%s","mx",lgroup);  
+  if(*comp == *thecompdata) sprintf(name,"mxdata");
+  sprintf(namebch,  "%s%s",name,"bch");  
+  sprintf(nameb0os, "%s%s",name,"bos");  
+  sprintf(nameb0ss, "%s%s",name,"bss");  
+
+  // Correction to have the right Bch/B0 ratio (as data)
+  double correctionratio = 1;
+  if(*comp == *thecompdata) {
+ 
+    c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+    c1->Clear();
+    c1->Divide(3, 2);
+    sprintf(prefixps, "%s", "mes_correction");
+    
+    sprintf(nameps, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),prefixps,".eps");  
+    
+    openEpsFile(nameps);
+
+    c1->cd(1);    
+    TVector2 signal;
+    signal = sighisto(((TH1D*)gDirectory->Get("leptondatabch")),foomean,foosigma,fooalpha,foon,1,mesNsl[0],mesNsl[1],mesNsl[2],5.,-1111111.);
+    double nbchdata = signal.X();
+    c1->cd(4);    
+    signal = sighisto(((TH1D*)gDirectory->Get("leptondatabos")),foomean,foosigma,fooalpha,foon,1,mesNsl[0],mesNsl[1],mesNsl[2],5.,-1111111.);
+    double nb0data = signal.X();
+    c1->cd(2);    
+    signal = sighisto(((TH1D*)gDirectory->Get("vcbleptonmcbch")),foomean,foosigma,fooalpha,foon,1,mesvcbMC[0],mesvcbMC[1],mesvcbMC[2], 5.,-1111111.);
+    double nbchvcb = signal.X();
+    c1->cd(5);    
+    signal = sighisto(((TH1D*)gDirectory->Get("vcbleptonmcbos")),foomean,foosigma,fooalpha,foon,1,mesvcbMC[0],mesvcbMC[1],mesvcbMC[2], 5.,-1111111.);
+    double nb0vcb = signal.X();
+    c1->cd(3);    
+    signal = sighisto(((TH1D*)gDirectory->Get("vubleptonmcbch")),foomean,foosigma,fooalpha,foon,1,mesvubMC[0],mesvubMC[1],mesvubMC[2], 5.,-1111111.);
+    double nbchvub = signal.X();
+    c1->cd(6);    
+    signal = sighisto(((TH1D*)gDirectory->Get("vubleptonmcbos")),foomean,foosigma,fooalpha,foon,1,mesvubMC[0],mesvubMC[1],mesvubMC[2], 5.,-1111111.);
+    double nb0vub = signal.X();
+    closeEpsFile();
+    
+    double ratiobchb0 = nbchdata/nb0data;
+    double ratiobchb0vcb = nbchvcb/nb0vcb;
+    double ratiobchb0vub = nbchvub/nb0vub;
+    correctionratiovub = ratiobchb0/ratiobchb0vub;
+    correctionratiovcb = ratiobchb0/ratiobchb0vcb;
+    cout << "****************************" << endl;
+    cout << endl;
+    cout << "DATA RATIO : " << nbchdata << " " << nb0data << " " << ratiobchb0 << endl;
+    cout << "VCB RATIO : "  << nbchvcb << " " << nb0vcb << " " << ratiobchb0vcb << endl;
+    cout << "VUB RATIO : "  << nbchvub << " " << nb0vub << " " << ratiobchb0vub << endl;
+    cout << "VCB RATIO CORRECTION : " << correctionratiovcb << endl;
+    cout << "VUB RATIO CORRECTION : " << correctionratiovub << endl;
+    cout << endl;
+    cout << "****************************" << endl;    
+  }
+  
+  if(BTYPE == 2){
+    if(*comp == *thecompVcb || *comp == *thecompoth ) {
+      correctionratio = correctionratiovcb;
+    }
+    if(*comp == *thecompVub) {
+      correctionratio = correctionratiovub;
+    }
+  }
+
+  for (i=1;i<14;i++){
+
+    tempbinchb = ((TH1D*)gDirectory->Get(namebch))->GetBinContent(i) * correctionratio;
+    tempbinb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinContent(i);
+    tempbinb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinContent(i);
+    temperrchb = ((TH1D*)gDirectory->Get(namebch))->GetBinError(i) * correctionratio;
+    temperrb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinError(i);
+    temperrb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinError(i);
+    if(MIXCORR==0){
+      tempbin = tempbinchb + tempbinb0os;
+      temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+    }else{      
+      tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+      temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+    }
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+    ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+	      
+  }
+
+
+
+  sprintf(name, "%s%s","mxoneb",lgroup);  
+  if(*comp == *thecompdata) sprintf(name,"mxonebdata");
+  sprintf(namebch,  "%s%s",name,"bch");  
+  sprintf(nameb0os, "%s%s",name,"bos");  
+  sprintf(nameb0ss, "%s%s",name,"bss");  
+
+  for (i=1;i<11;i++){
+
+    tempbinchb = ((TH1D*)gDirectory->Get(namebch))->GetBinContent(i) * correctionratio;
+    tempbinb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinContent(i);
+    tempbinb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinContent(i);
+    temperrchb = ((TH1D*)gDirectory->Get(namebch))->GetBinError(i) * correctionratio;
+    temperrb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinError(i);
+    temperrb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinError(i);
+    if(MIXCORR==0){
+      tempbin = tempbinchb + tempbinb0os;
+      temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+    }else{      
+      tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+      temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+    }
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+    ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+	      
+  }
+
+  sprintf(nameps, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),comp,".eps");  
+  
+  c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+  c1->Clear();
+  c1->Divide(2, 2);
+
+  openEpsFile(nameps);
+
+
+  c1->cd(1);
+  ((TH1D*)gDirectory->Get(namebch))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(namebch))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(namebch))->SetStats(0);
+  ((TH1D*)gDirectory->Get(namebch))->SetXTitle("Mx(GeV)");
+  ((TH1D*)gDirectory->Get(namebch))->Draw();	
+  c1->cd(2);
+  ((TH1D*)gDirectory->Get(nameb0os))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(nameb0os))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(nameb0os))->SetStats(0);
+  ((TH1D*)gDirectory->Get(nameb0os))->SetXTitle("Mx(GeV)");
+  ((TH1D*)gDirectory->Get(nameb0os))->Draw();
+  c1->cd(3);
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetStats(0);
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetXTitle("Mx(GeV)");
+  ((TH1D*)gDirectory->Get(nameb0ss))->Draw();
+  c1->cd(4);
+  ((TH1D*)gDirectory->Get(name))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(name))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetXTitle("Mx(GeV)");
+  ((TH1D*)gDirectory->Get(name))->Draw();
+
+  closeEpsFile();
+  
+  if(DOVARSTU) {
+    //Var study
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"lep",comp,".eps");  
+    sprintf(name, "%s%s","lep",lgroup);  
+    if(*comp == *thecompdata) {
+      sprintf(name,"lepdata");
+    }
+    mesUtility(nameps,name,"Pstar(GeV)",correctionratio);
+    
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"mqb",comp,".eps");  
+    sprintf(name, "%s%s","mqb",lgroup);  
+    if(*comp == *thecompdata){
+      sprintf(name,"mqbdata");
+    }
+    mesUtility(nameps,name,"m_{b}(GeV)",correctionratio);
+    
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"csi",comp,".eps");  
+    sprintf(name, "%s%s","csi",lgroup);  
+    if(*comp == *thecompdata) { 
+      sprintf(name,"csidata");
+    }
+    mesUtility(nameps,name,"#xi",correctionratio);
+    
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"w",comp,".eps");  
+    sprintf(name, "%s%s","w",lgroup);  
+    if(*comp == *thecompdata) { 
+      sprintf(name,"wdata");
+    }
+    mesUtility(nameps,name,"w",correctionratio);
+    
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"x",comp,".eps");  
+    sprintf(name, "%s%s","x",lgroup);  
+    if(*comp == *thecompdata) { 
+      sprintf(name,"xdata");
+    }
+    mesUtility(nameps,name,"x",correctionratio);
+    
+    sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"q2",comp,".eps");  
+    sprintf(name, "%s%s","q2",lgroup);  
+    if(*comp == *thecompdata) {
+      sprintf(name,"q2data");
+    }
+    mesUtility(nameps,name,"GeV^{2}",correctionratio);
+  }
+  // multiplicity cat fit...
+
+  if(MULTIFIT){
+  
+    for (ich=1;ich<4;ich++){
+      for (ine=1;ine<3;ine++){    
+	
+	sprintf(preich, "%s%d", "ch", ich);
+	sprintf(preine, "%s%d", "ne", ine);
+	sprintf(prefix, "%s%s",preich , preine);     
+	
+
+	bool doToy= (isToyMC()>0) && (comp == "data");
+	//extracting the signal fit parameters 
+	sprintf(name, "%s%s%s",prefix,lgroup,"allcutsmc");
+	if(*comp == *thecompdata) sprintf(name, "%s%s",prefix, "allcutsdata");
+
+	for (int t = 3; t < 6; t++){
+	  
+	  sprintf(prefixps, "%s%s", "mesplots-Bch", prefix);
+	  if(t==4) sprintf(prefixps, "%s%s", "mesplots-B0os", prefix);
+	  if(t==5) sprintf(prefixps, "%s%s", "mesplots-B0ss", prefix);   
+	  
+	  if(t==3) sprintf(flavcat, "%s", "bch");
+	  if(t==4) sprintf(flavcat, "%s", "bos");
+	  if(t==5) sprintf(flavcat, "%s", "bss");
+
+	  sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),prefixps,comp,".eps");  
+    
+	  c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+	  c1->Clear();
+	  c1->Divide(4, 3);
+    
+	  openEpsFile(nameps);
+    
+	  for (i = 1;  i < 15; i++) { 
+	    
+	    ia = i - 3;
+	    is = i;
+	    if (i == 14) is = 1;
+	    
+	    // put the result of the fit in each Mx bin
+	    
+ 	    if (i==14) {sprintf(name, "%s%s%s%s%s%s", prefix,lgroup,"allcuts",mc,"1bin",flavcat);}
+ 	    else{sprintf(name, "%s%s%s%s%s%s%d", prefix,lgroup,"allcuts",mc,flavcat,"bin",is);}
+ 	    if (i<5) {c1->cd(2);}else{c1->cd(i-3);}
+ 	    if (i==14) c1->cd(1);
+    
+   	    TH1D* histoToFit = makeMesHist(name,doToy);
+ 	    TVector2 signal = sighisto(histoToFit,foomean,foosigma,fooalpha,foon,1,usedmean,usedsigma,usedalpha,usedn,-1111111);
+   	    delete histoToFit;
+ 	    sigs[is-1] = signal.X();
+   	    errsigs[is-1] =  signal.Y();
+ 	    sprintf(name, "%s%s%s%s", prefix,"mx",lgroup,flavcat);
+ 	    if(*comp == *thecompdata) sprintf(name, "%s%s%s%s", prefix, "mx","data",flavcat);
+ 	    if(i==14){
+ 	      sprintf(name, "%s%s%s%s", prefix,"mxoneb",lgroup,flavcat);
+ 	      if(*comp == *thecompdata) sprintf(name, "%s%s%s%s", prefix,"mxoneb","data",flavcat);
+ 	    }
+  	    ((TH1D*)gDirectory->Get(name))->SetBinContent(is, sigs[is-1]);
+  	    ((TH1D*)gDirectory->Get(name))->SetBinError(is, errsigs[is-1]);
+        
+ 	    if(i>4 && i<14 ){
+ 	      sprintf(name, "%s%s%s%s", prefix, "mxoneb",lgroup,flavcat);
+ 	      if(*comp == *thecompdata) sprintf(name, "%s%s%s%s", prefix,"mxoneb","data",flavcat);
+  	      ((TH1D*)gDirectory->Get(name))->SetBinContent(ia, sigs[is-1]);
+  	      ((TH1D*)gDirectory->Get(name))->SetBinError(ia, errsigs[is-1]);
+ 	    }
+	  }  
+	  
+	  sprintf(name,"%s%s%s%s", prefix,"mxoneb",lgroup,flavcat);
+	  if(*comp == *thecompdata) sprintf(name, "%s%s%s%s", prefix,"mxoneb","data",flavcat);
+	  c1->cd(11);
+	  cout << name << endl;
+	  ((TH1D*)gDirectory->Get(name))->Draw();
+	  
+	  closeEpsFile();
+	  
+	}
+
+	sprintf(nameps, "%s%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(), prefix, comp,".eps");  
+
+	c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+	c1->Clear();
+	c1->Divide(2, 2);
+ 
+
+	// add histos to correct mixing effect
+
+	sprintf(name, "%s%s%s",prefix,"mx",lgroup);  
+	if(*comp == *thecompdata) sprintf(name,"%s%s",prefix,"mxdata");
+	sprintf(namebch,  "%s%s",name,"bch");  
+	sprintf(nameb0os, "%s%s",name,"bos");  
+	sprintf(nameb0ss, "%s%s",name,"bss");  
+
+	for (i=1;i<14;i++){
+       
+	  tempbinchb = ((TH1D*)gDirectory->Get(namebch))->GetBinContent(i) * correctionratio;
+	  tempbinb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinContent(i);
+	  tempbinb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinContent(i);
+	  temperrchb = ((TH1D*)gDirectory->Get(namebch))->GetBinError(i) * correctionratio;
+	  temperrb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinError(i);
+	  temperrb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinError(i);
+	  if(MIXCORR==0){
+	    tempbin = tempbinchb + tempbinb0os;
+	    temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+	  }else{      
+	    tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	    temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+	  }
+	  ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+	  ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+	}
+            
+	sprintf(name, "%s%s%s",prefix,"mxoneb",lgroup);  
+	if(*comp == *thecompdata) sprintf(name,"%s%s",prefix,"mxonebdata");
+	sprintf(namebch,  "%s%s",name,"bch");  
+	sprintf(nameb0os, "%s%s",name,"bos");  
+	sprintf(nameb0ss, "%s%s",name,"bss");  
+
+	for (i=1;i<11;i++){
+       
+	  tempbinchb = ((TH1D*)gDirectory->Get(namebch))->GetBinContent(i) * correctionratio;
+	  tempbinb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinContent(i);
+	  tempbinb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinContent(i);
+	  temperrchb = ((TH1D*)gDirectory->Get(namebch))->GetBinError(i) * correctionratio;
+	  temperrb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinError(i);
+	  temperrb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinError(i);
+	  if(MIXCORR==0){
+	    tempbin = tempbinchb + tempbinb0os;
+	    temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+	  }else{      
+	    tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	    temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+	  }
+	  ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+	  ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+       
+	}
+     
+     
+	openEpsFile(nameps);
+     
+	c1->cd(1);
+	((TH1D*)gDirectory->Get(namebch))->SetMarkerSize(8.);	
+	((TH1D*)gDirectory->Get(namebch))->SetMarkerColor(kRed);	
+	((TH1D*)gDirectory->Get(namebch))->SetStats(0);
+	((TH1D*)gDirectory->Get(namebch))->SetXTitle("Mx(GeV)");
+      	((TH1D*)gDirectory->Get(namebch))->Draw();	
+	c1->cd(2);
+	((TH1D*)gDirectory->Get(nameb0os))->SetMarkerSize(8.);	
+	((TH1D*)gDirectory->Get(nameb0os))->SetMarkerColor(kRed);	
+	((TH1D*)gDirectory->Get(nameb0os))->SetStats(0);
+	((TH1D*)gDirectory->Get(nameb0os))->SetXTitle("Mx(GeV)");
+	((TH1D*)gDirectory->Get(nameb0os))->Draw();
+	c1->cd(3);
+	((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerSize(8.);	
+	((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerColor(kRed);	
+	((TH1D*)gDirectory->Get(nameb0ss))->SetStats(0);
+	((TH1D*)gDirectory->Get(nameb0ss))->SetXTitle("Mx(GeV)");
+	((TH1D*)gDirectory->Get(nameb0ss))->Draw();
+	c1->cd(4);
+	((TH1D*)gDirectory->Get(name))->SetMarkerSize(8.);	
+	((TH1D*)gDirectory->Get(name))->SetMarkerColor(kRed);	
+	((TH1D*)gDirectory->Get(name))->SetStats(0);
+	((TH1D*)gDirectory->Get(name))->SetXTitle("Mx(GeV)");
+	((TH1D*)gDirectory->Get(name))->Draw();
+     
+	closeEpsFile();
+	
+	
+      }
+    }
+    
+  }
+  
+  
+}
+
+
+// ----------------------------------------------------------------------
+void fitNtp::effmult(){    
+
+  // test routine for multplicity efficiency studies
+  
+   double tempvalue1 = 0;
+   double tempvalue2 = 0;
+   double temperr1 = 0;
+   double temperr2 = 0;
+   double tempvalue;
+   double temperr;
+   int i=0;
+   int j=0;  
+ 
+   for(i=1;i<11;i++){
+     for(j=1;j<11;j++){
+       tempvalue1 = ((TH1D*)gDirectory->Get("h11"))->GetBinContent(i,j);
+       tempvalue2 = ((TH1D*)gDirectory->Get("h12"))->GetBinContent(i,j);
+       temperr1 = ((TH1D*)gDirectory->Get("h11"))->GetBinError(i,j);
+       temperr2 = ((TH1D*)gDirectory->Get("h12"))->GetBinError(i,j);
+       tempvalue = 0;
+       temperr = 0;
+       if(tempvalue1 != 0) { 
+	 tempvalue = tempvalue2/tempvalue1;
+	 temperr = sqrt(tempvalue*(1-tempvalue));
+       }	
+       ((TH2D*)gDirectory->Get("h13"))->SetBinContent(i,j,tempvalue);
+       ((TH2D*)gDirectory->Get("h13"))->SetBinError(i,j,temperr);
+     }
+   }  
+ 
+   for(i=1;i<11;i++){
+     for(j=1;j<11;j++){
+       tempvalue1 = ((TH1D*)gDirectory->Get("h711"))->GetBinContent(i,j);
+       tempvalue2 = ((TH1D*)gDirectory->Get("h712"))->GetBinContent(i,j);
+       temperr1 = ((TH1D*)gDirectory->Get("h711"))->GetBinError(i,j);
+       temperr2 = ((TH1D*)gDirectory->Get("h712"))->GetBinError(i,j);
+       tempvalue = 0;
+       temperr = 0;
+       if(tempvalue1 != 0) { 
+	 tempvalue = tempvalue2/tempvalue1;
+	 temperr = sqrt(tempvalue*(1-tempvalue));
+       }	
+       ((TH2D*)gDirectory->Get("h713"))->SetBinContent(i,j,tempvalue);
+       ((TH2D*)gDirectory->Get("h713"))->SetBinError(i,j,temperr);
+     }
+   }   
+
+   for(i=1;i<4;i++){
+     for(j=1;j<3;j++){
+       tempvalue1 = ((TH1D*)gDirectory->Get("h99711"))->GetBinContent(i,j);
+       tempvalue2 = ((TH1D*)gDirectory->Get("h99712"))->GetBinContent(i,j);
+       temperr1 = ((TH1D*)gDirectory->Get("h99711"))->GetBinError(i,j);
+       temperr2 = ((TH1D*)gDirectory->Get("h99712"))->GetBinError(i,j);
+       tempvalue = 0;
+       temperr = 0;
+       if(tempvalue1 != 0) { 
+	 tempvalue = tempvalue2/tempvalue1;
+	 temperr = sqrt(tempvalue*(1-tempvalue));
+       }	
+       ((TH2D*)gDirectory->Get("h99713"))->SetBinContent(i,j,tempvalue);
+       ((TH2D*)gDirectory->Get("h99713"))->SetBinError(i,j,temperr);
+       cout << "tempvalue " << tempvalue << "temperr " << temperr ;
+     }
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h111"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h112"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h111"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h112"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h113"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h113"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h7211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h7212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h7211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h7212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h7213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h7213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h8211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h8212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h8211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h8212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h8213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h8213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h9211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h9212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h9211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h9212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h9213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h9213"))->SetBinError(i,temperr);     
+   }   
+   
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h11211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h11212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h11211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h11212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h11213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h11213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h117211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h117212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h117211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h117212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h117213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h117213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h118211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h118212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h118211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h118212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h118213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h118213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h119211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h119212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h119211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h119212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h119213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h119213"))->SetBinError(i,temperr);     
+   }   
+   
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h14211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h14212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h14211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h14212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h14213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h14213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h147211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h147212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h147211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h147212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h147213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h147213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h148211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h148212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h148211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h148212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h148213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h148213"))->SetBinError(i,temperr);     
+   }   
+
+   for(i=1;i<11;i++){
+     tempvalue1 = ((TH1D*)gDirectory->Get("h149211"))->GetBinContent(i);
+     tempvalue2 = ((TH1D*)gDirectory->Get("h149212"))->GetBinContent(i);
+     temperr1 = ((TH1D*)gDirectory->Get("h149211"))->GetBinError(i);
+     temperr2 = ((TH1D*)gDirectory->Get("h149212"))->GetBinError(i);
+     tempvalue = 0;
+     temperr = 0;
+     if(tempvalue1 != 0) { 
+       tempvalue = tempvalue2/tempvalue1;
+       temperr = sqrt((temperr2 * temperr2)/(tempvalue1*tempvalue1)+(temperr1 * temperr1)*(pow(tempvalue2,2)/pow(tempvalue1,4)));
+     }	
+     ((TH2D*)gDirectory->Get("h149213"))->SetBinContent(i,tempvalue);
+     ((TH2D*)gDirectory->Get("h149213"))->SetBinError(i,temperr);     
+   }   
+   
+}  
+
+// ----------------------------------------------------------------------
+void fitNtp::readmesParam(TString filename, int dump) {
+  char  buffer[200];
+  fmesFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char mesfitName[100];
+  float sigma;
+  float mean;
+  float cb1;
+  float cb2;
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    //     if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %f %f %f %f", mesfitName, &mean, &sigma, &cb1, &cb2);
+    
+    // -- 
+    if (!strcmp(mesfitName, "Nsl")) { mesNsl[0] = mean; mesNsl[1] = sigma; mesNsl[2] = cb1; mesNsl[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "datacuts")) { mesdatacuts[0] = mean; mesdatacuts[1] = sigma; mesdatacuts[2] = cb1; mesdatacuts[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubcuts")) { mesvubcuts[0] = mean; mesvubcuts[1] = sigma; mesvubcuts[2] = cb1; mesvubcuts[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vcbcuts")) { mesvcbcuts[0] = mean; mesvcbcuts[1] = sigma; mesvcbcuts[2] = cb1; mesvcbcuts[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "othcuts")) { mesothcuts[0] = mean;  mesothcuts[1] = sigma; mesothcuts[2] = cb1; mesothcuts[3] = cb2; ok = 1;}	
+    if (!strcmp(mesfitName, "NslMC")) { mesNslMC[0] = mean; mesNslMC[1] = sigma; mesNslMC[2] = cb1; mesNslMC[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubMC")) { mesvubMC[0] = mean; mesvubMC[1] = sigma; mesvubMC[2] = cb1; mesvubMC[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vcbMC")) { mesvcbMC[0] = mean; mesvcbMC[1] = sigma; mesvcbMC[2] = cb1; mesvcbMC[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubMCmx")) { mesvubMCmx[0] = mean; mesvubMCmx[1] = sigma; mesvubMCmx[2] = cb1; mesvubMCmx[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubMCall")) { mesvubMCall[0] = mean; mesvubMCall[1] = sigma; mesvubMCall[2] = cb1; mesvubMCall[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vcbMCall")) { mesvcbMCall[0] = mean; mesvcbMCall[1] = sigma; mesvcbMCall[2] = cb1; mesvcbMCall[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubMClepteff")) { mesvubMClepteff[0] = mean; mesvubMClepteff[1] = sigma; mesvubMClepteff[2] = cb1; mesvubMClepteff[3] = cb2; ok = 1;}
+    if (!strcmp(mesfitName, "vubMCalleff")) { mesvubMCalleff[0] = mean; mesvubMCalleff[1] = sigma; mesvubMCalleff[2] = cb1; mesvubMCalleff[3] = cb2; ok = 1;}
+      
+    if (ok == 0)  cout << "==> fitNtp::readmesParam() Error: Don't know about variable " << mesfitName << endl;
+  }
+  
+  if (dump == 1) dumpmesParam();
+  
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::dumpmesParam() {
+  cout << "====================================" << endl;
+  cout << " Mes fit parameters file " << fmesFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " Nsl parameters     :  mean = "<<  mesNsl[0]  << ";   sigma = "<<  mesNsl[1]  << ";   cb1 = "<<  mesNsl[2]  << ";   cb2 = "<<  mesNsl[3]  <<  endl; 
+  cout << " datacuts parameters     :  mean = "<<  mesdatacuts[0]  << ";   sigma = "<< mesdatacuts[1] << ";   cb1 = "<< mesdatacuts[2]  << ";   cb2 = "<<  mesdatacuts[3] <<  endl;  
+  cout << " vubcuts parameters     :  mean = "<<  mesvubcuts[0]  << ";   sigma = "<< mesvubcuts[1] << ";   cb1 = "<< mesvubcuts[2]  << ";   cb2 = "<<  mesvubcuts[3] <<  endl;  
+  cout << " vcbcuts parameters     :  mean = "<<  mesvcbcuts[0]  << ";   sigma = "<< mesvcbcuts[1] << ";   cb1 = "<< mesvcbcuts[2]  << ";   cb2 = "<<  mesvcbcuts[3] <<  endl;  
+  cout << " othcuts parameters     :  mean = "<<  mesothcuts[0]  << ";   sigma = "<<  mesothcuts[1] << ";   cb1 = "<< mesothcuts[2]  << ";   cb2 = "<<  mesothcuts[3] <<  endl;  	
+  cout << " NslMC parameters     :  mean = "<<  mesNslMC[0]  << ";   sigma = "<< mesNslMC[1] << ";   cb1 = "<< mesNslMC[2]  << ";   cb2 = "<<  mesNslMC[3] <<  endl;  
+  cout << " vcbMC parameters     :  mean = "<<  mesvcbMC[0]  << ";   sigma = "<< mesvcbMC[1] << ";   cb1 = "<< mesvcbMC[2]  << ";   cb2 = "<<  mesvcbMC[3] <<  endl;  
+  cout << " vubMCmx parameters     :  mean = "<<  mesvubMCmx[0]  << ";   sigma = "<< mesvubMCmx[1] << ";   cb1 = "<< mesvubMCmx[2]  << ";   cb2 = "<<  mesvubMCmx[3] <<  endl;  
+  cout << " vubMCall parameters     :  mean = "<<  mesvubMCall[0]  << ";   sigma = "<< mesvubMCall[1] << ";   cb1 = "<< mesvubMCall[2]  << ";   cb2 = "<<  mesvubMCall[3] <<  endl;  
+  cout << " vcbMcall parameters     :  mean = "<<  mesvcbMCall[0]  << ";   sigma = "<< mesvcbMCall[1] << ";   cb1 = "<< mesvcbMCall[2]  << ";   cb2 = "<<  mesvcbMCall[3] <<  endl;  
+  cout << " vubMClepteff parameters     :  mean = "<<  mesvubMClepteff[0]  << ";   sigma = "<< mesvubMClepteff[1] << ";   cb1 = "<< mesvubMClepteff[2]  << ";   cb2 = "<<  mesvubMClepteff[3] << endl;
+  cout << " vubMCalleff parameters     :  mean = "<<  mesvubMCalleff[0]  << ";   sigma = "<< mesvubMCalleff[1] << ";   cb1 = "<< mesvubMCalleff[2]  << ";   cb2 = "<<  mesvubMCalleff[3] <<  endl;  
+  cout << "====================================" << endl;
+}
+
+double fitNtp::FermiWeight(double kp, double deltamb, double deltaa){
+
+  Double_t BMASS, BQMASS, A0;
+  BMASS   = 5.2792;
+  BQMASS  = 4.800;
+  A0      = 1.29;
+  double mb1 = BQMASS + deltamb;
+  
+  double a1 = A0 + deltaa ;
+  double w81;
+
+  Int_t nIntegral = 10000;
+  const double kmin = -5.;
+  const double kmax =  1.;
+  double Nold = 0;
+  double Nnew1(0);
+
+  // -- Compute reweighting ratios
+  for (int i = 0; i < nIntegral; ++i) {
+    double kplus = (i+0.5)/((double)nIntegral)*(kmax-kmin)+kmin;
+    Nold += (kmax-kmin)/((double)nIntegral)*fermi(kplus, BQMASS, A0);
+    Nnew1 += (kmax-kmin)/((double)nIntegral)*fermi(kplus, mb1, a1);
+  }
+  double kpold = kp; 
+  double kpnew1 = 5.279 - mb1 - (5.279 - BQMASS - kp);
+  
+  double fold = fermi(kpold, BQMASS, A0)/Nold; 
+  double fnew1 = fermi(kpnew1, mb1, a1)/Nnew1;
+  w81 = fnew1/fold; 
+  
+  return w81;
+}
+
+  // -- Shape function
+double fitNtp::fermi(double kp, double m, double a) {
+  double BMASS   = 5.2792;
+  double x = kp/(BMASS - m);
+  if ((kp>-m) && (x <= 1.)) {
+    return TMath::Power((1-x), a) * TMath::Exp((1+a)*x); 
+  } 
+  return 0.;
+}
+
+void fitNtp::varStudy(char * varNa) {
+  fHistFile->cd();
+  char name[200],name2[200]; int y;
+  double tempchisq = 0;
+  double tempbin = 0;
+  double temperr = 0;
+  double tempbinvub = 0;
+  double tempbinvcb = 0;
+  double tempbinoth = 0;
+  double temperrvcb = 0;
+  double temperroth = 0;
+  double tempbinerrvub = 0;
+  double tempbinerrvcb = 0;
+  double tempbinerroth = 0;
+  double it; int NDOF = 0;
+  // background subtraction mqb spectrum
+  for(int ik=1;ik<11;ik++){
+    sprintf(name, "%s%s",varNa,"data");	         
+    tempbin = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik);
+    temperr = ((TH1D*)gDirectory->Get(name))->GetBinError(ik);
+    sprintf(name, "%s%s",varNa,"vcb");	         
+    tempbinvcb = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * vcbcomp;
+    tempbinerrvcb = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * vcbcomp;
+    temperrvcb = tempbinvcb * errvcbcomp / vcbcomp;
+     //temperrvcb = sqrt(temperrvcb * temperrvcb + tempbinerrvcb * tempbinerrvcb);     //THE MC STAT IS NOT INCLUDED 
+    sprintf(name, "%s%s",varNa,"oth");	         
+    tempbinoth = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * othcomp;
+    tempbinerroth = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * othcomp;
+    temperroth = tempbinoth * errothcomp / othcomp;     
+    //temperroth = sqrt(temperroth * temperroth + tempbinerroth * tempbinerroth);     //THE MC STAT IS NOT INCLUDED 
+    tempbin = tempbin - tempbinvcb - tempbinoth;
+    temperr = sqrt(temperr*temperr + tempbinerrvcb*tempbinerrvcb + tempbinerroth*tempbinerroth);
+    sprintf(name, "%s%s",varNa,"subdata");	 
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(ik, tempbin);
+    ((TH1D*)gDirectory->Get(name))->SetBinError(ik, temperr); 
+  }	
+  sprintf(name, "%s%s",varNa,"scalevcb");
+  sprintf(name2, "%s%s",varNa,"vcb");   
+  for(y=1;y<11;y++){
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*vcbcomp);
+  }
+  
+  sprintf(name, "%s%s",varNa,"scaleoth");
+  sprintf(name2, "%s%s",varNa,"oth");
+  for(y=1;y<11;y++){
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*othcomp);
+  }
+  
+  sprintf(name, "%s%s",varNa,"scalevub");
+  sprintf(name2, "%s%s",varNa,"vub");
+  for(y=1;y<11;y++){
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*vubcomp);
+  }
+  
+  sprintf(name, "%s%s",varNa,"allbkg");
+  sprintf(name2, "%s%s",varNa,"vcb");
+  for(y=1;y<11;y++){
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*vcbcomp);
+  }
+
+  sprintf(name2, "%s%s",varNa,"oth");
+  for(y=1;y<11;y++){
+    it = ((TH1D*)gDirectory->Get(name))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,it + ((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*othcomp);
+  }
+
+
+  sprintf(name, "%s%s",varNa,"allmc");
+  sprintf(name2, "%s%s",varNa,"vcb");
+  
+  for(y=1;y<11;y++){
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*vcbcomp);
+  }
+
+  sprintf(name2, "%s%s",varNa,"oth");
+  for(y=1;y<11;y++){
+    it = ((TH1D*)gDirectory->Get(name))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,it + ((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*othcomp);
+  }
+
+  sprintf(name2, "%s%s",varNa,"vub");
+  for(y=1;y<11;y++){
+    it = ((TH1D*)gDirectory->Get(name))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,it + ((TH1D*)gDirectory->Get(name2))->GetBinContent(y)*vubcomp);
+  }
+  
+  NDOF = 0;
+  double newchisq = 0; 
+  double newtempchisq = 0;
+  for(int i=1;i<11;i++){
+    tempchisq = 0;
+    sprintf(name, "%s%s",varNa,"data");	         
+    if(((TH1D*)gDirectory->Get(name))->GetBinContent(i)) {
+       tempbin = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+       temperr = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+       sprintf(name, "%s%s",varNa,"vub");	         
+       tempbinvub = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * vubcomp;
+       tempbinerrvub = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * vubcomp;
+       sprintf(name, "%s%s",varNa,"vcb");	         
+       tempbinvcb = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * vcbcomp;
+       tempbinerrvcb = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * vcbcomp;
+       sprintf(name, "%s%s",varNa,"oth");	     
+       tempbinoth = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * othcomp;
+       tempbinerroth = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * othcomp;
+       temperr = sqrt(temperr*temperr + tempbinerrvub*tempbinerrvub + tempbinerrvcb*tempbinerrvcb + tempbinerroth*tempbinerroth);
+       if(temperr<1) temperr = 1; 
+       sprintf(name, "%s%s",varNa,"data");	
+       newtempchisq = (tempbinvub + tempbinvcb + tempbinoth - ((TH1D*)gDirectory->Get(name))->GetBinContent(i))/temperr;     
+       NDOF++;
+     }   
+     newchisq = newchisq + newtempchisq*newtempchisq;
+   }
+   
+   newchisq = newchisq / (NDOF-3);
+   
+   cout << "NEW Chi Square of the Fit :" << newchisq << endl;
+   cout << "NDOF " << NDOF-1 << endl;
+
+   //After bck subtraction....
+
+   c1 = new TCanvas("c1"," ",200,10,1300,520); 
+   
+   sprintf(name, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),varNa,"spectrum.eps");
+   
+   openEpsFile(name);
+   double min, max;
+   double  themax;
+   c1->Clear();
+   c1->Divide(2, 1);
+   c1->cd(1);
+   sprintf(name, "%s%s",varNa,"data");
+   ((TH1D*)gDirectory->Get(name))->SetMarkerSize(1.);	
+   ((TH1D*)gDirectory->Get(name))->SetMarkerColor(kBlack);	
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   if(!strcmp(varNa,"q2")) {
+     ((TH1D*)gDirectory->Get(name))->SetXTitle("q^{2}(GeV^{2})");
+   } else {
+     ((TH1D*)gDirectory->Get(name))->SetXTitle("m_{b}(GeV)");
+   }
+   themax = ((TH1D*)gDirectory->Get(name))->GetMaximum() * 1.2; 
+   ((TH1D*)gDirectory->Get(name))->SetMaximum(themax); 
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->Draw();
+   sprintf(name, "%s%s",varNa,"data");
+   ((TH1D*)gDirectory->Get(name))->SetMarkerStyle(20);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+   sprintf(name, "%s%s",varNa,"allmc");
+   //   ((TH1D*)gDirectory->Get(name))->SetFillStyle(3004);
+   ((TH1D*)gDirectory->Get(name))->SetLineColor(38);
+   ((TH1D*)gDirectory->Get(name))->SetFillColor(38);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");  
+   ((TH1D*)gDirectory->Get(name))->SetAxisRange(0.,5.);
+   sprintf(name, "%s%s",varNa,"allbkg");
+   //   ((TH1D*)gDirectory->Get(name))->SetFillStyle(3005);
+   ((TH1D*)gDirectory->Get(name))->SetLineColor(kYellow);
+   ((TH1D*)gDirectory->Get(name))->SetFillColor(kYellow);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+   sprintf(name, "%s%s",varNa,"scaleoth");
+   ((TH1D*)gDirectory->Get(name))->SetLineColor(13);
+   ((TH1D*)gDirectory->Get(name))->SetFillColor(13);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+   sprintf(name, "%s%s",varNa,"data");
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+   TLegendEntry *legge3; 
+   TLegend *leg3;
+   if(!strcmp(varNa,"q2")) {
+     leg3 = new TLegend(0.6,0.7,0.88,0.89);
+   } else {
+     leg3 = new TLegend(0.1,0.7,0.88,0.89);
+   }
+   leg3->SetFillStyle(0); leg3->SetBorderSize(0.); leg3->SetTextSize(0.05); 
+   leg3->SetFillColor(0); 
+   sprintf(name, "%s%s",varNa,"allmc");
+   legge3 = leg3->AddEntry(((TH1D*)gDirectory->Get(name)), "b->ulnu", "f"); 
+   sprintf(name, "%s%s",varNa,"allbkg");
+   legge3 = leg3->AddEntry(((TH1D*)gDirectory->Get(name)), "b->clnu", "f"); 
+   sprintf(name, "%s%s",varNa,"scaleoth");
+   legge3 = leg3->AddEntry(((TH1D*)gDirectory->Get(name)), "other", "f"); 
+   sprintf(name, "%s%s",varNa,"data");
+   legge3 = leg3->AddEntry(((TH1D*)gDirectory->Get(name)), "data", "p"); 
+   leg3->Draw();
+
+
+   c1->cd(2);
+   
+   sprintf(name, "%s%s",varNa,"subdata");
+   max = 1.2*((TH1D*)gDirectory->Get(name))->GetMaximum();
+   min = 1.2*((TH1D*)gDirectory->Get(name))->GetMinimum();
+   ((TH1D*)gDirectory->Get(name))->SetMaximum(max);
+   ((TH1D*)gDirectory->Get(name))->SetMinimum(min);
+   ((TH1D*)gDirectory->Get(name))->SetMarkerStyle(20);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   if(!strcmp(varNa,"q2")) {
+     ((TH1D*)gDirectory->Get(name))->SetXTitle("q^{2}(GeV^{2})");
+   } else {
+     ((TH1D*)gDirectory->Get(name))->SetXTitle("m_{b}(GeV)");
+   }
+   ((TH1D*)gDirectory->Get(name))->Draw();
+   sprintf(name, "%s%s",varNa,"scalevub");
+   //   ((TH1D*)gDirectory->Get(name))->SetFillStyle(3004);
+   ((TH1D*)gDirectory->Get(name))->SetLineColor(38);
+   ((TH1D*)gDirectory->Get(name))->SetFillColor(38);
+   ((TH1D*)gDirectory->Get(name))->SetStats(0);
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");  
+   sprintf(name, "%s%s",varNa,"subdata");
+   ((TH1D*)gDirectory->Get(name))->DrawCopy("same");  
+   TLegendEntry *legge4; 
+   TLegend *leg4;
+   if(!strcmp(varNa,"q2")) {
+     leg4 = new TLegend(0.6,0.7,0.88,0.89);
+   } else {
+     leg4 = new TLegend(0.1,0.7,0.88,0.89);
+   }
+   leg4->SetFillStyle(0); leg4->SetBorderSize(0.); leg4->SetTextSize(0.05); 
+   leg4->SetFillColor(0); 
+   sprintf(name, "%s%s",varNa,"scalevub");
+   legge4 = leg4->AddEntry(((TH1D*)gDirectory->Get(name)), "scaled MC", "f"); 
+   sprintf(name, "%s%s",varNa,"subdata");
+   legge4 = leg4->AddEntry(((TH1D*)gDirectory->Get(name)), "data subt.", "p"); 
+   leg4->Draw();
+
+   closeEpsFile();
+}
+
+void fitNtp::fillMesStu(double Mepcms,double Metheq2,double MeEwPwfit,double MecsiCiuc, double MexCiuc,double MewCiuc, char * Melgroup, char * Meflavcat, double Memes, double wei, char * Medata) {
+
+  fHistFile->cd();
+  //  cout<<"Values:: "<<Mepcms<< " "<<Metheq2<< " "<<MeEwPwfit<< " "<<MecsiCiuc<< " " << MewCiuc<< " "<<MexCiuc<<endl;
+  int Meidlept = histlept(Mepcms);        
+  int Meidq2 = histq2(Metheq2);        
+  int Meidmqb = histmqb(MeEwPwfit);
+  int Meidcsi = histcsi(MecsiCiuc);
+  int Meidw = histw(MewCiuc);
+  int Meidx = histx(MexCiuc);
+  //  cout<<"Indexes:: "<<Meidlept<< " "<<Meidq2<< " "<<Meidmqb<< " "<<Meidcsi<< " "<<Meidw<< " "<<Meidx<<endl;
+  char name[200];
+  if(strcmp(Medata,"data")  == 0) {
+    sprintf(name, "%s%s%s%s%s%d","lep","allcuts",Medata,Meflavcat,"bin",Meidlept);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%d","mqb","allcuts",Medata,Meflavcat,"bin",Meidmqb);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%d","csi","allcuts",Medata,Meflavcat,"bin",Meidcsi);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%d","x","allcuts",Medata,Meflavcat,"bin",Meidx);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%d","w","allcuts",Medata,Meflavcat,"bin",Meidw);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%d","q2","allcuts",Medata,Meflavcat,"bin",Meidq2);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+  } else {
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"lep","allcuts",Medata,Meflavcat,"bin",Meidlept);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"mqb","allcuts",Medata,Meflavcat,"bin",Meidmqb);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"csi","allcuts",Medata,Meflavcat,"bin",Meidcsi);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"x","allcuts",Medata,Meflavcat,"bin",Meidx);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"w","allcuts",Medata,Meflavcat,"bin",Meidw);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+    sprintf(name, "%s%s%s%s%s%s%d",Melgroup,"q2","allcuts",Medata,Meflavcat,"bin",Meidq2);
+    ((TH1D*)gDirectory->Get(name))->Fill(Memes,wei);  
+  }
+}
+
+
+void fitNtp::DumpOFile(char *name, char* namet) {  
+
+  ofstream outfile(name);
+  
+  outfile << "#NUMBERS FOR THE SCANS" << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << " pstarfact           "  << PSTARFACT   <<  endl;  
+  outfile << " mxCut               "  << MXCUT   <<  endl;  
+  outfile << " q2Cut               "  << Q2CUT   <<  endl;  
+  outfile << " csiloCut            "  << CSILOCUT   <<  endl;  
+  outfile << " csihiCut            "  << CSIHICUT   <<  endl;  
+  outfile << " leptonPCut          "  << LEPTONPCUT   <<  endl;  
+  outfile << " prmm2cut            "  << PRMM2CUT   <<  endl;  
+  outfile << " mnuSqLow            "  << MNUSQLOW   <<  endl;  
+  outfile << " mnuSqHigh           "  << MNUSQHIGH   <<  endl;  
+  outfile << " chLow               "  << CHLOW   <<  endl;  
+  outfile << " chHigh              "  << CHHIGH   <<  endl;  
+  outfile << " depl                "  << DEPL   <<  endl;  
+  outfile << " Btype               "  << BTYPE   <<  endl;  
+  outfile << " lepttype            "  << LEPTTYPE   <<  endl;  
+  outfile << " minintpur           "  << MININTPUR    <<  endl;
+  outfile << " maxintpur           "  << MAXINTPUR    <<  endl;
+  outfile << " nnpi0               "  << CUTNNPI0  <<  endl;
+  outfile << " vubcomp             "  << vubcomp << "  " << errvubcomp << endl;
+  outfile << " vcbcomp             "  << vcbcomp << "  " << errvcbcomp << endl;
+  outfile << " othcomp             "  << othcomp << "  " << errothcomp << endl;
+  outfile << " data1bin            "  << dataFirstBin << "  " << dataErrFirstBin <<  "  " << endl;
+  outfile << " vub1bin             "  << S/blindfactor << "  " << errS/blindfactor <<  "  " << errvubmcaftercutsbin1 * vubcomp/blindfactor << endl;
+  outfile << " vcb1bin             "  << vcbaftercutsbin1 << "  " <<  errfitvcbaftercutsbin1 << "  " << errvcbaftercutsbin1 << endl;
+  outfile << " oth1bin             "  << otheraftercutsbin1 << "  " << errfitotheraftercutsbin1 <<  "  " << errotheraftercutsbin1 << endl;
+
+  outfile << " epsu                " << epsu << "  " << errepsu << endl;
+  outfile << " epsmx               " << epsmx << "  " << errepsmx << endl;
+  outfile << " epstot              " << epstot << "  " << errepstot << endl;
+  outfile << " nsl                 " << tot << endl;
+  outfile << " nslmc               " << totmc << endl;
+  outfile << " fact                " << fact << endl;
+  outfile << " pstarfact           " << calcpstarfact << endl;
+  outfile << " BRBR                " << BRBR << "  " << errBRBR << "  " << errBRBRMCstat << endl;
+  outfile << " chisq               " << chisq << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << "INPUT FILES" << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << " fileVubTotal        "  << FILEVUBTOTAL   <<  endl;  
+  outfile << " fileVcb             "  << FILEVCB   <<  endl;  
+  outfile << " fileData            "  << FILEDATA   <<  endl;  
+  outfile << endl;
+  outfile << endl;
+  outfile << "ALL NUMBERS" << endl;
+  outfile << endl;
+  outfile << "MX FIT" << endl;
+  outfile << endl;
+  outfile << "Vub comp = " << vubcomp << " +- " << errvubcomp << endl;
+  outfile << "Vcb comp = " << vcbcomp << " +- " << errvcbcomp << endl;
+  outfile << "oth comp = " << othcomp << " +- " << errothcomp << endl;
+  outfile << endl;
+  outfile << "Vub tot area = " <<  areavubmcaftercutsbin1 << endl;
+  outfile << "Vcb tot area = " <<  areavcbaftercutsbin1 << endl;
+  outfile << "oth tot area = " <<  areaothaftercutsbin1 << endl;
+  outfile << endl;
+  outfile << "data 1' bin = " << dataFirstBin << " +- " << dataErrFirstBin << endl;
+  outfile << "Vub 1' bin = " << vubmcaftercutsbin1 << " +- " << errvubmcaftercutsbin1 << endl;
+  outfile << "Vcb 1' bin = " << vcbFirstBin << " +- " << vcbErrFirstBin<< endl;
+  outfile << "oth 1' bin = " << othFirstBin << " +- " <<othErrFirstBin << endl;
+  outfile << endl;
+  outfile << "WEIGHTED NUMBERS" << endl;
+  outfile << endl;
+  outfile << "Vub fitted 1' bin = " << S/blindfactor << " +- " << errvubmcaftercutsbin1*vubcomp/blindfactor << "(stat MC) +- " << errS/blindfactor << "(err fit)" << endl;
+  outfile << "Vcb fitted 1' bin = " << vcbaftercutsbin1 << " +- " << errvcbaftercutsbin1 << "(stat MC) +- " << errfitvcbaftercutsbin1 << "(err fit)" << endl;
+  outfile << "oth fitted 1' bin = " << otheraftercutsbin1 << " +- " << errotheraftercutsbin1 << "(stat MC) +- " << errfitotheraftercutsbin1 << "(err fit)"  << endl;
+  outfile << endl;
+  outfile << "Vub 1' true = " << vubmcselected << endl;
+  outfile << "Vcb 1' true = " << vcbmcselected << endl;
+  outfile << "oth 1' true = " << othermcselected << endl;
+  outfile << endl;
+  outfile << "EFFICIENCY Vub" << endl;
+  outfile << endl;
+  outfile << "Vub total MC (lepton cut) = " << vubmc << endl;
+  outfile << "Vub MC (all cuts) = " << vubmcaftercuts << endl;
+  outfile << "Vub MC (all cuts + Mx cut) = " << vubmcaftercutsbin1 << endl;
+  outfile << "Vub gene total MC (lepton cut) = " << vubmcleptforeff << endl;
+  outfile << "Vub gene MC (all cuts) = " << vubmcallforeff << endl;
+  outfile << "Eps_u =  " << epsu << " +- " << errepsu << endl;
+  outfile << "Eps_Mx = " << epsmx << " +- " << errepsmx << endl;
+  outfile << "Eps_tot = " << epstot << " +- " << errepstot << endl;
+  outfile << endl; 
+  outfile << endl;
+  outfile << "NSL NUMBERS" << endl;
+  outfile << endl;
+  outfile << "Nsl = " << tot << endl;
+  outfile << endl;
+  outfile << "Nsl MC = " << totmc << endl;
+  outfile << "Nsl - BG = " << vcbmc << endl;
+  outfile << "(Nsl - BG)/Nsl (vub corrected) = " << fact << endl;
+  outfile << endl;
+  outfile << "Pstar fact = " << PSTARFACT << endl;
+  outfile << endl;
+  outfile << endl; 
+  outfile << "Eff on Vcb (Nvcb/(Nsl-BGsl)) = " << areavcbaftercutsbin1 * vcbcomp / (tot * fact) << " +- " <<  areavcbaftercutsbin1 * errvcbcomp / (tot * fact) << endl;  
+  outfile << "Eff on other (other/(Nsl-BGsl)) = " << areaothaftercutsbin1 * othcomp / (tot * fact) << " +- " << areaothaftercutsbin1 * errothcomp / (tot * fact)  << endl;  
+  outfile << endl; 
+  outfile << endl;
+  outfile << "Vub gene MC (no cuts) = " << vubmcnocut << endl;
+  outfile << "Vcb gene MC (no cuts) = " << vcbmcnocut << endl;
+  outfile << "Oth gene MC (no cuts) = " << othmcnocut << endl;
+  outfile << "Recalculated Pstar fact = " << calcpstarfacttemp << endl;
+  outfile << endl;
+  outfile << endl; 
+  outfile << "Nsig = " << S/epstot  << " +- " <<  errS/epstot   << endl;
+
+  outfile << endl;
+  outfile << endl; 
+  outfile << "BRBR = " << BRBR << " +- " << errBRBR << "(stat) +- " << errBRBRMCstat << "(MC stat)" << endl;
+  outfile << endl;
+  outfile << "Chi Square of the Fit = " << chisq << endl;
+  outfile << "NDOF = " << NDOF-3 << endl;
+  outfile << endl;
+  outfile << endl;
+  double Vub = 0.00445 * sqrt((BRBR * .104 * 1.55) / (0.002 * 1.622));
+  outfile << "Vub(*10-3) = " << Vub*1000 << " +- " << Vub*1000*(errBRBR/(2*BRBR)) << "(stat) +- " << Vub*1000*errBRBRMCstat/(2*BRBR) << "(MC stat)" << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << endl;         
+  outfile.close();
+
+  cout << "**********************************************************************" << endl;
+  cout << "DUMPING TEXFILE 3 " << namet << endl;
+  cout << "**********************************************************************" << endl;
+  ofstream texfile(namet);
+  char texline[200];
+  sprintf(texline, "\\def\\%ssemil{%7.0f \\pm %6.0f} ", texPrefix.Data(), tot, errtot); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sbgsl{%5.0f \\pm %4.0f} ", texPrefix.Data(), (1.-fact)*tot, (1.-fact)*errtot); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sslsub{%5.0f \\pm %4.0f} ", texPrefix.Data(), tot - (1.-fact)*tot, errtot); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sepssl{%5.2f \\pm %4.2f} ", texPrefix.Data(), calcpstarfact, errcalcpstarfact); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%snu{%5.0f \\pm %4.0f} ", texPrefix.Data(), S, errS); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sbgc{%5.0f \\pm %4.0f} ", texPrefix.Data(), vcbaftercutsbin1, errfitvcbaftercutsbin1); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sbgo{%5.0f \\pm %4.0f} ", texPrefix.Data(), otheraftercutsbin1, errfitotheraftercutsbin1); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sepsu{%4.3f} ", texPrefix.Data(), epsu); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sepsmx{%4.3f} ", texPrefix.Data(), epsmx); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sbrbr{%6.4f \\pm %5.4f} ", texPrefix.Data(), BRBR, errBRBR); 
+  texfile << texline << endl;
+  sprintf(texline, "\\def\\%sbrbrerrmc{%5.4f} ", texPrefix.Data(), errBRBRMCstat); 
+  texfile << texline << endl;
+  texfile.close(); 
+}
+
+void fitNtp::mesUtility(char * nameps,char * namevar, char * Xtit, double thecorrectionratio) {
+
+  c1 = new TCanvas("c1"," ",200,10,1200,1000); 
+  c1->Clear();
+  c1->Divide(2, 2);
+  char namebch[200], nameb0os[200], nameb0ss[200]; 
+  sprintf(namebch,  "%s%s",namevar,"bch");  
+  sprintf(nameb0os, "%s%s",namevar,"bos");  
+  sprintf(nameb0ss, "%s%s",namevar,"bss");  
+  double tempbin;
+  double tempbinchb;
+  double tempbinb0os;
+  double tempbinb0ss;
+  double temperr;
+  double temperrchb;
+  double temperrb0os;
+  double temperrb0ss;
+  double chid = 0.181;
+  cout<<" Entered mesUtil:: "<< nameps << " "<< namevar<< " "<< Xtit<<endl;
+  for (int i=1;i<11;i++){
+
+    tempbinchb = ((TH1D*)gDirectory->Get(namebch))->GetBinContent(i) * thecorrectionratio;
+    tempbinb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinContent(i);
+    tempbinb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinContent(i);
+    temperrchb = ((TH1D*)gDirectory->Get(namebch))->GetBinError(i) * thecorrectionratio;
+    temperrb0os = ((TH1D*)gDirectory->Get(nameb0os))->GetBinError(i);
+    temperrb0ss = ((TH1D*)gDirectory->Get(nameb0ss))->GetBinError(i);
+    if(MIXCORR==0){
+      tempbin = tempbinchb + tempbinb0os;
+      temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+    }else{      
+      tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+      temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+    }
+    ((TH1D*)gDirectory->Get(namevar))->SetBinContent(i, tempbin);
+    ((TH1D*)gDirectory->Get(namevar))->SetBinError(i, temperr); 
+	      
+  }
+  openEpsFile(nameps);
+
+  c1->cd(1);
+  ((TH1D*)gDirectory->Get(namebch))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(namebch))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(namebch))->SetStats(0);
+  ((TH1D*)gDirectory->Get(namebch))->SetXTitle(Xtit);
+  ((TH1D*)gDirectory->Get(namebch))->Draw();	
+  c1->cd(2);
+  ((TH1D*)gDirectory->Get(nameb0os))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(nameb0os))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(nameb0os))->SetStats(0);
+  ((TH1D*)gDirectory->Get(nameb0os))->SetXTitle(Xtit);
+  ((TH1D*)gDirectory->Get(nameb0os))->Draw();
+  c1->cd(3);
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetStats(0);
+  ((TH1D*)gDirectory->Get(nameb0ss))->SetXTitle(Xtit);
+  ((TH1D*)gDirectory->Get(nameb0ss))->Draw();
+  c1->cd(4);
+  ((TH1D*)gDirectory->Get(namevar))->SetMarkerSize(8.);	
+  ((TH1D*)gDirectory->Get(namevar))->SetMarkerColor(kRed);	
+  ((TH1D*)gDirectory->Get(namevar))->SetStats(0);
+  ((TH1D*)gDirectory->Get(namevar))->SetXTitle(Xtit);
+  ((TH1D*)gDirectory->Get(namevar))->Draw();
+
+  closeEpsFile();
+
+}

@@ -1,0 +1,9 @@
+# -- Cuts for recoil analysis
+# ---------------------------
+deSignalLo      -0.1
+deSignalHi       0.1
+pcms             1.0
+intPurity        0.0
+mxcut            5
+mm2cut           0.5
+dfromd           0

@@ -1,0 +1,6 @@
+option stat
+option fit
+option a4
+zone
+hi/fit [1] g
+hi/plot $sigma([1]+2000) s

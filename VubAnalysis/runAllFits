@@ -1,0 +1,51 @@
+#! /usr/local/bin/perl
+
+use lib '/u/ec/ursl/perl/modules';
+use Tie::IxHash;
+
+# -- The hash shall not change the order of its elements
+tie %jobs, "Tie::IxHash";
+
+%jobs = ( 
+	  "s00" => "all",
+	  "s01" => "bch",
+	  "s02" => "bne",
+	  "s03" => "mu",
+	  "s04" => "ele",
+	  "s05" => "qone",
+	  "s06" => "sbone",
+	  "s07" => "sbtwo",
+	  "s08" => "sbthree",
+	  "s09" => "multi",
+	  "s10" => "runone",
+	  "s11" => "runtwo",
+	  "s12" => "lomx",
+	  "s13" => "himx",
+
+	  "d00" => "deplall",
+	  "d01" => "deplbch",
+	  "d02" => "deplbne",
+	  "d03" => "deplmu",
+	  "d04" => "deplele",
+	  "d05" => "deplqone",
+	  "d06" => "deplsbone",
+	  "d07" => "deplsbtwo",
+	  "d08" => "deplsbthree",
+	  "d09" => "deplmulti",
+	  "d10" => "deplrunone",
+	  "d11" => "deplruntwo",
+	  "d12" => "depllomx",
+	  "d13" => "deplhimx",
+
+	  "bal-09" => "multibal",
+	  "bnu-09" => "multibnu",
+	  "bch-09" => "multibch",
+
+	  );
+
+
+foreach $job (keys %jobs) {
+    print  "./runFits -b -C fits/subsetsTheo/$job -F fit-p00 -D anaQA-p00/fits/subsets -s $jobs{$job}\n";
+    system("./runFits -b -C fits/subsetsTheo/$job -F fit-p00 -D anaQA-p00/fits/subsets -s $jobs{$job}");
+}
+

@@ -1,0 +1,70 @@
+#!/bin/tcsh -m
+#
+# official options for the fit on data
+#-----------------------
+pstarfact           1.0
+q2Cut               -100000.    
+useCB               1
+fixMeanValue        1
+fixSigma            0
+fixArgus1           0
+fixArgus2           0
+fixCB1              1
+fixCB2              1
+qleptonPCut          1.
+leptonPCut          1.0
+electronPCut        0.5
+muonPCut            0.8   
+prmm2Cut            100000
+mnuSqLow            -0.3
+mnuSqHigh           0.3
+chLow               -15
+chHigh              15
+Btype               0      # 0 only B0, 1 only Bch, 2 all
+lepttype            2       # 0 electron, 1 muon, 2 all
+maxeneu             .45
+jpsiwindow          .02
+blinding            0
+blindsize           .4
+randomseed          990717  # OFFICIAL BLINDING!!!!!
+########
+#
+# reweighting
+#
+########
+doBdecreweight      0
+doDdecreweight      0
+#####################
+
+ratioBR              1 # for signal MC
+#ratioBR           0.00548  # 0.00548 for generic SP8, 0.00514 for generic SP6
+SPtype              8 # SP version (SP6 or SP8)
+minpur              0.06
+mnuSqLow            -.3
+mnuSqHigh           .3
+mxCutLowExcl -10000.
+mxCutHighExcl 10000.
+mom1min -10000.
+mom2min -10000.
+nchgLowExcl 1
+nchgHighExcl 1
+ncombLowExcl 0
+ncombHighExcl 4
+npi0LowExcl 0
+npi0HighExcl 10000
+deltam 0
+ksele  0
+nlep   2
+dalitzcut 0.0005
+fitcategory 11
+binsmass     10
+minmass      .4
+maxmass      1.1
+binsvar       10
+binsq2       10
+minq2        0.
+maxq2        25.
+binspcms     10
+minpcms      0.5
+maxpcms      3.5
+mnuSqrhoLow  1.0

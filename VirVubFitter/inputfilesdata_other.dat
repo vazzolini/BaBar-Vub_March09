@@ -1,0 +1,6 @@
+#
+# input files for the fit
+#--------------------------
+fileVubTotal          /nfs/babar/recoil/Vub_excl/anaQA-prod_042204/root/anaQA-excl00/allsignal  1
+fileVcb               /nfs/babar/recoil/Vub_excl/anaQA-prod_042204/root/anaQA-excl00/gen        1
+fileData              /nfs/babar/recoil/Vub_excl/anaQA-prod_042204/root/anaQA-excl00/data       1

@@ -1,0 +1,53 @@
+#! /usr/local/bin/perl
+
+# Usage:   ./runFits -b  -F fit-o00  -C fits/subsetsTheo/s  -s all  -D anaQA-o00/fits
+
+
+use Getopt::Std;
+getopts('bC:D:F:s:');
+
+if (!$opt_D) {
+    die "Give a directory where to put the fits \n";
+}
+
+if (-d "/u/ec/ursl/root/$opt_D") {
+    # nothing
+} else {
+    system("mkdir -p /u/ec/ursl/root/$opt_D");
+}
+
+#  my $files = "afiles.dat";
+if ($opt_F) {
+    $files = $opt_F; 
+} else {
+    die "Give filename with input files after -f\n";
+}
+
+if ($opt_s) {
+    $str = " -s $opt_s ";
+} else {
+    $str = "";
+}
+
+
+$bfarch = $ENV{"BFARCH"};
+
+my $exe = "/u/ec/ursl/macros/fsx/vub/bin/$bfarch/VubFit -Theosys -Mes mesparsetting.dat -F $files -D /u/ec/ursl/root/$opt_D/ -C "; 
+#my $exe = "/u/ec/ursl/macros/fsx/vub/bin/$bfarch/VubFit -Fermi -Mes mesparsetting.dat -F $files -D /u/ec/ursl/root/$opt_D/ -C "; 
+
+@list = `/bin/ls $opt_C*`; 
+
+foreach $fil (@list) {
+    chop($fil);
+    @tmp = split(/\//, $fil); $bla = pop(@tmp); 
+    ($suffix = $bla) =~ s/\.dat//;
+    $prefix = "$suffix"."_";
+    if ($opt_b) {
+	unlink("/u/ec/ursl/root/$opt_D/$prefix.blog");
+	print "bsub -q rdmisc -o /u/ec/ursl/root/$opt_D/$prefix.blog $exe $fil $str -P $prefix\n";
+	system("bsub -J `/u/ec/ursl/perl/rline` -q rdmisc -o /u/ec/ursl/root/$opt_D/$prefix.blog $exe $fil $str -P $prefix ");
+    } else {
+	print "$exe $fil -P $prefix \n";
+	system("$exe $fil -P $prefix ");
+    }
+}

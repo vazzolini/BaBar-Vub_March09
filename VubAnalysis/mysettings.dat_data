@@ -1,0 +1,95 @@
+ totalStat         270 
+ totalStatModel    270 
+ BRRatioGenValue   0.0017 
+ BRRatioValueTail  0.0017 
+ pstarfact         1.13152 
+ mxCut             1.55 
+ useCB             1 
+ fixMeanValue      1 
+ fixSigma          1 
+ fixArgus1         0 
+ fixArgus2         0 
+ fixCB1            1 
+ fixCB2            1 
+ leptonPCut        1 
+ prmm2Cut          -3 
+ mnuSqLow          -100000 
+ mnuSqHigh         0.5 
+ chLow             -0.5 
+ chHigh            0.5 
+ depl              0 
+ Btype             2 
+ q2Cut             0 
+ lepttype          2 
+ fittotshape       2 
+ mixcorr           2 
+ fitMC             0 
+ multifit          0 
+ blinding          0 
+ blindsize          
+ randomseed        990717 
+ issmearAll        0 
+ smearAllMeanValue 0 
+ smearAllSigma     0 
+ issmearBkg        0 
+ smearBkgMeanValue 0 
+ smearBkgSigma     0 
+ dotrkreweight     0 
+ doneureweight     0 
+ doBdecreweight    1 
+ doDdecreweight    1 
+ dobrecoreweight   0 
+ dopstarreweight   0 
+ domm2reweight     0 
+ minintpur         0 
+ maxintpur         1000 
+ run               0 
+ nnpi0             -1000 
+ doleptplot        0 
+ deltamb            
+ deltaa             
+ fitOption         0 
+ theomxweight  1 
+bin0    1
+bin1    0.636768
+bin2    1.01957
+bin3    1.19293
+bin4    1.49278
+bin5    1.66824
+bin6    1.85889
+bin7    1.84273
+bin8    1.89469
+bin9    1.94351
+bin10    1.99724
+bin11    1.93445
+bin12    2.05699
+bin13    2.05112
+bin14    2.04044
+bin15    2.00212
+bin16    1.92181
+bin17    1.97053
+bin18    1.94157
+bin19    1
+bin20    1.09792
+bin0    1
+bin1    0.690106
+bin2    1.39781
+bin3    0.987893
+bin4    1.34145
+bin5    1.17816
+bin6    1.75503
+bin7    1.89179
+bin8    1.95983
+bin9    2.01284
+bin10    2.03704
+bin11    1.97187
+bin12    2.05301
+bin13    1.99579
+bin14    2.02767
+bin15    2.06574
+bin16    1.94922
+bin17    1.95801
+bin18    1.67451
+bin19    2.13989
+bin20    2.13989
+ 

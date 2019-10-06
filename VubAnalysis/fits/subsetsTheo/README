@@ -1,0 +1,19 @@
+Subsets
+=======
+s00 Default
+s01 B+
+s02 B0
+s03 muons
+s04 electrons
+s05 Q1
+s06 SB1
+s07 SB2
+s08 SB3
+s09 multiplicity fit
+s10 run 1
+s11 run 2
+
+Incantation
+===========
+
+./runFits -b -C fits/subsetsTheo/s  -F fit-n00 -D anaQA-n00/fits/subsets

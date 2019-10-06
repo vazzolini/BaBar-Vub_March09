@@ -1,0 +1,36 @@
+#!/bin/tcsh
+#
+#WFERMIFILE
+# B0bar ->pi+ l- nubar + CC
+#CB am I applying this also for generic BBbar events? 
+0.74  #1.33/1.8;
+# B- -> pi0 l- nubar + CC
+0.80  #0.72/0.9;
+# B- ->eta0 l- nubar + CC
+2.80  #0.84/0.3;
+#B0bar -> rho+ l- nubar + CC
+1.03  #2.69/2.6;
+# B- -> rho0 l- nubar + CC
+1.12  #1.45/1.3;
+# B- -> omega0 l- nubar + CC
+1.03  #1.34/1.3;
+# B- -> eta_prime l- nubar + CC
+1.40  #0.84/0.6;
+#B0bar -> Xu+ l- nubar + CC CM2
+#####1.342      #2.33
+#####1.313      #2.33
+#####correct for full nres (5546k instead of 5020k)
+#Run1-2# #Run3only#  #Run4only#   #¹Run1-4#
+#1.0118     1.0118        1.1742       1.0688   #1.2556    #2.33
+##### for full res (5050k) and SP5/SP6 ratio reweighting
+0.8145     0.8145        0.8147       0.8146
+#B0bar -> Xu+ l- nubar + CC CM1
+1.99     #2.18      #2.33
+#B- -> Xu0 l- nubar + CC CM2
+##### correct for full nres (5546k instead of 5020k)
+#Run1-2# #Run3only#  #Run4only#   #¹Run1-4#
+#0.9889    0.9889      1.1626       1.0446   #1.2857    #2.33
+##### for full res (5050k) and SP5/SP6 ratio reweighting
+0.8015   0.8015       0.8018       0.8017
+#B- -> Xu0 l- nubar + CC CM1
+1.99     #2.24      #2.33

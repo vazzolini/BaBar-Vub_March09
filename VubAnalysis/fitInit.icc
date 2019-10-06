@@ -1,0 +1,1594 @@
+void fitNtp::Init(TTree *tree)
+{
+//   Set branch addresses
+   if (tree == 0) return;
+   fChain    = tree;
+   fCurrent = -1;
+   fChain->SetMakeClass(1);
+
+   fChain->SetBranchAddress("EwPwfit",&EwPwfit);
+   fChain->SetBranchAddress("xLep",&xLep);
+   fChain->SetBranchAddress("yLep",&yLep);
+   fChain->SetBranchAddress("zLep",&zLep);
+   fChain->SetBranchAddress("run",&run);
+   fChain->SetBranchAddress("lower",&lower);
+   fChain->SetBranchAddress("upper",&upper);
+   fChain->SetBranchAddress("mes",&mes);
+   fChain->SetBranchAddress("de",&de);
+   fChain->SetBranchAddress("pur",&pur);
+   fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+   fChain->SetBranchAddress("GSem",&GSem);  
+   fChain->SetBranchAddress("GfDpi",&GfDpi); 
+   fChain->SetBranchAddress("GfDpiz",&GfDpiz);
+   fChain->SetBranchAddress("GfDk",&GfDk);  
+   fChain->SetBranchAddress("GfDks",&GfDks); 
+   fChain->SetBranchAddress("GfDlep",&GfDlep);
+   fChain->SetBranchAddress("GfDgam",&GfDgam);
+   fChain->SetBranchAddress("intpur",&intpur);
+   fChain->SetBranchAddress("brecoflav",&brecoflav);
+   fChain->SetBranchAddress("brecocharge",&brecocharge);
+   fChain->SetBranchAddress("vub",&vub);
+   fChain->SetBranchAddress("vcb",&vcb);
+   fChain->SetBranchAddress("other",&other);
+   fChain->SetBranchAddress("nle",&nle);
+   fChain->SetBranchAddress("nel",&nel);
+   fChain->SetBranchAddress("nmu",&nmu);
+   fChain->SetBranchAddress("nkp",&nkp);
+   fChain->SetBranchAddress("nks",&nks);
+   fChain->SetBranchAddress("nchg",&nchg);
+   fChain->SetBranchAddress("nneu",&nneu);
+   fChain->SetBranchAddress("nneu80_160",&nneu80_160);
+   fChain->SetBranchAddress("nneu160_320",&nneu160_320);
+   fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+   fChain->SetBranchAddress("tcmsgen",&tcmsgen);
+   fChain->SetBranchAddress("fcmsgen",&fcmsgen);
+   fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+   fChain->SetBranchAddress("pxhadgen",&pxhadgen);
+   fChain->SetBranchAddress("txhadgen",&txhadgen);
+   fChain->SetBranchAddress("fxhadgen",&fxhadgen);
+   fChain->SetBranchAddress("exhadgen",&exhadgen);
+   fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+   fChain->SetBranchAddress("xcharge",&xcharge);
+   fChain->SetBranchAddress("pxhad",&pxhad);
+   fChain->SetBranchAddress("txhad",&txhad);
+   fChain->SetBranchAddress("fxhad",&fxhad);
+   fChain->SetBranchAddress("exhad",&exhad);
+   fChain->SetBranchAddress("mxhad",&mxhad);
+   fChain->SetBranchAddress("mxhadfit",&mxhadfit);
+   fChain->SetBranchAddress("lcharge",&lcharge);
+   fChain->SetBranchAddress("pcms",&pcms);
+   fChain->SetBranchAddress("tcms",&tcms);
+   fChain->SetBranchAddress("fcms",&fcms);
+   fChain->SetBranchAddress("ecms",&ecms);
+   fChain->SetBranchAddress("plab",&plab);
+   fChain->SetBranchAddress("tlab",&tlab);
+   fChain->SetBranchAddress("flab",&flab);
+   fChain->SetBranchAddress("pnu",&pnu);
+   fChain->SetBranchAddress("tnu",&tnu);
+   fChain->SetBranchAddress("fnu",&fnu);
+   fChain->SetBranchAddress("mm2",&mm2);
+   fChain->SetBranchAddress("deltam",&deltam);
+   fChain->SetBranchAddress("wdeltam",&wdeltam);
+   fChain->SetBranchAddress("q2",&q2);
+   fChain->SetBranchAddress("q2fit",&q2fit);
+   fChain->SetBranchAddress("q2Gen",&q2Gen);
+   fChain->SetBranchAddress("nnpi0",&nnpi0);
+   fChain->SetBranchAddress("totweight",&totweight);
+   fChain->SetBranchAddress("totweightNutMult",&totweightNutMult);
+   fChain->SetBranchAddress("totweightTrkMult",&totweightTrkMult);
+   fChain->SetBranchAddress("xX",&xX);
+   fChain->SetBranchAddress("yX",&yX);
+   fChain->SetBranchAddress("zX",&zX);
+   fChain->SetBranchAddress("v2xxX",&v2xxX);
+   fChain->SetBranchAddress("v2yyX",&v2yyX);
+   fChain->SetBranchAddress("v2zzX",&v2zzX);
+   fChain->SetBranchAddress("v2xyX",&v2xyX);
+   fChain->SetBranchAddress("v2yzX",&v2yzX);
+   fChain->SetBranchAddress("v2xzX",&v2xzX);
+   fChain->SetBranchAddress("v2xxLep",&v2xxLep);
+   fChain->SetBranchAddress("v2yyLep",&v2yyLep);
+   fChain->SetBranchAddress("v2zzLep",&v2zzLep);
+   fChain->SetBranchAddress("v2xyLep",&v2xyLep);
+   fChain->SetBranchAddress("v2yzLep",&v2yzLep);
+   fChain->SetBranchAddress("v2xzLep",&v2xzLep);
+   fChain->SetBranchAddress("kplus",&fkplus);
+   fChain->SetBranchAddress("csiCiuc",&csiCiuc);
+   fChain->SetBranchAddress("xCiuc",&xCiuc);
+   fChain->SetBranchAddress("wCiuc",&wCiuc);
+
+   Notify();
+}
+
+Bool_t fitNtp::Notify()
+{
+//   called when loading a new file
+//   get branch pointers
+   b_EwPwfit = fChain->GetBranch("EwPwfit");
+   b_xLep = fChain->GetBranch("xLep");
+   b_yLep = fChain->GetBranch("yLep");
+   b_zLep = fChain->GetBranch("zLep");
+   b_run = fChain->GetBranch("run");
+   b_lower = fChain->GetBranch("lower");
+   b_upper = fChain->GetBranch("upper");
+   b_mes = fChain->GetBranch("mes");
+   b_de = fChain->GetBranch("de");
+   b_pur = fChain->GetBranch("pur");
+   b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+   b_GSem=       fChain->GetBranch("GSem");  
+   b_GfDpi=      fChain->GetBranch("GfDpi");  
+   b_GfDpiz=     fChain->GetBranch("GfDpiz");
+   b_GfDk=       fChain->GetBranch("GfDk");  
+   b_GfDks=      fChain->GetBranch("GfDks"); 
+   b_GfDlep=     fChain->GetBranch("GfDlep");
+   b_GfDgam=     fChain->GetBranch("GfDgam");
+   b_q2 = fChain->GetBranch("q2");
+   b_q2fit = fChain->GetBranch("q2fit");
+   b_q2Gen = fChain->GetBranch("q2Gen");
+   b_intpur = fChain->GetBranch("intpur");
+   b_brecoflav = fChain->GetBranch("brecoflav");
+   b_brecocharge = fChain->GetBranch("brecocharge");
+   b_vub = fChain->GetBranch("vub");
+   b_vcb = fChain->GetBranch("vcb");
+   b_other = fChain->GetBranch("other");
+   b_pcmsgen = fChain->GetBranch("pcmsgen");
+   b_tcmsgen = fChain->GetBranch("tcmsgen");
+   b_fcmsgen = fChain->GetBranch("fcmsgen");
+   b_ecmsgen = fChain->GetBranch("ecmsgen");
+   b_pxhadgen = fChain->GetBranch("pxhadgen");
+   b_txhadgen = fChain->GetBranch("txhadgen");
+   b_fxhadgen = fChain->GetBranch("fxhadgen");
+   b_exhadgen = fChain->GetBranch("exhadgen");
+   b_mxhadgen = fChain->GetBranch("mxhadgen");
+   b_xcharge = fChain->GetBranch("xcharge");
+   b_pxhad = fChain->GetBranch("pxhad");
+   b_txhad = fChain->GetBranch("txhad");
+   b_fxhad = fChain->GetBranch("fxhad");
+   b_exhad = fChain->GetBranch("exhad");
+   b_mxhad = fChain->GetBranch("mxhad");
+   b_mxhadfit = fChain->GetBranch("mxhadfit");
+   b_lcharge = fChain->GetBranch("lcharge");
+   b_pcms = fChain->GetBranch("pcms");
+   b_tcms = fChain->GetBranch("tcms");
+   b_fcms = fChain->GetBranch("fcms");
+   b_ecms = fChain->GetBranch("ecms");
+   b_pcms = fChain->GetBranch("plab");
+   b_tcms = fChain->GetBranch("tlab");
+   b_fcms = fChain->GetBranch("flab");
+   b_pnu = fChain->GetBranch("pnu");
+   b_tnu = fChain->GetBranch("tnu");
+   b_fnu = fChain->GetBranch("fnu");
+   b_mm2 = fChain->GetBranch("mm2");
+   b_deltam = fChain->GetBranch("deltam");
+   b_wdeltam = fChain->GetBranch("wdeltam");
+   b_nnpi0 = fChain->GetBranch("nnpi0");
+   b_xX = fChain->GetBranch("xX");
+   b_yX = fChain->GetBranch("yX");
+   b_zX = fChain->GetBranch("zX");
+   b_v2xxX = fChain->GetBranch("v2xxX");
+   b_v2yyX = fChain->GetBranch("v2yyX");
+   b_v2zzX = fChain->GetBranch("v2zzX");
+   b_v2xyX = fChain->GetBranch("v2xyX");
+   b_v2yzX = fChain->GetBranch("v2yzX");
+   b_v2xzX = fChain->GetBranch("v2xzX");
+   b_v2xxLep = fChain->GetBranch("v2xxLep");
+   b_v2yyLep = fChain->GetBranch("v2yyLep");
+   b_v2zzLep = fChain->GetBranch("v2zzLep");
+   b_v2xyLep = fChain->GetBranch("v2xyLep");
+   b_v2yzLep = fChain->GetBranch("v2yzLep");
+   b_v2xzLep = fChain->GetBranch("v2xzLep");
+   b_kplus = fChain->GetBranch("kplus");
+   b_csiCiuc = fChain->GetBranch("csiCiuc");
+   b_xCiuc = fChain->GetBranch("xCiuc");
+   b_wCiuc = fChain->GetBranch("wCiuc");
+
+   return kTRUE;
+}
+
+// ----------------------------------------------------------------------
+TFile* fitNtp::openHistFile(TString name) {
+  char thename[100];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "RECREATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  return fHistFile;
+}
+
+
+// ----------------------------------------------------------------------
+void fitNtp::closeHistFile() {
+  cout << "Writing " << fHistFile->GetName() << endl;
+  fHistFile->cd();
+  fHistFile->Write();
+  fHistFile->Close();
+  delete fHistFile;
+
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::openEpsFile(TString name) {
+  gROOT->SetStyle("Plain");
+  fPostScriptFile = new TPostScript(name.Data(),113);
+  cout << "Opened " << fPostScriptFile->GetName() << endl;
+}
+
+
+// ----------------------------------------------------------------------
+void fitNtp::closeEpsFile() {
+  cout << "Writing " << fPostScriptFile->GetName() << endl;
+  fPostScriptFile->Close();
+  delete fPostScriptFile;
+
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::Show(Int_t entry) {
+// Print contents of entry.
+// If entry is not specified, print current entry
+   if (!fChain) return;
+   fChain->Show(entry);
+}
+
+// ----------------------------------------------------------------------
+Int_t fitNtp::Cut(Int_t entry) {
+// This function may be called from Loop.
+// returns  1 if entry is accepted.
+// returns -1 otherwise.
+  return -1;
+}
+
+
+// ----------------------------------------------------------------------
+Int_t fitNtp::GetEntry(Int_t entry) {
+// Read contents of entry.
+  return 0;
+}
+
+
+// ----------------------------------------------------------------------
+Int_t fitNtp::LoadTree(Int_t entry) {
+  return 0;
+}
+
+// ---------------------------------------------------------------------- 
+void fitNtp::initRest(TString filename) {
+
+  FILEVUBTOTAL = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/newallvubcock.root";
+  FILEVUBDSTAR ="/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/sx-dstar-sp3run1-brecovubmix.root" ;
+  FILEVUBDC = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/sx-dc-sp3run1-brecovubmix.root";
+  FILEVUBDSTAR0 = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/sx-dstar0-sp3run1-brecovubmix.root";
+  FILEVUBD0 ="/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/sx-d0-sp3run1-brecovubmix.root" ;
+  FILEVCB = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/all-cocktail.root";
+  FILEVCB2 = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/all-cocktail.root";
+  FILEDATA = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/allgeneric.root";
+  TOTALSTAT = 270. ;
+  TOTALSTATMODEL = 270.;
+  BRRATIOGENVALUE = 0.0017 ;
+  BRRATIOVALUETAIL = 0.0017 ;
+  PSTARFACT = 1.17;
+  Q2CUT = 0;
+  CSILOCUT = 0;
+  CSIHICUT = 1;
+  Q2LOCUT = 0;
+  Q2HICUT = 30;
+  XLOCUT = 0;
+  XHICUT = 1.5;
+  WLOCUT = 0;
+  WHICUT = 2;
+  EWPWLOCUT = 3;
+  EWPWHICUT = 5.5;
+  MXCUT = 1.6;
+  USECB = 1;
+  FIXMEANVALUE = 1;
+  FIXSIGMA = 0;
+  FIXARGUS1 = 0;
+  FIXARGUS2 = 0;
+  FIXCB1 = 0;
+  FIXCB2 = 0;
+  LEPTONPCUT = 1.;
+  PRMM2CUT = 1000000.;
+  MNUSQLOW = -1000.;
+  MNUSQHIGH = 0.5;
+  CHLOW = -.5;
+  CHHIGH = .5;
+  DEPL = 1.;
+  BTYPE = 2;
+  LEPTTYPE = 2;
+  FITTOTSHAPE = 0;
+  MIXCORR = 2;
+  FITMC = 1;
+  FITOPT = 0;
+  VCBCOMP = 0;
+  OTHCOMP = 0;
+  FITQ2 = 0;
+  TOYMC = 0.;
+  MULTIFIT = 0;
+  BLINDING = 1;
+  RANDOMSEED = 990717;
+  BLINDSIZE = 0.51;
+  ISSMEARALL = 0;              
+  SMEARALLMEANVALUE = 0;
+  SMEARALLSIGMA   = 1;      
+  ISSMEARBKG      = 0;        
+  SMEARBKGMEANVALUE = 0;
+  SMEARBKGSIGMA    = 1; 
+  DOBRECOWEIGHT = 0;
+  DOBDECWEIGHT = 0;
+  DODDECWEIGHT = 0;
+  DOTRKWEIGHT = 0;
+  DONEUWEIGHT = 0;
+  MAXINTPUR = 1000.;
+  MININTPUR = 0.;
+  RUN = 0;
+  CUTNNPI0 = -1000;
+  DOFERMI = 0;
+  DOVARSTU = 0;
+  DOTHEO = 0;
+  FERMIAPP = 0;
+  MULFAC = 0;
+  DELTAMB = 0;
+  DELTAA = 0;
+
+  int mxbin, q2bin, elbin; double WVal; char buffer2[200];
+  sprintf(buffer2, "%s", filename.Data());
+  ifstream is3(buffer2);
+  cout<<"Weight Filename:: "<<buffer2<<endl;
+  for (int ys=0;ys<896;ys++){
+    is3.getline(buffer2, 200, '\n');
+    sscanf(buffer2, "%d %d %d %lf", &mxbin, &q2bin, &elbin, &WVal);
+    if(WVal<0) {WVal =0;}
+    MatrixW[ys] = WVal;
+    cout<<"MatrixW[ys]:: "<<MatrixW[ys]<<" "<<ys<<endl;
+  }
+
+   for(int u=0;u<4;u++){
+     mesNsl[u] =-1111111;
+     mesdatacuts[u] = -1111111.;
+     mesvubcuts[u] = -1111111.;
+     mesvcbcuts[u] = -1111111.;
+     mesothcuts[u] = -1111111.;
+     mesNslMC[u] = -1111111.;
+     mesvubMC[u] = -1111111.;
+     mesvcbMC[u] = -1111111.;
+     mesvubMCmx[u] = -1111111.;
+     mesvubMCall[u] = -1111111.;
+     mesvcbMCall[u] = -1111111.;
+     mesvubMClepteff[u] = -1111111.;
+     mesvubMCalleff[u] = -1111111.;   
+   }
+   double mxBinning1[10] = {MXCUT,1.9,2.2,2.5,2.8,3.1,3.4,3.7,4.2,5.};
+   double TrueMxWeight1[42] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
+   double histbA[21] = {0.0, 1.2, 1.264, 1.341, 1.414, 1.483, 1.549, 1.612, 1.673, 1.732, 1.788, 1.843, 1.897, 1.949, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0};
+   for(int u=0;u<10;u++){
+     mxBinning[u] = mxBinning1[u];
+   }
+   for(int ua=0;ua<21;ua++){
+     truehistbins[ua] = histbA[ua];
+   }
+   for(int uaw=0;uaw<42;uaw++){
+     TrueMxWeight[uaw] = TrueMxWeight1[uaw];
+   }
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::readOptions(TString filename, int dump) {
+  char  buffer[200];
+  fOptionFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char OptionName[100];
+  char OptionValue[100];
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+//     if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %s", OptionName, OptionValue);
+
+    // -- 
+    if (!strcmp(OptionName, "fileVubTotal")) { FILEVUBTOTAL  = OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalres")) { FILEVUBTOTALRES  = OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalnres")) { FILEVUBTOTALNRES  = OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubDstar")) { FILEVUBDSTAR = OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubDc")) { FILEVUBDC= OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubDstar0")) { FILEVUBDSTAR0= OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubD0")) { FILEVUBD0= OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVcb")) { FILEVCB= OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVcb2")) { FILEVCB2= OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileData")) { FILEDATA= OptionValue; ok = 1;}
+
+    if (ok == 0)  cout << "==> fitNtp::readOptions() Error: Don't know about variable " << OptionName << endl;
+  }
+
+  if (dump == 1) dumpOptions();
+
+}
+
+
+// ----------------------------------------------------------------------
+void fitNtp::readCuts(TString filename, int dump) {
+  char  buffer[200];
+  fCutFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char CutName[100];
+  float CutValue;
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %f", CutName, &CutValue);
+    // -- 
+    if (!strcmp(CutName, "totalStat")) { TOTALSTAT  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "totalStatModel")) { TOTALSTATMODEL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "BRRatioGenValue")) { BRRATIOGENVALUE  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "BRRatioValueTail")) { BRRATIOVALUETAIL  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "pstarfact")) { PSTARFACT  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mxCut")) { MXCUT  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "q2Cut")) { Q2CUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "q2loCut")) { Q2LOCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "q2hiCut")) { Q2HICUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "csiloCut")) { CSILOCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "csihiCut")) { CSIHICUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "xloCut"))   { XLOCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "xhiCut"))   { XHICUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "wloCut"))   { WLOCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "whiCut"))   { WHICUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "ewpwloCut")) { EWPWLOCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "ewpwhiCut")) { EWPWHICUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "useCB")) { USECB= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixMeanValue")) { FIXMEANVALUE= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixSigma")) { FIXSIGMA= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixArgus1")) { FIXARGUS1= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixArgus2")) { FIXARGUS2 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixCB1")) { FIXCB1 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixCB2")) { FIXCB2 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "leptonPCut")) { LEPTONPCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "prmm2Cut")) { PRMM2CUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqLow")) { MNUSQLOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqHigh")) { MNUSQHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "chLow")) { CHLOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "chHigh")) { CHHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "depl")) { DEPL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "Btype")) { BTYPE = CutValue; ok = 1;}
+    if (!strcmp(CutName, "lepttype")) { LEPTTYPE = CutValue; ok = 1;}
+    if (!strcmp(CutName, "fittotshape")) { FITTOTSHAPE= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "mixcorr")) { MIXCORR = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fitMC")) { FITMC= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fitOption")) { FITOPT= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "vcbcomp")) { VCBCOMP= CutValue; ok = 1;}
+    if (!strcmp(CutName, "othcomp")) { OTHCOMP= CutValue; ok = 1;}
+    if (!strcmp(CutName, "fitQ2")) { FITQ2= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "dovarstu")) { DOVARSTU= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "toyMC")) { TOYMC= CutValue; ok = 1;}
+    if (!strcmp(CutName, "multifit")) { MULTIFIT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "blinding")) { BLINDING = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "randomseed")) { RANDOMSEED = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "blindsize")) { BLINDSIZE = CutValue; ok = 1; }
+    if (!strcmp(CutName, "issmearAll")) {ISSMEARALL = int(CutValue); ok = 1;}       
+    if (!strcmp(CutName, "smearAllMeanValue")) {SMEARALLMEANVALUE = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "smearAllSigma")) {SMEARALLSIGMA = CutValue; ok = 1;}     
+    if (!strcmp(CutName, "issmearBkg")) {ISSMEARBKG = int(CutValue); ok = 1;}       
+    if (!strcmp(CutName, "smearBkgMeanValue")) {SMEARBKGMEANVALUE = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "smearBkgSigma")) {SMEARBKGSIGMA = CutValue; ok = 1;}    
+    if (!strcmp(CutName, "dobrecoreweight")) { DOBRECOWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doBdecreweight")) { DOBDECWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doDdecreweight")) { DODDECWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "dotrkreweight")) { DOTRKWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doneureweight")) { DONEUWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "maxintpur")) {MAXINTPUR = CutValue; ok = 1;}
+    if (!strcmp(CutName, "minintpur")) {MININTPUR = CutValue; ok = 1;}
+    if (!strcmp(CutName, "run")) {RUN = CutValue; ok = 1;}
+    if (!strcmp(CutName, "nnpi0")) {CUTNNPI0 = CutValue; ok = 1;}
+    if (!strcmp(CutName, "fermiapp")) {FERMIAPP = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mulfac")) {MULFAC = CutValue; ok = 1;}
+    if (!strcmp(CutName, "deltamb")) {DELTAMB = CutValue; ok = 1;}
+    if (!strcmp(CutName, "deltaa")) {DELTAA = CutValue; ok = 1;}
+    if (!strcmp(CutName, "userbinning") && CutValue == 1) {
+      for (int y=0;y<10;y++){
+	is.getline(buffer, 200, '\n');
+	sscanf(buffer, "%s %f", CutName, &CutValue);
+	mxBinning[y] = CutValue;
+	cout << "mx bin " << y << " " << mxBinning[y] << endl;
+      }
+      ok = 1;
+    }
+
+    if (!strcmp(CutName, "theomxweight") && CutValue == 1) {
+      for (int y=0;y<42;y++){
+	is.getline(buffer, 200, '\n');
+	sscanf(buffer, "%s %f", CutName, &CutValue);
+	TrueMxWeight[y] = CutValue;
+	cout << "mx bin " << y << " " << TrueMxWeight[y] << endl;
+      }
+      ok = 1;
+    }
+
+    if (ok == 0)  cout << "==> fitNtp::readCuts() Error: Don't know about variable " << CutName << endl;
+  }
+  
+  if (dump == 1) dumpCuts();
+  
+  readWeights();
+  readpstarfactor();
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::dumpOptions() {
+  cout << "====================================" << endl;
+  cout << " Option file " << fOptionFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " fileVubTotal        :"  << FILEVUBTOTAL   <<  endl;  
+  cout << " fileVubTotalres     :"  << FILEVUBTOTALRES   <<  endl;  
+  cout << " fileVubTotalnres    :"  << FILEVUBTOTALNRES   <<  endl;  
+  cout << " fileVubDstar        :"  << FILEVUBDSTAR   <<  endl;  
+  cout << " fileVubDc           :"  << FILEVUBDC   <<  endl;  
+  cout << " fileVubDstar0       :"  << FILEVUBDSTAR0   <<  endl;  
+  cout << " fileVubD0           :"  << FILEVUBD0   <<  endl;  
+  cout << " fileVcb             :"  << FILEVCB   <<  endl;  
+  cout << " fileVcb2            :"  << FILEVCB2   <<  endl;  
+  cout << " fileData            :"  << FILEDATA   <<  endl;  
+  cout << "====================================" << endl;
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::dumpCuts() {
+  cout << "====================================" << endl;
+  cout << " Cut file " << fCutFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " totalStat           :"  << TOTALSTAT   <<  endl;  
+  cout << " totalStatModel      :"  << TOTALSTATMODEL   <<  endl;  
+  cout << " BRRatioGenValue     :"  << BRRATIOGENVALUE   <<  endl;  
+  cout << " BRRatioValueTail    :"  << BRRATIOVALUETAIL   <<  endl;  
+  cout << " pstarfact           :"  << getPstarFactor(LEPTONPCUT) <<  endl;  
+  cout << " mxCut               :"  << MXCUT   <<  endl;  
+  cout << " q2Cut               :"  << Q2CUT   <<  endl;  
+  cout << " q2loCut             :"  << Q2LOCUT   <<  endl;  
+  cout << " q2hiCut             :"  << Q2HICUT   <<  endl;  
+  cout << " csiloCut            :"  << CSILOCUT   <<  endl;  
+  cout << " csihiCut            :"  << CSIHICUT   <<  endl;  
+  cout << " xloCut              :"  << XLOCUT   <<  endl;  
+  cout << " xhiCut              :"  << XHICUT   <<  endl;  
+  cout << " wloCut              :"  << WLOCUT   <<  endl;  
+  cout << " whiCut              :"  << WHICUT   <<  endl;  
+  cout << " ewpwloCut           :"  << EWPWLOCUT   <<  endl;  
+  cout << " ewpwhiCut           :"  << EWPWHICUT   <<  endl;  
+  cout << " useCB:              :"  << USECB   <<  endl;  
+  cout << " fixMeanValue        :"  << FIXMEANVALUE   <<  endl;  
+  cout << " fixSigma            :"  << FIXSIGMA   <<  endl;  
+  cout << " fixArgus1           :"  << FIXARGUS1   <<  endl;  
+  cout << " fixArgus2           :"  << FIXARGUS2   <<  endl;  
+  cout << " fixCB1              :"  << FIXCB1   <<  endl;  
+  cout << " fixCB2              :"  << FIXCB2   <<  endl;  
+  cout << " leptonPCut          :"  << LEPTONPCUT   <<  endl;  
+  cout << " prmm2Cut            :"  << PRMM2CUT   <<  endl;  
+  cout << " mnuSqLow            :"  << MNUSQLOW   <<  endl;  
+  cout << " mnuSqHigh           :"  << MNUSQHIGH   <<  endl;  
+  cout << " chLow               :"  << CHLOW   <<  endl;  
+  cout << " chHigh              :"  << CHHIGH   <<  endl;  
+  cout << " depl                :"  << DEPL   <<  endl;  
+  cout << " Btype               :"  << BTYPE   <<  endl;  
+  cout << " lepttype            :"  << LEPTTYPE   <<  endl;  
+  cout << " fittotshape         :"  << FITTOTSHAPE   <<  endl;  
+  cout << " mixcorr             :"  << MIXCORR   <<  endl;  
+  cout << " fitMC               :"  << FITMC   <<  endl;  
+  cout << " fitOption           :"  << FITOPT  <<  endl;  
+  cout << " vcbcomp             :"  << VCBCOMP  <<  endl;  
+  cout << " othcomp             :"  << OTHCOMP  <<  endl;  
+  cout << " fitQ2               :"  << FITQ2  <<  endl;  
+  cout << " toyMC               :"  << TOYMC   <<  endl;  
+  cout << " multifit            :"  << MULTIFIT   <<  endl;  
+  cout << " blinding            :"  << BLINDING   <<  endl;  
+  cout << " randomseed          :"  << RANDOMSEED   <<  endl;  
+  cout << " blindsize           :"  << BLINDSIZE   <<  endl;  
+  cout << " issmearAll          :"  << ISSMEARALL   <<  endl; 
+  cout << " smearAllMeanValue   :"  << SMEARALLMEANVALUE   <<  endl;  
+  cout << " smearAllSigma       :"  << SMEARALLSIGMA   <<  endl;  
+  cout << " issmearBkg          :"  << ISSMEARBKG   <<  endl;  
+  cout << " smearBkgMeanValue   :"  << SMEARBKGMEANVALUE   <<  endl; 
+  cout << " smearBkgSigma       :"  << SMEARBKGSIGMA    <<  endl;
+  cout << " maxintpur           :"  << MAXINTPUR    <<  endl;
+  cout << " minintpur           :"  << MININTPUR    <<  endl;
+  cout << " run                 :"  << RUN    <<  endl;
+  cout << " nnpi0               :"  << CUTNNPI0  <<  endl;
+  cout << " fermiapp            :"  << FERMIAPP    <<  endl;
+  cout << " mulfac              :"  << MULFAC    <<  endl;
+  cout << " deltamb             :"  << DELTAMB    <<  endl;
+  cout << " deltaa              :"  << DELTAA  <<  endl;
+  cout << " theosys             :"  << DOTHEO  <<  endl;
+  cout << " Variables Study     :"  << DOVARSTU  <<  endl;
+  cout << "====================================" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if(DOTRKWEIGHT)   cout << " TRK REWEIGHTING IS ON" <<  endl; 
+  if(DONEUWEIGHT)   cout << " NEU REWEIGHTING IS ON" <<  endl; 
+  if(DOBDECWEIGHT)   cout << " B DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DODDECWEIGHT)   cout << " D DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DOBRECOWEIGHT)   cout << " BRECO REWEIGHTING IS ON" <<  endl; 
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "   ######  #         ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "   #     # #          #    ##    # #     #    #    ##    # #     #" << endl;
+  cout << "   #     # #          #    # #   # #     #    #    # #   # #" << endl;
+  cout << "   ######  #          #    #  #  # #     #    #    #  #  # #  ####" << endl;
+  cout << "   #     # #          #    #   # # #     #    #    #   # # #     #" << endl;
+  cout << "   #     # #          #    #    ## #     #    #    #    ## #     #" << endl;
+  cout << "   ######  #######   ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if (!BLINDING) {
+    cout << "                      ####### ####### #######" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #####   #####" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      ####### #       #" << endl;
+  }else{
+    cout << "                         ####### #     #" << endl;
+    cout << "                         #     # ##    #" << endl;
+    cout << "                         #     # # #   #" << endl;
+    cout << "                         #     # #  #  #" << endl;
+    cout << "                         #     # #   # #" << endl;
+    cout << "                         #     # #    ##" << endl;
+    cout << "                         ####### #     #" << endl;
+  }                                                                                                              
+  
+  cout << "" << endl;
+  cout << "" << endl;
+}
+// ----------------------------------------------------------------------
+double fitNtp::getblindfact() {
+   TRandom random;
+   double blindbias; 
+   random.SetSeed(RANDOMSEED);  
+   blindbias = 2*BLINDSIZE*random.Rndm()-BLINDSIZE; 
+   return blindbias+1;
+}
+
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubTotal() {
+  return FILEVUBTOTAL;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubTotalres() {
+  return FILEVUBTOTALRES;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubTotalnres() {
+  return FILEVUBTOTALNRES;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubDstar() {
+  return FILEVUBDSTAR;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubDc() {
+  return FILEVUBDC;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubDstar0() {
+  return FILEVUBDSTAR0;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVubD0() {
+  return FILEVUBD0;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileVcb() {
+  return FILEVCB;
+}// ----------------------------------------------------------------------
+TString fitNtp::getfileVcb2() {
+  return FILEVCB2;
+}
+// ----------------------------------------------------------------------
+TString fitNtp::getfileData() {
+  return FILEDATA;
+}
+// ----------------------------------------------------------------------
+Int_t fitNtp::isfitMC() {
+  return FITMC;
+}
+// ----------------------------------------------------------------------
+Int_t fitNtp::isfitOpt() {
+  return FITOPT;
+}
+// ----------------------------------------------------------------------
+Int_t fitNtp::isfitQ2() {
+  return FITQ2;
+}
+// ----------------------------------------------------------------------
+Double_t fitNtp::isToyMC() {
+  return TOYMC;
+}
+// ----------------------------------------------------------------------
+void fitNtp::setPrefix(TString theprefix) {
+  PREFIXOUT = theprefix;
+}
+// ----------------------------------------------------------------------
+void fitNtp::setDirectory(TString dirname) {
+  DIRNAME = dirname;
+}
+// ----------------------------------------------------------------------
+Double_t fitNtp::totalStat() {
+  return TOTALSTAT;
+}
+// ----------------------------------------------------------------------
+Double_t fitNtp::totalStatModel() {
+  return TOTALSTATMODEL;
+}
+// ----------------------------------------------------------------------
+Double_t fitNtp::BRRatioGenValue() {
+  return BRRATIOGENVALUE;
+}
+// ----------------------------------------------------------------------
+Int_t fitNtp::isBlind() {
+  return BLINDING;
+}
+// ----------------------------------------------------------------------
+Int_t fitNtp::getMixcorr() {
+  return MIXCORR;
+}
+// ----------------------------------------------------------------------
+void fitNtp::doFermi() {
+  DOFERMI = 1;
+}
+// ----------------------------------------------------------------------
+void fitNtp::doTheo() {
+  DOTHEO = 1;
+}
+// ----------------------------------------------------------------------
+void fitNtp::doVarStu() {
+  DOVARSTU = 1;
+}
+// ----------------------------------------------------------------------
+void fitNtp::readWeights() {
+  char buffer[200];
+  float pmax, thefactor;
+  int i;
+  if(DOBRECOWEIGHT){
+    ifstream is3("tablebreco.dat");
+    i = 0;  
+    while (is3.getline(buffer, 200, '\n')) {
+      if (buffer[0] == '#') {continue;}
+      sscanf(buffer, "%f %f", &pmax, &thefactor);
+      BrecoWeight[i] = thefactor; 
+      i++;
+    }
+  }else{
+    for(int j=0; j<20 ; j++){
+      BrecoWeight[j] = 1;  
+    }
+  }    
+}
+
+// ----------------------------------------------------------------------
+void fitNtp::readpstarfactor() {
+  char buffer[200];
+  float pmax, thefactor;
+  int i;
+  char name[100];
+  if(LEPTTYPE==2) sprintf(name,"filepstar.dat");
+  if(LEPTTYPE==0) sprintf(name,"filepstarele.dat"); 
+  if(LEPTTYPE==1) sprintf(name,"filepstarmu.dat"); 
+  ifstream is3(name);
+  i = 15;  
+  while (is3.getline(buffer, 200, '\n')) {
+    if (buffer[0] == '#') {continue;}
+    sscanf(buffer, "%f %f", &pmax, &thefactor);
+    pstarfactor[i] = thefactor; 
+    i--;
+  }    
+}
+// ----------------------------------------------------------------------
+double fitNtp::getBsysweight(int decType,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  if(DOBDECWEIGHT) theweight = Bsem->weight(decType); 
+  if(thevub) theweight = 1.;
+  return theweight;
+}
+// ----------------------------------------------------------------------
+double fitNtp::getDsysweight(int decDpi,int decDk,int decDks,int decDpiz,int decDlep,int decImode,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  int bla(1);
+  if(DODDECWEIGHT){
+   theweight = Dvar->weight(decDpi,decDk,decDks,decDpiz,decDlep,decImode,bla);    
+  }
+  if(thevub) theweight = 1.;
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double fitNtp::getTrackingWeight() {
+  double theweight = 1;
+  if(DOTRKWEIGHT){theweight = totweightTrkMult;}
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double fitNtp::getNeutralWeight() {
+  double theweight = 1;
+  if(DONEUWEIGHT){theweight = totweightNutMult;}
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double fitNtp::getPstarFactor(double thepcms) {
+  int thebin = (thepcms-1)/.1;
+  double prevalue = thebin * .1 + 1.0; 
+  double thevalue;
+  thevalue = pstarfactor[thebin] + (pstarfactor[thebin+1] - pstarfactor[thebin])/.1 * (thepcms-prevalue); 
+  if (thepcms<.1)thevalue = pstarfactor[0]; 
+  if (thepcms>2.5)thevalue = pstarfactor[15]; 
+  return thevalue;
+}
+
+// ----------------------------------------------------------------------
+double fitNtp::getBrecoWeight(double theintpur) {
+  int thebin = theintpur/(1./20);
+  if (theintpur>1.)thebin = 19; 
+  if (theintpur<0.)thebin = 0; 
+  return BrecoWeight[thebin];
+}
+
+// ----------------------------------------------------------------------
+double fitNtp::getTrueMxWeight(double thetrumx, int index) {
+  //  cout<<"Entered function: "<<thetrumx<<endl;
+  int thebin = TrueHist(thetrumx);
+  if(index < 0) thebin = thebin + 21;
+  return TrueMxWeight[thebin];
+}
+
+void fitNtp::Bookhist()
+{
+  
+   fHistFile->cd();
+   TH1 *h;
+   char name[100], title[100], preine[100], preich[100], prefix[100], number[100];
+   Int_t nbins = 13;
+   Int_t nbins2 = 10;
+   Int_t nbins3 = 9;
+   Int_t mesbin;
+   Float_t ranges[14] = {0.,.3,.6,1.1,MXCUT,mxBinning[1],mxBinning[2],mxBinning[3],mxBinning[4],mxBinning[5],mxBinning[6],mxBinning[7],mxBinning[8],mxBinning[9]};
+   Float_t ranges2[11] = {0.,MXCUT,mxBinning[1],mxBinning[2],mxBinning[3],mxBinning[4],mxBinning[5],mxBinning[6],mxBinning[7],mxBinning[8],mxBinning[9]};
+   Float_t ranges3[10] = {MXCUT,mxBinning[1],mxBinning[2],mxBinning[3],mxBinning[4],mxBinning[5],mxBinning[6],mxBinning[7],mxBinning[8],mxBinning[9]};
+   int ine; int ich; int lo; 
+
+   h = new TH1D("plotall", "Hibryd", 40, 0, 5. ); 
+   h = new TH1D("plotnres", "Mx Hybrid",40, 0, 5. ); 
+   h = new TH1D("plotres", "Mx Resonant",40, 0, 5.  ); 
+   h = new TH1D("plotallnonres", "Mx NON Resonant",40, 0, 5.  ); 
+
+   h = new TH1D("ACplotall", "Hibryd", 40, 0, 5. ); 
+   h = new TH1D("ACplotnres", "Mx Hybrid",40, 0, 5. ); 
+   h = new TH1D("ACplotres", "Mx Resonant",40, 0, 5.  ); 
+   h = new TH1D("ACplotallnonres", "Mx NON Resonant",40, 0, 5.  ); 
+
+   //plots for the true BRBR in the fitted files (no cut)
+   sprintf(name, "vcbmcnocutdata");  sprintf(title, "mes all Vcb in data file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+   sprintf(name, "vubmcnocutdata");  sprintf(title, "mes all Vub in data file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+   sprintf(name, "othmcnocutdata");  sprintf(title, "mes all oth in data file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+   sprintf(name, "allmcnocutdata");  sprintf(title, "mes all all in data file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+
+   //plots for the true BRBR in the mc files (no cut) 
+   sprintf(name, "vcbmcnocut");  sprintf(title, "mes all Vcb in mc file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+   sprintf(name, "vubmcnocut");  sprintf(title, "mes all Vub in mc file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+   sprintf(name, "othmcnocut");  sprintf(title, "mes all oth in mc file");  h = new TH1D(name, title, 40, 5.2, 5.3 );  h->Sumw2();
+
+   //plots for data after lepton cuts 
+   sprintf(name, "leptondata");  sprintf(title, "mes all after lepton data bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "leptondatabch");  sprintf(title, "mes all after lepton data bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "leptondatabos");  sprintf(title, "mes all after lepton data b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "leptondatabss");  sprintf(title, "mes all after lepton data b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+   //plots for mc after lepton cuts 
+   sprintf(name, "vcbleptonmc");  sprintf(title, "mes Vcb after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcbleptonmcbch");  sprintf(title, "mes Vcb after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcbleptonmcbos");  sprintf(title, "mes Vcb after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcbleptonmcbss");  sprintf(title, "mes Vcb after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmc");  sprintf(title, "mes Vub after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcbch");  sprintf(title, "mes Vub after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcbos");  sprintf(title, "mes Vub after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcbss");  sprintf(title, "mes Vub after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmceff");  sprintf(title, "mes Vub after lepton for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmceffbch");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmceffbos");  sprintf(title, "mes Vub after b0 os for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmceffbss");  sprintf(title, "mes Vub after b0 ss for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othleptonmc");  sprintf(title, "mes oth after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othleptonmcbch");  sprintf(title, "mes oth after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othleptonmcbos");  sprintf(title, "mes oth after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othleptonmcbss");  sprintf(title, "mes oth after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcmxcut");  sprintf(title, "mes Vub after lepton Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcmxcutbch");  sprintf(title, "mes Vub after bch Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcmxcutbos");  sprintf(title, "mes Vub after b0 os Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vubleptonmcmxcutbss");  sprintf(title, "mes Vub after b0 ss Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allleptonmc");  sprintf(title, "mes all after lepton bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allleptonmcbch");  sprintf(title, "mes all after lepton bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allleptonmcbos");  sprintf(title, "mes all after lepton b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allleptonmcbss");  sprintf(title, "mes all after lepton b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+   for (ich=1;ich<4;ich++){
+     for (ine=1;ine<3;ine++){    
+       
+       sprintf(preich, "%s%d", "ch", ich);
+       sprintf(preine, "%s%d", "ne", ine);
+       sprintf(prefix,  "%s%s",preich , preine);     
+
+       sprintf(name,"%s%s" , prefix, "vcbleptonmc");  sprintf(title, "mes Vcb after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcbleptonmcbch");  sprintf(title, "mes Vcb after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcbleptonmcbos");  sprintf(title, "mes Vcb after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcbleptonmcbss");  sprintf(title, "mes Vcb after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmc");  sprintf(title, "mes Vub after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcbch");  sprintf(title, "mes Vub after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcbos");  sprintf(title, "mes Vub after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcbss");  sprintf(title, "mes Vub after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmceff");  sprintf(title, "mes Vub after lepton for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmceffbch");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmceffbos");  sprintf(title, "mes Vub after b0 os for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmceffbss");  sprintf(title, "mes Vub after b0 ss for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othleptonmc");  sprintf(title, "mes oth after lepton");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othleptonmcbch");  sprintf(title, "mes oth after bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othleptonmcbos");  sprintf(title, "mes oth after b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othleptonmcbss");  sprintf(title, "mes oth after b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcmxcut");  sprintf(title, "mes Vub after lepton Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcmxcutbch");  sprintf(title, "mes Vub after bch Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcmxcutbos");  sprintf(title, "mes Vub after b0 os Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vubleptonmcmxcutbss");  sprintf(title, "mes Vub after b0 ss Mx<1.6");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+     }
+   }
+     
+   //plots for mc after all cuts 
+   sprintf(name, "vcballcutsmc");  sprintf(title, "mes Vcb after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmc");  sprintf(title, "mes Vub after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsmc");  sprintf(title, "mes oth after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmceff");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmceffbch");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmceffbos");  sprintf(title, "mes Vub after b0 os for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmceffbss");  sprintf(title, "mes Vub after b0 ss for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmc1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmc1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmc1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsmc1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsmc1bin");  sprintf(title, "mes Vcb");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsmc1binbch");  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsmc1binbos");  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsmc1binbss");  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsmc1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsmc1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsmc1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsmc1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+   for (ich=1;ich<4;ich++){
+     for (ine=1;ine<3;ine++){    
+
+       sprintf(preich, "%s%d", "ch", ich);
+       sprintf(preine, "%s%d", "ne", ine);
+       sprintf(prefix,  "%s%s",preich , preine);     
+       sprintf(name,"%s%s" , prefix, "vcballcutsmc");  sprintf(title, "mes Vcb after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmc");  sprintf(title, "mes Vub after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsmc");  sprintf(title, "mes oth after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmceff");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmceffbch");  sprintf(title, "mes Vub after bch for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmceffbos");  sprintf(title, "mes Vub after b0 os for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmceffbss");  sprintf(title, "mes Vub after b0 ss for eff");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmc1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmc1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmc1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsmc1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsmc1bin");  sprintf(title, "mes Vcb");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsmc1binbch");  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsmc1binbos");  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsmc1binbss");  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsmc1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsmc1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsmc1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsmc1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+     }
+   }
+
+   for (lo=1;lo<14;lo++) {
+     
+     mesbin = 40;
+     sprintf(number, "%d", lo);     
+     sprintf(name,"%s%s" , "vcballcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+
+     for (ich=1;ich<4;ich++){
+       for (ine=1;ine<3;ine++){    
+       
+         sprintf(preich, "%s%d", "ch", ich);
+         sprintf(preine, "%s%d", "ne", ine);
+         sprintf(prefix,  "%s%s",preich , preine);     
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsmcbin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+       }
+     }
+	 
+   }
+
+   //plots for data after all cuts 
+   sprintf(name, "allcutsdata");  sprintf(title, "mes all after all cuts for data");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allcutsdata2");  sprintf(title, "mes all after all cuts for data");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsdata");  sprintf(title, "mes oth after all cuts");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allcutsdata1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allcutsdata1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allcutsdata1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "allcutsdata1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsdata1bintruth");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsdata1bintruthbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsdata1bintruthbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vuballcutsdata1bintruthbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsdata1bintruth");  sprintf(title, "mes Vcb");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsdata1bintruthbch");  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsdata1bintruthbos");  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "vcballcutsdata1bintruthbss");  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsdata1bintruth");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsdata1bintruthbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsdata1bintruthbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+   sprintf(name, "othallcutsdata1bintruthbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+
+   
+   for (ich=1;ich<4;ich++){
+     for (ine=1;ine<3;ine++){    
+       
+       sprintf(preich, "%s%d", "ch", ich);
+       sprintf(preine, "%s%d", "ne", ine);
+       sprintf(prefix,  "%s%s",preich , preine);     
+       sprintf(name,"%s%s" , prefix, "allcutsdata");  sprintf(title, "mes all after all cuts for data");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "allcutsdata1bin");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "allcutsdata1binbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "allcutsdata1binbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "allcutsdata1binbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsdata1bintruth");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsdata1bintruthbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsdata1bintruthbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vuballcutsdata1bintruthbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsdata1bintruth");  sprintf(title, "mes Vcb");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsdata1bintruthbch");  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsdata1bintruthbos");  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "vcballcutsdata1bintruthbss");  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsdata1bintruth");  sprintf(title, "mes Vub");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsdata1bintruthbch");  sprintf(title, "mes Vub bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsdata1bintruthbos");  sprintf(title, "mes Vub b0 os");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "othallcutsdata1bintruthbss");  sprintf(title, "mes Vub b0 ss");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+     }
+   }
+
+   char varN[200]; double tmpMin, tmpMax;
+   if(DOVARSTU) {
+     for (int iVar = 0;  iVar < 6; iVar++) {       
+       if(iVar == 0) {
+	 tmpMin = 4.0; tmpMax = 5.5;  sprintf(varN,"mqb");
+       } else if(iVar == 1) {
+	 tmpMin = 0.; tmpMax = 30.;  sprintf(varN,"q2");
+       } else if(iVar == 2) {
+	 tmpMin = 0.; tmpMax = 1.;  sprintf(varN,"csi");
+       } else if(iVar == 3) {
+	 tmpMin = 0.; tmpMax = 3.;  sprintf(varN,"lep");
+       } else if(iVar == 4) {
+	 tmpMin = 0.; tmpMax = 1.5;  sprintf(varN,"x");
+       } else if(iVar == 5) {
+	 tmpMin = 0.; tmpMax = 2.;  sprintf(varN,"w");
+       } 
+       
+       // Var plots
+       for (lo=0;lo<14;lo++) {
+	 
+	 mesbin = 40;
+	 sprintf(number, "%d", lo);     
+	 sprintf(name,"%s%s%s%s" , "vcb",varN,"allcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "vcb",varN,"allcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "vcb",varN,"allcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "vub",varN,"allcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "vub",varN,"allcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "vub",varN,"allcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "oth",varN,"allcutsmcbchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "oth",varN,"allcutsmcbosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s%s" , "oth",varN,"allcutsmcbssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s" ,varN,"allcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s" ,varN,"allcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s" ,varN,"allcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+       }
+
+       //Var plot
+     
+       //mc
+
+       sprintf(name, "%s%s",varN,"vub");  sprintf(title, "vub events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"scalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, 10, tmpMin, tmpMax ); 
+
+       sprintf(name, "%s%s",varN,"vubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"vubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"vubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+  
+       sprintf(name, "%s%s",varN,"vcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"scalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+
+       sprintf(name, "%s%s",varN,"vcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"vcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"vcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+  
+       sprintf(name, "%s%s",varN,"oth");  sprintf(title, "oth events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax ); 
+       sprintf(name, "%s%s",varN,"scaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  
+
+       sprintf(name, "%s%s",varN,"othbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"othbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"othbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+  
+       //data
+
+       sprintf(name, "%s%s",varN,"data");  sprintf(title, "data events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"subdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"databch");  sprintf(title, "data events bch");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"databos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"databss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  h->Sumw2();
+       sprintf(name, "%s%s",varN,"allbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax ); 
+       sprintf(name, "%s%s",varN,"allmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, 10, tmpMin, tmpMax );  
+     }
+   }
+   
+   for (lo=1;lo<14;lo++) {
+     
+     mesbin = 40;
+     sprintf(number, "%d", lo);     
+     sprintf(name,"%s%s" , "vuballcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vuballcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "vcballcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "othallcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "allcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+     sprintf(name,"%s%s" , "allcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "allcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+     sprintf(name,"%s%s" , "allcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+
+     for (ich=1;ich<4;ich++){
+       for (ine=1;ine<3;ine++){    
+       
+         sprintf(preich, "%s%d", "ch", ich);
+         sprintf(preine, "%s%d", "ne", ine);
+         sprintf(prefix,  "%s%s",preich , preine);     
+         sprintf(name,"%s%s%s" , prefix, "allcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "allcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "allcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "allcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+	 sprintf(name,"%s%s%s" , prefix, "vcballcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vcballcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "vuballcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsdatabin",number);  sprintf(title, "mes Vcb");  h = new TH1D(name, title, mesbin, 5.2, 5.3);         h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsdatabchbin",number);  sprintf(title, "mes Vcb bch");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsdatabosbin",number);  sprintf(title, "mes Vcb b0 os");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+         sprintf(name,"%s%s%s" , prefix, "othallcutsdatabssbin",number);  sprintf(title, "mes Vcb b0 ss");  h = new TH1D(name, title, mesbin, 5.2, 5.3);  h->Sumw2();
+       }
+     }
+	 
+   }
+
+   //Mx plot
+
+   //mc
+
+   sprintf(name, "mxvub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxscalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+   sprintf(name, "mxblindvub");  sprintf(title, "vub events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+   sprintf(name, "mxonebvub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebscalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins2, ranges2 ); 
+
+   sprintf(name, "mxvubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxvubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxvubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxonebvubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebvubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebvubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+  
+   sprintf(name, "mxvcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxscalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxblindvcb");  sprintf(title, "vcb events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+   sprintf(name, "mxonebvcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebscalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+
+   sprintf(name, "mxvcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxvcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxvcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxonebvcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebvcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebvcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+  
+   sprintf(name, "mxoth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins, ranges ); 
+   sprintf(name, "mxscaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+   sprintf(name, "mxblindoth");  sprintf(title, "oth events blind");  h = new TH1D(name, title, nbins3, ranges3 );  
+   sprintf(name, "mxoneboth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+   sprintf(name, "mxonebscaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  
+
+   sprintf(name, "mxothbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxothbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxothbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxonebothbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebothbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebothbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+  
+   //data
+
+   sprintf(name, "mxdata");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxsubdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxblinddata");  sprintf(title, "data events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+   sprintf(name, "mxonebdata");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebsubdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+
+   sprintf(name, "mxdatabch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxdatabos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxdatabss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name, "mxonebdatabch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebdatabos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+   sprintf(name, "mxonebdatabss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+  
+   sprintf(name, "mxallbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins, ranges ); 
+   sprintf(name, "mxoneballbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins2, ranges2 );
+
+   sprintf(name, "mxallmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins, ranges );  
+   sprintf(name, "mxoneballmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins2, ranges2 );
+
+
+
+   //Q2 fit
+   if(FITQ2) {
+     for (ich=1;ich<4;ich++){
+       for (ine=1;ine<3;ine++){    
+	 
+	 sprintf(preich, "%s%d", "ch", ich);
+	 sprintf(preine, "%s%d", "ne", ine);
+	 sprintf(prefix,  "%s%s",preich , preine);     
+	 
+	 sprintf(name,"%s%s" , prefix, "q2vub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2scalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2blindvub");  sprintf(title, "vub events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebscalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2vubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2vubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2vubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2vcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2scalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2blindvcb");  sprintf(title, "vcb events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebscalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2vcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2vcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2vcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebvcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2oth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins, ranges );  
+	 sprintf(name,"%s%s" , prefix, "q2scaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+	 sprintf(name,"%s%s" , prefix, "q2blindoth");  sprintf(title, "oth events blind");  h = new TH1D(name, title, nbins3, ranges3 ); 
+	 sprintf(name,"%s%s" , prefix, "q2oneboth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+	 sprintf(name,"%s%s" , prefix, "q2onebscaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins2, ranges2 ); 
+	 
+	 sprintf(name,"%s%s" , prefix, "q2othbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2othbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2othbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebothbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebothbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebothbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2data");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins, ranges ); 
+	 sprintf(name,"%s%s" , prefix, "q2subdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+	 sprintf(name,"%s%s" , prefix, "q2blinddata");  sprintf(title, "data events blind");  h = new TH1D(name, title, nbins3, ranges3 );  
+	 sprintf(name,"%s%s" , prefix, "q2onebdata");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+	 sprintf(name,"%s%s" , prefix, "q2onebsubdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  
+	 
+	 sprintf(name,"%s%s" , prefix, "q2databch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2databos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2databss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebdatabch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebdatabos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 sprintf(name,"%s%s" , prefix, "q2onebdatabss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+	 
+	 sprintf(name,"%s%s" , prefix, "q2allbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins, ranges );  
+	 sprintf(name,"%s%s" , prefix, "q2oneballbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins2, ranges2 );
+	 
+	 sprintf(name,"%s%s" , prefix, "q2allmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins, ranges );
+	 sprintf(name,"%s%s" , prefix, "q2oneballmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+	 
+       }
+     }
+   }
+
+   // Mx fit.....
+
+   for (ich=1;ich<4;ich++){
+     for (ine=1;ine<3;ine++){    
+       
+       sprintf(preich, "%s%d", "ch", ich);
+       sprintf(preine, "%s%d", "ne", ine);
+       sprintf(prefix,  "%s%s",preich , preine);     
+
+       sprintf(name,"%s%s" , prefix, "mxvub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxscalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxblindvub");  sprintf(title, "vub events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvub");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebscalevub");  sprintf(title, "vub events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxvubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxvubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxvubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvubbch");  sprintf(title, "vub events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvubbos");  sprintf(title, "vub events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvubbss");  sprintf(title, "vub events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxvcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxscalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxblindvcb");  sprintf(title, "vcb events blind");  h = new TH1D(name, title, nbins3, ranges3 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvcb");  sprintf(title, "vcb events ");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebscalevcb");  sprintf(title, "vcb events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxvcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxvcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxvcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvcbbch");  sprintf(title, "vcb events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvcbbos");  sprintf(title, "vcb events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebvcbbss");  sprintf(title, "vcb events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxoth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins, ranges );  
+       sprintf(name,"%s%s" , prefix, "mxscaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+       sprintf(name,"%s%s" , prefix, "mxblindoth");  sprintf(title, "oth events blind");  h = new TH1D(name, title, nbins3, ranges3 ); 
+       sprintf(name,"%s%s" , prefix, "mxoneboth");  sprintf(title, "oth events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+       sprintf(name,"%s%s" , prefix, "mxonebscaleoth");  sprintf(title, "oth events subtracted");  h = new TH1D(name, title, nbins2, ranges2 ); 
+       
+       sprintf(name,"%s%s" , prefix, "mxothbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxothbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxothbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebothbch");  sprintf(title, "oth events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebothbos");  sprintf(title, "oth events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebothbss");  sprintf(title, "oth events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxdata");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins, ranges ); 
+       sprintf(name,"%s%s" , prefix, "mxsubdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins, ranges );  
+       sprintf(name,"%s%s" , prefix, "mxblinddata");  sprintf(title, "data events blind");  h = new TH1D(name, title, nbins3, ranges3 );  
+       sprintf(name,"%s%s" , prefix, "mxonebdata");  sprintf(title, "data events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+       sprintf(name,"%s%s" , prefix, "mxonebsubdata");  sprintf(title, "data events subtracted");  h = new TH1D(name, title, nbins2, ranges2 );  
+       
+       sprintf(name,"%s%s" , prefix, "mxdatabch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxdatabos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxdatabss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebdatabch");  sprintf(title, "data events bch");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebdatabos");  sprintf(title, "data events b0 os");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       sprintf(name,"%s%s" , prefix, "mxonebdatabss");  sprintf(title, "data events b0 ss");  h = new TH1D(name, title, nbins2, ranges2 );  h->Sumw2();
+       
+       sprintf(name,"%s%s" , prefix, "mxallbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins, ranges );  
+       sprintf(name,"%s%s" , prefix, "mxoneballbkg");  sprintf(title, "all bkg events ");  h = new TH1D(name, title, nbins2, ranges2 );
+       
+       sprintf(name,"%s%s" , prefix, "mxallmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins, ranges );
+       sprintf(name,"%s%s" , prefix, "mxoneballmc");  sprintf(title, "all mc events ");  h = new TH1D(name, title, nbins2, ranges2 );  
+
+     }
+   }
+   
+   sprintf(name, "h8888");  sprintf(title, "test gauss");  h = new TH1D(name, title, 100, -5*SMEARALLSIGMA+SMEARALLMEANVALUE,5*SMEARALLSIGMA+SMEARALLMEANVALUE);    h->Sumw2(); 
+   
+   sprintf(name, "h55550");  sprintf(title, "test weight all");  h = new TH1D(name, title, 100, 0.,5.);    h->Sumw2(); 
+   sprintf(name, "h55551");  sprintf(title, "test weight tracking");  h = new TH1D(name, title, 100, 0.,5.);    h->Sumw2(); 
+   sprintf(name, "h55552");  sprintf(title, "test weight neutrals");  h = new TH1D(name, title, 100, 0.,5.);    h->Sumw2(); 
+   sprintf(name, "h55553");  sprintf(title, "test weight breco");  h = new TH1D(name, title, 100, 0.,5.);    h->Sumw2(); 
+
+   sprintf(name,"%s" , "DDs");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name,"%s" , "D");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+   sprintf(name,"%s" , "Ds");  sprintf(title, "vub events ");  h = new TH1D(name, title, nbins, ranges );  h->Sumw2();
+
+}
+
+int fitNtp::hist(double mx){
+
+  // Mx categories
+
+  if(mx<.3) return 1;
+  if(mx>.3 && mx<.6) return 2;
+  if(mx>.6 && mx<1.1) return 3;
+  if(mx>1.1 && mx<MXCUT) return 4;
+  if(mx>MXCUT && mx<mxBinning[1]) return 5;
+  if(mx>mxBinning[1] && mx<mxBinning[2]) return 6;
+  if(mx>mxBinning[2] && mx<mxBinning[3]) return 7;
+  if(mx>mxBinning[3] && mx<mxBinning[4]) return 8;
+  if(mx>mxBinning[4] && mx<mxBinning[5]) return 9;
+  if(mx>mxBinning[5] && mx<mxBinning[6]) return 10;
+  if(mx>mxBinning[6] && mx<mxBinning[7]) return 11;
+  if(mx>mxBinning[7] && mx<mxBinning[8]) return 12;
+  if(mx>mxBinning[8]) return 13;
+}
+
+int fitNtp::TrueHist(double mxt){
+
+  // Mx categories
+  if(mxt<=truehistbins[0]) return 0;
+  if(mxt>truehistbins[0] && mxt<=truehistbins[1]) return 1;
+  if(mxt>truehistbins[1] && mxt<=truehistbins[2]) return 2;
+  if(mxt>truehistbins[2] && mxt<=truehistbins[3]) return 3;
+  if(mxt>truehistbins[3] && mxt<=truehistbins[4]) return 4;
+  if(mxt>truehistbins[4] && mxt<=truehistbins[5]) return 5;
+  if(mxt>truehistbins[5] && mxt<=truehistbins[6]) return 6;
+  if(mxt>truehistbins[6] && mxt<=truehistbins[7]) return 7;
+  if(mxt>truehistbins[7] && mxt<=truehistbins[8]) return 8;
+  if(mxt>truehistbins[8] && mxt<=truehistbins[9]) return 9;
+  if(mxt>truehistbins[9] && mxt<=truehistbins[10]) return 10;
+  if(mxt>truehistbins[10] && mxt<=truehistbins[11]) return 11;
+  if(mxt>truehistbins[11] && mxt<=truehistbins[12]) return 12;
+  if(mxt>truehistbins[12] && mxt<=truehistbins[13]) return 13;
+  if(mxt>truehistbins[13] && mxt<=truehistbins[14]) return 14;
+  if(mxt>truehistbins[14] && mxt<=truehistbins[15]) return 15;
+  if(mxt>truehistbins[15] && mxt<=truehistbins[16]) return 16;
+  if(mxt>truehistbins[16] && mxt<=truehistbins[17]) return 17;
+  if(mxt>truehistbins[17] && mxt<=truehistbins[18]) return 18;
+  if(mxt>truehistbins[18] && mxt<=truehistbins[19]) return 19;
+  if(mxt>truehistbins[19] && mxt<=truehistbins[20]) return 20;
+  if(mxt>truehistbins[20]) {
+    //Mx >5 ??
+    return 21;
+  }
+}
+
+int fitNtp::histlept(double pstar){
+
+  // Mx categories
+
+  int bin = pstar/.3 + 1;
+  if(pstar>3.) bin = 10;
+  if(pstar<0.) bin = 1;
+  return bin;
+}
+
+int fitNtp::histq2(double theq2hi){
+
+  // Mx categories
+
+  int bin = theq2hi/3. + 1;
+  if(theq2hi>30.) bin = 10;
+  if(theq2hi<0.) bin = 1;
+  return bin;
+}
+
+int fitNtp::histmqb(double mqb){
+
+  // mqb categories
+  int bin = (mqb - 4.0)/0.15 + 1;
+  if(mqb>=5.5) bin = 11;
+  if(mqb<4.0) bin = 0;
+  //  cout<<"Bin :: "<<bin<<endl;
+  return bin;
+}
+
+int fitNtp::histcsi(double csi){
+
+  // csi categories
+  int bin = csi/0.1 + 1;
+  if(csi>=1.0) bin = 11;
+  if(csi<0) bin = 0;
+  //  cout<<"Bin :: "<<bin<<endl;
+  return bin;
+}
+int fitNtp::histw(double Mew){
+
+  // csi categories
+  int bin = Mew/0.2 + 1;
+  if(Mew>=2.0) bin = 11;
+  if(Mew<0) bin = 0;
+  //  cout<<"Bin :: "<<bin<<endl;
+  return bin;
+}
+
+int fitNtp::histx(double Mex){
+
+  // csi categories
+  int bin = Mex/0.15 + 1;
+  if(Mex>=1.5) bin = 11;
+  if(Mex<0) bin = 0;
+  //  cout<<"Bin :: "<<bin<<endl;
+  return bin;
+}
+
+//Ric's binning
+
+////
+
+int fitNtp::rHistmx(double cmx){
+  double   histRbA[14] = {0.0, 1.2,  1.341, 1.414, 1.549, 1.612,  1.732, 1.843,  1.949,  2.5, 3.0, 3.5, 4.0, 4.5};	  
+
+  // Mx categories
+  if(cmx<=histRbA[0]) return 0;
+  if(cmx>histRbA[0] && cmx<=histRbA[1]) return 0;
+  if(cmx>histRbA[1] && cmx<=histRbA[2]) return 1;
+  if(cmx>histRbA[2] && cmx<=histRbA[3]) return 2;
+  if(cmx>histRbA[3] && cmx<=histRbA[4]) return 3;
+  if(cmx>histRbA[4] && cmx<=histRbA[5]) return 4;
+  if(cmx>histRbA[5] && cmx<=histRbA[6]) return 5;
+  if(cmx>histRbA[6] && cmx<=histRbA[7]) return 6;
+  if(cmx>histRbA[7] && cmx<=histRbA[8]) return 7;
+  if(cmx>histRbA[8] && cmx<=histRbA[9]) return 8;
+  if(cmx>histRbA[9] && cmx<=histRbA[10]) return 9;
+  if(cmx>histRbA[10] && cmx<=histRbA[11]) return 10;
+  if(cmx>histRbA[11] && cmx<=histRbA[12]) return 11;
+  if(cmx>histRbA[12] && cmx<=histRbA[13]) return 12;
+  if(cmx>histRbA[13]) {
+    return 13;
+  }
+}
+
+////
+
+int fitNtp::rHistel(double bmx){
+  double   histREl[8]= { 0.0,0.5,1.,1.25,1.5,1.75,2.0,2.25};                                                               
+  // El
+  if(bmx<=histREl[0]) return 0;
+  if(bmx>histREl[0] && bmx<=histREl[1]) return 0; 
+  if(bmx>histREl[1] && bmx<=histREl[2]) return 1;
+  if(bmx>histREl[2] && bmx<=histREl[3]) return 2;
+  if(bmx>histREl[3] && bmx<=histREl[4]) return 3;
+  if(bmx>histREl[4] && bmx<=histREl[5]) return 4;
+  if(bmx>histREl[5] && bmx<=histREl[6]) return 5;
+  if(bmx>histREl[6] && bmx<=histREl[7]) return 6;
+  if(bmx>histREl[7]) {
+    return 7;
+  }
+}
+
+/////
+
+int fitNtp::rHistq2(double amx){
+  double   histRQ2[8] = { 0.0,2.5,5.,7.5,10.,12.5,15.,20};
+  // Q2
+  if(amx<=histRQ2[0]) return 0;
+  if(amx>histRQ2[0] && amx<=histRQ2[1]) return 0;
+  if(amx>histRQ2[1] && amx<=histRQ2[2]) return 1;
+  if(amx>histRQ2[2] && amx<=histRQ2[3]) return 2;
+  if(amx>histRQ2[3] && amx<=histRQ2[4]) return 3;
+  if(amx>histRQ2[4] && amx<=histRQ2[5]) return 4;
+  if(amx>histRQ2[5] && amx<=histRQ2[6]) return 5;
+  if(amx>histRQ2[6] && amx<=histRQ2[7]) return 6;
+  if(amx>histRQ2[7]) {
+    return 7;
+  }
+}

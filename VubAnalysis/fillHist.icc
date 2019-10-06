@@ -1,0 +1,448 @@
+
+// ----------------------------------------------------------------------
+void recoilNtp::fillMesHist(const char *dir, const char *le) {
+  fHistFile->cd(dir);
+  Int_t l; 
+
+  char name[200];
+  sprintf(name, "mes%s%d", le, 1);  if (fGoodAccLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 2);  if (fGoodChargeCorr) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 3);  if (fGoodLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 4);  if (fOneLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 5);  if (fGoodPRMM2) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 6);  if (fGoodMM2) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 7);  if (fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 8);  if (fGoodEvent) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  
+  sprintf(name, "mes%s%d", le, 11);      
+  if (fGoodAccLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 12);      
+  if (fGoodAccLepton&&fGoodChargeCorr) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 13);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 14);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodLepton&&fOneLepton) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 15);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodLepton&&fOneLepton&&fGoodPRMM2) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 16);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodLepton&&fOneLepton&&fGoodPRMM2&&fGoodMM2) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 17);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodLepton&&fOneLepton&&fGoodPRMM2&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 18);      
+  if (fGoodEvent) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  
+  sprintf(name, "mes%s%d", le, 21);      
+  if (fGoodChargeCorr&&fGoodPRMM2&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 22);      
+  if (fGoodAccLepton&&fGoodPRMM2&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 23);      
+  if (fGoodAccLepton&&fGoodChargeCorr&&fGoodPRMM2&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 24);      
+  if (fGoodLepton&&fGoodChargeCorr&&fGoodPRMM2&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 25);      
+  if (fOneLepton&&fGoodLepton&&fGoodChargeCorr&&fGoodMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 26);      
+  if (fOneLepton&&fGoodLepton&&fGoodChargeCorr&&fGoodPRMM2&&fGoodChargeCons) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 27);      
+  if (fOneLepton&&fGoodLepton&&fGoodChargeCorr&&fGoodPRMM2&&fGoodMM2) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  sprintf(name, "mes%s%d", le, 28);      
+  if (1) ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+  
+  fHistFile->cd();
+  return;
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::fillRecoilHist(const char *dir, int chbcand) {
+  fHistFile->cd(dir);
+
+  Int_t i, l, thebin; 
+  double pnuRes = fPNu - p4MissGen.Vect().Mag();
+  double tnuRes = TMath::Cos(fTNu) - TMath::Cos(p4MissGen.Theta());
+  double q2Res  = fQ2 - fQ2Gen;
+  
+  double xmassRes    = fMxhad - fMxhadGen;
+  double xmassfitRes = fMxhadfit - fMxhadGen;
+  if (fOptGammas) {
+    for(int jh =0; jh<15; jh++) {
+      tmpxmassResF[jh] = tmpfMxhadfit[jh]- fMxhadGen; 
+      //      cout << tmpxmassResF[6] << " " << tmpfMxhadfit[6] << endl;
+      tmpxmassRes[jh] = tmpfMxhad[jh]- fMxhadGen; 
+    }
+  }
+
+  // -- Kshorts
+  for (Int_t iks = 0; iks < nKs; ++iks) {
+    double mass = massKs[iks];
+    if (goodKshort[iks] == 0) continue;   // skip kshorts whose daughters make up better combinations
+    ((TH1D*)gDirectory->Get("ks100"))->Fill(mass);
+    ((TH1D*)gDirectory->Get("ks200"))->Fill(pKs[iks]);
+    ((TH1D*)gDirectory->Get("ks210"))->Fill(thKs[iks]*DR);
+    ((TH1D*)gDirectory->Get("ks220"))->Fill(pKs[iks]);
+
+    if (fGoodAccLepton&&fGoodChargeCorr)     {
+      ((TH1D*)gDirectory->Get("ks101"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("ks201"))->Fill(pKs[iks]);
+      ((TH1D*)gDirectory->Get("ks211"))->Fill(thKs[iks]*DR);
+      ((TH1D*)gDirectory->Get("ks221"))->Fill(pKs[iks]);
+    }
+    if (fGoodLepton&&fOneLepton)        {
+      ((TH1D*)gDirectory->Get("ks102"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("ks202"))->Fill(pKs[iks]);
+      ((TH1D*)gDirectory->Get("ks212"))->Fill(thKs[iks]*DR);
+      if (fGoodChargeCorr) ((TH1D*)gDirectory->Get("ks222"))->Fill(pKs[iks]);
+    }
+    if (fGoodChargeCons) {
+      ((TH1D*)gDirectory->Get("ks103"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("ks203"))->Fill(pKs[iks]);
+      ((TH1D*)gDirectory->Get("ks213"))->Fill(thKs[iks]*DR);
+      if (fGoodLepton&&fOneLepton&&fGoodChargeCorr) ((TH1D*)gDirectory->Get("ks223"))->Fill(pKs[iks]);
+    }
+    if (fGoodMM2) {
+      ((TH1D*)gDirectory->Get("ks104"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("ks204"))->Fill(pKs[iks]);
+      ((TH1D*)gDirectory->Get("ks214"))->Fill(thKs[iks]*DR);
+      if (fGoodLepton&&fOneLepton&&fGoodChargeCorr&&fGoodChargeCons) ((TH1D*)gDirectory->Get("ks224"))->Fill(pKs[iks]);
+    }
+    if (fGoodEvent)      {
+      ((TH1D*)gDirectory->Get("ks105"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("ks205"))->Fill(pKs[iks]);
+      ((TH1D*)gDirectory->Get("ks215"))->Fill(thKs[iks]*DR);
+      if (fGoodEvent) ((TH1D*)gDirectory->Get("ks225"))->Fill(pKs[iks]);
+    }
+  }
+
+  // -- charged kaons
+  for (i = 0; i < nTrk; ++i) {
+    if (goodTrack[i] == 0) continue;
+    if (goodChargedKaon[i] == 0)  continue;
+    ((TH1D*)gDirectory->Get("kp200"))->Fill(momentumTrk[i]);
+    ((TH1D*)gDirectory->Get("kp210"))->Fill(thetaTrk[i]*DR);
+    ((TH1D*)gDirectory->Get("kp220"))->Fill(momentumTrk[i]);
+    if (fGoodAccLepton&&fGoodChargeCorr)     {
+      ((TH1D*)gDirectory->Get("kp201"))->Fill(momentumTrk[i]);
+      ((TH1D*)gDirectory->Get("kp211"))->Fill(thetaTrk[i]*DR);
+      ((TH1D*)gDirectory->Get("kp221"))->Fill(momentumTrk[i]);
+    }
+    if (fGoodLepton&&fOneLepton)        {
+      ((TH1D*)gDirectory->Get("kp202"))->Fill(momentumTrk[i]);
+      ((TH1D*)gDirectory->Get("kp212"))->Fill(thetaTrk[i]*DR);
+      if (fGoodChargeCorr) ((TH1D*)gDirectory->Get("kp222"))->Fill(momentumTrk[i]);
+    }
+    if (fGoodChargeCons) {
+      ((TH1D*)gDirectory->Get("kp203"))->Fill(momentumTrk[i]);
+      ((TH1D*)gDirectory->Get("kp213"))->Fill(thetaTrk[i]*DR);
+      if (fGoodLepton&&fOneLepton&&fGoodChargeCorr) ((TH1D*)gDirectory->Get("kp223"))->Fill(momentumTrk[i]);
+    }
+    if (fGoodMM2) {
+      ((TH1D*)gDirectory->Get("kp204"))->Fill(momentumTrk[i]);
+      ((TH1D*)gDirectory->Get("kp214"))->Fill(thetaTrk[i]*DR);
+      if (fGoodLepton&&fOneLepton&&fGoodChargeCorr&&fGoodChargeCons) ((TH1D*)gDirectory->Get("kp224"))->Fill(momentumTrk[i]);
+    }
+    if (fGoodEvent)      {
+      ((TH1D*)gDirectory->Get("kp205"))->Fill(momentumTrk[i]);
+      ((TH1D*)gDirectory->Get("kp215"))->Fill(thetaTrk[i]*DR);
+      if (fGoodEvent) ((TH1D*)gDirectory->Get("kp225"))->Fill(momentumTrk[i]);
+    }
+  }
+
+  char le[10];
+  for (l = 0; l < 3; ++l) {
+    if (l == 0) {
+      if (!fElectron) continue;
+      sprintf(le, "e");
+    }
+    if (l == 1) {
+      if (!fMuon) continue;
+      sprintf(le, "m");
+    }
+    if (l == 2) {
+      sprintf(le, "a");
+    }    
+
+    for (i = 0; i < 7; ++i) {
+      if ((i == 1) && (fVcb != 1)) continue;
+      if ((i == 2) && (fVub != 1)) continue;
+      if ((i == 3) && (fBVxbTyp != 1)) continue;
+      if ((i == 4) && (fBVxbTyp != 2)) continue;
+      if ((i == 5) && (fBVxbTyp != 3)) continue;
+      if ((i == 6) && (fOther < 1)) continue;
+
+      char name[100];
+
+      //Photon study
+      if (fOptGammas && i == 0 && l == 2) {
+
+	gDirectory->cd("CutPlots");
+	
+	for(int jp =0; jp<15; jp++) {
+	  if (fGoodEventPhNMNC[jp]) {
+	    sprintf(name, "bin_nc_Mnu%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);
+	    sprintf(name, "nc_Mnu%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);
+	    sprintf(name, "nc_ResMX%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+	    sprintf(name, "bin_nc_ResMX%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+	    sprintf(name, "nc_ResMXF%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+	    sprintf(name, "bin_nc_ResMXF%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+	  }
+	}
+	
+	for(int jp =0; jp<15; jp++) {
+	  if (fGoodEventPh[jp]) {
+	    sprintf(name, "Mnu%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);
+	    sprintf(name, "bin_Mnu%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);
+	    sprintf(name, "ResMX%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+	    sprintf(name, "bin_ResMX%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+	    sprintf(name, "ResMXF%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+	    sprintf(name, "bin_ResMXF%d", jp); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+	    
+	    for(int io =0; io<10; io++) {
+	      if (fGoodNoHole[(io+1)]) {
+		sprintf(name,"MNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);
+		sprintf(name,"bin_MNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMM2[jp],1.);   
+		sprintf(name,"ResNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+		sprintf(name,"bin_ResNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassRes[jp],1.);
+		sprintf(name,"MxNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMxhad[jp],1.);
+		sprintf(name,"bin_MxNH%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMxhad[jp],1.);
+		sprintf(name,"ResNHF%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+		sprintf(name,"bin_ResNHF%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpxmassResF[jp],1.);
+		sprintf(name,"MxNHF%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMxhadfit[jp],1.);
+		sprintf(name,"bin_MxNHF%d%d", jp,io); ((TH1D*)gDirectory->Get(name))->Fill(tmpfMxhadfit[jp],1.);
+	      }
+	      
+	    }     
+	  }
+	} 
+      }
+
+      fHistFile->cd(dir);    
+      gDirectory->cd();
+      
+
+      ((TH1D*)gDirectory->Get("nc_mNuSqNC"))->Fill(fMM2NC);
+      
+      if (fGoodAccLepton) {
+	sprintf(name, "%s%d", le, 1000+i);  ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	sprintf(name, "%s%d", le, 1100+i);   if (fIsPrompt) ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	sprintf(name, "%s%d", le, 1200+i);   if (fIsCascade) ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	sprintf(name, "%s%d", le, 1300+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTcms), 1.);
+	sprintf(name, "%s%d", le, 1400+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPups, 1.);
+	sprintf(name, "%s%d", le, 1500+i);   ((TH1D*)gDirectory->Get(name))->Fill(fTlab*DR, 1.);
+	Int_t Brectrktmp;
+	double dca, dcaz;
+	for (int itrk = 0; itrk < nTrk; ++itrk) {
+	  dcaz = zPocaTrk[itrk] - beamSZ;
+	  dca  = TMath::Sqrt((xPocaTrk[itrk]-beamSX)*(xPocaTrk[itrk]-beamSX) + (yPocaTrk[itrk]-beamSY)*(yPocaTrk[itrk]-beamSY));
+	  ((TH1D*)fHistFile->Get("dca"))->Fill(dca);
+	  ((TH1D*)fHistFile->Get("dcaz"))->Fill(dcaz);
+	  if (isRecEl(itrk)) {
+	    ((TH1D*)fHistFile->Get("edca"))->Fill(dca);
+	    ((TH1D*)fHistFile->Get("edcaz"))->Fill(dcaz);
+	  }
+	  if (isRecMu(itrk)) {
+	    ((TH1D*)fHistFile->Get("mdca"))->Fill(dca);
+	    ((TH1D*)fHistFile->Get("mdcaz"))->Fill(dcaz);
+	  }
+
+	  if (goodTrack[itrk] == 0) continue;
+	  ((TH1D*)fHistFile->Get("adca"))->Fill(dca);
+	  ((TH1D*)fHistFile->Get("adcaz"))->Fill(dcaz);
+	  if (isRecLepton(itrk)) continue;
+	  Brectrktmp = B0RecTrk[itrk];
+	  if(chbcand) Brectrktmp = chBRecTrk[itrk];
+	  if ((Brectrktmp&brecoOverlap)) continue;
+          // if (kshortLockTrk[itrk] == 1) continue; 
+	  sprintf(name, "%s%d", le, 1600+i);   ((TH1D*)gDirectory->Get(name))->Fill(momentumTrk[itrk], weightTrk[itrk]);
+	  sprintf(name, "%s%d", le, 1700+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaTrk[itrk]*DR, weightTrk[itrk]);
+	  thebin = (momentumTrk[itrk] / (PCMAX/20)) + 1;
+	  if(momentumTrk[itrk]>3.) thebin = 20;
+          if(momentumTrk[itrk]<0.) thebin = 1;
+#ifndef FAST
+	  if(l == 2 && i == 0){
+	    sprintf(name,"%s%d%s%d","a",1600,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes, weightTrk[itrk]);
+	    if(fIntPurity > 60) {sprintf(name,"%s%d%s%d","pur60a",1600,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	    if(fIntPurity > 80) {sprintf(name,"%s%d%s%d","pur80a",1600,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	  }
+#endif
+	}
+
+
+        for (int igam = 0; igam < nGam; ++igam) {
+          if (goodPhoton[igam] == 0) continue;
+          Brectrktmp = B0RecGam[igam];
+          if(chbcand) Brectrktmp = chBRecGam[igam];
+          if ((Brectrktmp&brecoOverlap)) continue;
+          sprintf(name, "%s%d", le, 1800+i);   ((TH1D*)gDirectory->Get(name))->Fill(energyGam[igam], weightNeu[igam]);
+          sprintf(name, "%s%d", le, 1900+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaGam[igam]*DR, weightNeu[igam]);
+	  thebin = (energyGam[igam] / (1.5/20)) + 1; 
+	  if(energyGam[igam]>1.5) thebin = 20;
+	  if(energyGam[igam]<0.) thebin = 1;
+	  if(l == 2 && i == 0){
+	    sprintf(name,"%s%d%s%d","a",9900,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes, weightNeu[igam]);
+	    if(fIntPurity > 60)	 {sprintf(name,"%s%d%s%d","pur60a",9900,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	    if(fIntPurity > 80)	 {sprintf(name,"%s%d%s%d","pur80a",9900,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	  }
+
+        }
+
+	sprintf(name, "%s%d", le, 4400+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNKp, 1.);
+	sprintf(name, "%s%d", le, 4500+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNKshort, 1.);
+	sprintf(name, "%s%d", le, 4600+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNLepton, 1.);
+
+	// -- all other cuts
+	if (faoLepton) {
+	  sprintf(name, "%s%d", le, 1020+i);  ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	  sprintf(name, "%s%d", le, 1120+i);   if (fIsPrompt) ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	  sprintf(name, "%s%d", le, 1220+i);   if (fIsCascade) ((TH1D*)gDirectory->Get(name))->Fill(fPcms, 1.);
+	  sprintf(name, "%s%d", le, 1320+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTcms), 1.);
+	  sprintf(name, "%s%d", le, 1420+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPups, 1.);
+	  sprintf(name, "%s%d", le, 1520+i);   ((TH1D*)gDirectory->Get(name))->Fill(fTlab*DR, 1.);
+	}
+	if (faoMM2) {
+	  sprintf(name, "%s%d", le, 3020+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+	  if (fEffCat > 0) sprintf(name, "%s%d", le, 3020 + fEffCat*100 + i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+	  //  	  sprintf(name, "%s%d", le, 3120+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTNu));
+	  //  	  sprintf(name, "%s%d", le, 3220+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPNu);
+	  sprintf(name, "%s%d", le, 3820+i);   ((TH1D*)gDirectory->Get(name))->Fill(fQ2);
+	  sprintf(name, "%s%d", le, 9120+i);   ((TH1D*)gDirectory->Get(name))->Fill(pnuRes);
+	  sprintf(name, "%s%d", le, 9220+i);   ((TH1D*)gDirectory->Get(name))->Fill(tnuRes);
+	  sprintf(name, "%s%d", le, 9320+i);   ((TH1D*)gDirectory->Get(name))->Fill(q2Res);
+	}
+	if (faoChargeCons) {
+	  sprintf(name, "%s%d", le, 4020+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilTrkMult);
+	  sprintf(name, "%s%d", le, 4120+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilNutMult);
+	  sprintf(name, "%s%d", le, 4220+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge);
+	  sprintf(name, "%s%d", le, 4320+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge+fBrecoCharge);
+	}
+	if (fGoodEvent) { // this is just for consistency
+	  sprintf(name, "%s%d", le, 2020+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+	  sprintf(name, "%s%d", le, 2120+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+	  sprintf(name, "%s%d", le, 2220+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadGen);
+	  sprintf(name, "%s%d", le, 2420+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	  sprintf(name, "%s%d", le, 2520+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	  sprintf(name, "%s%d", le, 2620+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTNu));
+	  sprintf(name, "%s%d", le, 2720+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPNu);
+	  sprintf(name, "%s%d", le, 2820+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	  sprintf(name, "%s%d", le, 2920+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	  sprintf(name, "%s%d", le, 3920+i);   ((TH1D*)gDirectory->Get(name))->Fill(fGammaMax);
+	  sprintf(name, "%s%d", le, 9020+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassRes);
+	  sprintf(name, "%s%d", le, 9420+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassfitRes);
+	}
+      }
+
+      if (fGoodLepton) {
+	sprintf(name, "%s%d", le, 2000+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+	sprintf(name, "%s%d", le, 2100+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+	sprintf(name, "%s%d", le, 2200+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadGen);
+	sprintf(name, "%s%d", le, 2400+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2500+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2600+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTNu));
+	sprintf(name, "%s%d", le, 2700+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPNu);
+	sprintf(name, "%s%d", le, 2800+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2900+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 3000+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+	if (fEffCat > 0) sprintf(name, "%s%d", le, 3000 + fEffCat*100 + i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+	sprintf(name, "%s%d", le, 3800+i);   ((TH1D*)gDirectory->Get(name))->Fill(fQ2);
+        sprintf(name, "%s%d", le, 3900+i);   ((TH1D*)gDirectory->Get(name))->Fill(fGammaMax);
+	sprintf(name, "%s%d", le, 4000+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilTrkMult);
+	sprintf(name, "%s%d", le, 4100+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilNutMult);
+	sprintf(name, "%s%d", le, 4200+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge);
+	sprintf(name, "%s%d", le, 4300+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge+fBrecoCharge);
+	
+	sprintf(name, "%s%d", le, 9000+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassRes);
+	sprintf(name, "%s%d", le, 9100+i);   ((TH1D*)gDirectory->Get(name))->Fill(pnuRes);
+	sprintf(name, "%s%d", le, 9200+i);   ((TH1D*)gDirectory->Get(name))->Fill(tnuRes);
+	sprintf(name, "%s%d", le, 9300+i);   ((TH1D*)gDirectory->Get(name))->Fill(q2Res);
+	sprintf(name, "%s%d", le, 9400+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassfitRes);
+        	
+      }
+      // -- after cuts
+      if (fGoodEvent) {
+	((TH1D*)gDirectory->Get("mNuSqNC"))->Fill(fMM2NC);
+        sprintf(name, "%s%d", le, 1010+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPcms);
+	sprintf(name, "%s%d", le, 1110+i);   if (fIsPrompt) ((TH1D*)gDirectory->Get(name))->Fill(fPcms);
+	sprintf(name, "%s%d", le, 1210+i);   if (fIsCascade) ((TH1D*)gDirectory->Get(name))->Fill(fPcms);
+	sprintf(name, "%s%d", le, 1310+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTcms));
+	sprintf(name, "%s%d", le, 1410+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPups);
+	sprintf(name, "%s%d", le, 1510+i);   ((TH1D*)gDirectory->Get(name))->Fill(fTlab*DR);
+
+	Int_t Brectrktmp;
+	for (int itrk = 0; itrk < nTrk; ++itrk) {
+	  if (goodTrack[itrk] == 0) continue;
+	  if (isRecLepton(itrk)) continue;
+	  Brectrktmp = B0RecTrk[itrk];
+	  if(chbcand) Brectrktmp = chBRecTrk[itrk];
+	  if ((Brectrktmp&brecoOverlap)) continue;
+	  // if (kshortLockTrk[itrk] == 1) continue; 
+	  sprintf(name, "%s%d", le, 1610+i);   ((TH1D*)gDirectory->Get(name))->Fill(momentumTrk[itrk], weightTrk[itrk]);
+	  sprintf(name, "%s%d", le, 1710+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaTrk[itrk]*DR, weightTrk[itrk]);
+	  sprintf(name, "%s%d", le, 1620+i);   ((TH1D*)gDirectory->Get(name))->Fill(momentumTrk[itrk], weightTrk[itrk]);
+	  sprintf(name, "%s%d", le, 1720+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaTrk[itrk]*DR, weightTrk[itrk]);
+	  thebin = (momentumTrk[itrk] / (PCMAX/20)) + 1;
+	  if(momentumTrk[itrk]>3.) thebin = 20;
+          if(momentumTrk[itrk]<0.) thebin = 1;
+	  if(l == 2 && i == 0){
+	    sprintf(name,"%s%d%s%d","a",1610,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes, weightTrk[itrk]);
+	    if(fIntPurity > 60) {sprintf(name,"%s%d%s%d","pur60a",1610,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	    if(fIntPurity > 80) {sprintf(name,"%s%d%s%d","pur80a",1610,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	  }
+	}
+
+	for (int igam = 0; igam < nGam; ++igam) {
+	  if (goodPhoton[igam] == 0) continue;
+	  Brectrktmp = B0RecGam[igam];
+	  if(chbcand) Brectrktmp = chBRecGam[igam];
+	  if ((Brectrktmp&brecoOverlap)) continue;
+	  //      if (kshortLockTrk[itrk] == 1) continue; 
+	  sprintf(name, "%s%d", le, 1810+i);   ((TH1D*)gDirectory->Get(name))->Fill(energyGam[igam], weightNeu[igam]);
+	  sprintf(name, "%s%d", le, 1910+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaGam[igam]*DR, weightNeu[igam]);
+	  sprintf(name, "%s%d", le, 1820+i);   ((TH1D*)gDirectory->Get(name))->Fill(energyGam[igam], weightNeu[igam]);
+	  sprintf(name, "%s%d", le, 1920+i);   ((TH1D*)gDirectory->Get(name))->Fill(thetaGam[igam]*DR, weightNeu[igam]);
+	  thebin = (energyGam[igam] / (1.5/20)) + 1; 
+	  if(energyGam[igam]>1.5) thebin = 20;
+	  if(energyGam[igam]<0.) thebin = 1;
+	  if(l == 2 && i == 0){
+	    sprintf(name,"%s%d%s%d","a",9910,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes, weightNeu[igam]);
+	    if(fIntPurity > 60)	{sprintf(name,"%s%d%s%d","pur60a",9910,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	    if(fIntPurity > 80)	{sprintf(name,"%s%d%s%d","pur80a",9910,"bin",thebin);    ((TH1D*)gDirectory->Get(name))->Fill(fMes);}
+	  }
+	}
+
+
+        sprintf(name, "%s%d", le, 2010+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+	sprintf(name, "%s%d", le, 2110+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhad);
+        sprintf(name, "%s%d", le, 2210+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadGen);
+	sprintf(name, "%s%d", le, 2410+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2510+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2610+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTNu));
+	sprintf(name, "%s%d", le, 2710+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPNu);
+	sprintf(name, "%s%d", le, 2810+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+	sprintf(name, "%s%d", le, 2910+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMxhadfit);
+
+        sprintf(name, "%s%d", le, 3010+i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+        if (fEffCat > 0) sprintf(name, "%s%d", le, 3010 + fEffCat*100 + i);   ((TH1D*)gDirectory->Get(name))->Fill(fMM2);
+ 	//          sprintf(name, "%s%d", le, 3110+i);   ((TH1D*)gDirectory->Get(name))->Fill(TMath::Cos(fTNu));
+	//          sprintf(name, "%s%d", le, 3210+i);   ((TH1D*)gDirectory->Get(name))->Fill(fPNu);
+        sprintf(name, "%s%d", le, 3810+i);   ((TH1D*)gDirectory->Get(name))->Fill(fQ2);
+        sprintf(name, "%s%d", le, 3910+i);   ((TH1D*)gDirectory->Get(name))->Fill(fGammaMax);
+
+        sprintf(name, "%s%d", le, 4010+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilTrkMult);
+        sprintf(name, "%s%d", le, 4110+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilNutMult);
+	sprintf(name, "%s%d", le, 4210+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge);
+	sprintf(name, "%s%d", le, 4310+i);   ((TH1D*)gDirectory->Get(name))->Fill(fRecoilCharge+fBrecoCharge);
+
+	sprintf(name, "%s%d", le, 4410+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNKp, 1.);
+	sprintf(name, "%s%d", le, 4510+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNKshort, 1.);
+	sprintf(name, "%s%d", le, 4610+i);  ((TH1D*)gDirectory->Get(name))->Fill(fNLepton, 1.);
+
+        sprintf(name, "%s%d", le, 9010+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassRes);
+        sprintf(name, "%s%d", le, 9110+i);   ((TH1D*)gDirectory->Get(name))->Fill(pnuRes);
+        sprintf(name, "%s%d", le, 9210+i);   ((TH1D*)gDirectory->Get(name))->Fill(tnuRes);
+        sprintf(name, "%s%d", le, 9310+i);   ((TH1D*)gDirectory->Get(name))->Fill(q2Res);
+        sprintf(name, "%s%d", le, 9410+i);   ((TH1D*)gDirectory->Get(name))->Fill(xmassfitRes);
+      }
+    }
+  }
+
+  fHistFile->cd();
+}
+

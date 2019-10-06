@@ -1,0 +1,853 @@
+
+
+// ----------------------------------------------------------------------
+void b2uNtp::doTracks() {
+
+  int  ct(1), gtvl(0), gtl(0), 
+    electron(0), muon(0), kaon(0), 
+    acc(0), noSvtGhost(0);
+  int sel1(0);
+  double pt(0.), Dca(0.), Dcaz(0.), rand(0.);
+  
+
+  static int first(1); 
+  static TTree *t;
+
+  int ntrk(0);
+  int gt[20], bt[20], mc[20], clean[20], 
+    nsvt[20], ndch[20], 
+    q[20], el[20], mu[20], ka[20], noghost[20]; 
+
+  double p[20], theta[20], phi[20], pstar[20], 
+    dca[20], dcaz[20], tlen[20], 
+    prob[20]; 
+
+  for (int i = 0; i < 20; ++i) {
+    el[i] = mu[i] = ka[i] = noghost[i] = clean[i] = 
+      q[i] = gt[i] = bt[i] = mc[i] = -99; 
+
+    p[i] = theta[i] = phi[i] = pstar[i] = 
+      prob[i] = dca[i] = dcaz[i] = tlen[i] = 
+      -99.;
+  }
+
+
+  if (first) {
+    first = 0; 
+    cout << "==> b2uNtp::selectTracks> Selecting tracks  at level " << TRACKSELECTION << endl;
+
+    t = new TTree("tt", "hadronic recoil tracks"); 
+
+    t->Branch("pcms", &fPcms, "pcms/D");
+    t->Branch("lcharge", &fLeptonCharge, "lcharge/I");
+    t->Branch("mxhad", &fMxhad, "mxhad/D");
+    t->Branch("mxtrk", &fMxtrk, "mxtrk/D");
+    t->Branch("mxnut", &fMxnut, "mxnut/D"); 
+
+    t->Branch("Gvxbtyp",  &fBVxbTyp,  "Gvxbtyp/I");
+    t->Branch("mxhadgen", &fMxhadGen, "mxhadgen/D");
+    t->Branch("mxtgen",   &fMxtrkGen, "mxtgen/D");
+    t->Branch("mxngen",   &fMxnutGen, "mxngen/D");
+    t->Branch("qb",       &fQb,       "qb/I");
+    t->Branch("vub",      &fVub,      "vub/I");
+    t->Branch("vcb",      &fVcb,      "vcb/I");
+
+    t->Branch("tmiss", &fTNu, "tmiss/D");
+    t->Branch("pmiss", &fPNu, "pmiss/D");
+    t->Branch("emiss", &fEmiss, "emiss/D");
+    t->Branch("mm2", &fMM2, "mm2/D");
+    t->Branch("mm1pr", &fMM1pr, "mm1pr/D");
+    t->Branch("mm2pr", &fMM2pr, "mm2pr/D");
+    t->Branch("mm3pr", &fMM3pr, "mm3pr/D");
+    t->Branch("mm2", &fMM2, "mm2/D");
+    t->Branch("mes", &fMes, "mes/D");
+    t->Branch("brecocharge", &fBrecoCharge, "brecocharge/I");
+
+    t->Branch("ntrk", &ntrk,"ntrk/I");
+    t->Branch("q",    q, "q[ntrk]/I");
+    t->Branch("p",    p, "p[ntrk]/D");
+    t->Branch("pstar",pstar,"pstar[ntrk]/D");
+    t->Branch("t",    theta ,"t[ntrk]/D");
+    t->Branch("f",    phi ,"f[ntrk]/D");
+    t->Branch("dca",  dca ,"dca[ntrk]/D");
+    t->Branch("dcaz", dcaz ,"dcaz[ntrk]/D");
+    t->Branch("tlen", tlen, "tlen[ntrk]/D");
+    t->Branch("prob", prob, "prob[ntrk]/D");
+
+    t->Branch("clean",clean,"clean[ntrk]/I");
+    t->Branch("gt",   gt,   "gt[ntrk]/I");
+    t->Branch("bt",   bt,   "bt[ntrk]/I");
+    t->Branch("mc",   mc,   "mc[ntrk]/I");
+    t->Branch("nsvt", nsvt, "nsvt[ntrk]/I");
+    t->Branch("ndch", ndch, "ndch[ntrk]/I");
+    t->Branch("el",   el,   "el[ntrk]/I");
+    t->Branch("mu",   mu,   "mu[ntrk]/I");
+    t->Branch("ka",   ka,   "ka[ntrk]/I");
+
+
+  }
+
+  TLorentzVector p4Trk(0., 0., 0., 0.);
+  double pcms(0.), thetadr(0.);
+  int tcnt(-1); 
+  for (int i = 0; i < nTrk; ++i) {
+
+    if (fBrecoTrk[i])         continue; 
+    if (i == fLeptonIndex)    continue;
+
+    ++tcnt; 
+    if (tcnt == 20) {
+      cout << "Too many tracks " << nTrk << " for tracking study, skipping event" << endl;
+      break;
+    }
+
+
+    pt      = momentumTrk[i]*sin(thetaTrk[i]);
+    Dcaz    = zPocaTrk[i] - beamSZ;
+    Dca     = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+    thetadr = DR*thetaTrk[i]; 
+
+    noSvtGhost = 1; 
+    if (pt > 0.2) {
+      if (ndchTrk[i] > 0) {
+	noSvtGhost = 1;
+      } else {
+	noSvtGhost = 0;
+      }
+    }
+
+    ct   = 1;
+    acc  = ((thetadr > PITHETALO) && (thetadr < PITHETAHI));
+    gtvl = ((pt > 0.0) 
+            && (momentumTrk[i] < 10.0)
+            && (tproTrk[i] >= 0.) 
+            && (Dca  <= 1.5)
+            && (TMath::Abs(Dcaz) <= 10.0));
+    gtl  = ((pt > 0.1) 
+            && (momentumTrk[i] <= 10.0)
+            && (ndchTrk[i] >= 12)
+            && (tproTrk[i] >= 0.) 
+            && (Dca  <= 1.5)
+            && (TMath::Abs(Dcaz) <= 10.0));
+
+    mk4Vector(p4Trk, momentumTrk[i], thetaTrk[i], phiTrk[i], ELMASS);
+    
+    p4Trk.Boost(-f3CmsBoost); 
+    pcms = p4Trk.Rho();
+
+    sel1 =  (pt > 0.06) 
+      && (TMath::Abs(Dcaz) <= 5.0)
+      && (pcms < 2.7)
+      ; 
+
+    electron = ((momentumTrk[i] > 0.5) && (pcms > ELMOMLO) && (thetadr > ELTHETALO) && (thetadr < ELTHETAHI));
+    muon     = ((momentumTrk[i] > 0.5) && (pcms > MUMOMLO) && (thetadr > MUTHETALO) && (thetadr < MUTHETAHI));
+    kaon     = ((momentumTrk[i] > KAMOMLO) && (thetadr > KATHETALO) && (thetadr < KATHETAHI));
+
+    if (gtvl 
+	&& noSvtGhost
+	&& acc
+	&& (fCleanGoodTrack[i] == 1)
+	) {
+      gt[tcnt] = 1; 
+      if (fGoodPionTrk[i] == 0) cout << "This track failed main trackselection  ...?" << endl;
+    } else {
+      if (fGoodPionTrk[i] == 1) {
+      //    	cout << "This track passed main trackselection  ...?" << endl;
+      //	cout << "gtvl: " << gtvl <<  " acc: " << acc << " noSvtGhost: " << noSvtGhost << endl;
+      }
+    }
+
+
+    q[tcnt]       = chargeTrk[i];
+    p[tcnt]       = momentumTrk[i];
+    theta[tcnt]   = thetaTrk[i];
+    phi[tcnt]     = phiTrk[i];
+    pstar[tcnt]   = pcms;
+    dca[tcnt]     = Dca;
+    dcaz[tcnt]    = Dcaz;
+    prob[tcnt]    = tproTrk[i]; 
+    tlen[tcnt]    = tLenTrk[i]; 
+
+    bt[tcnt]      = isAncestor(fB1Index, IndexTrk[i]-1) || isAncestor(fB2Index, IndexTrk[i]-1);
+    mc[tcnt]      = idTrk[i]; 
+    ndch[tcnt]    = ndchTrk[i];
+    nsvt[tcnt]    = nsvtTrk[i];
+    el[tcnt]      = (electron && isRecEl(i) ? 1:0);
+    mu[tcnt]      = (muon && isRecMu(i) ? 1:0);
+    ka[tcnt]      = (kaon && isRecKaon(i) ? 1:0);
+    noghost[tcnt] = noSvtGhost; 
+    clean[tcnt]   = fCleanGoodTrack[i]; 
+
+//     if (electron && isRecEl(i)) {
+//       cout << "electron " << (isRecEl(i)?1:0) << " el[] = " << el[tcnt] << " " << clean[tcnt] << endl;
+//     }
+
+  }
+
+  ntrk = tcnt+1; 
+  t->Fill(); 
+
+}
+
+
+
+// ----------------------------------------------------------------------
+void b2uNtp::doKshorts() {
+
+  static int first(1); 
+
+  double mks, pks, rks, r3ks, mcks, mcpi1, mcpi2; 
+  double chi2, st, dof, alpha; 
+  double aa, apt; // Armenteros
+  int mctks, mctpi1, mctpi2; 
+
+  int donottake, noel, pi1El, pi2El, noka, pi1Ka, pi2Ka; 
+
+  static TTree *t;
+
+  fHistFile->cd();
+
+  if (first) {
+    first = 0; 
+
+    TH1D *h = new TH1D("mks0", "mass Ks->pi+pi- (all)", 50, 0.475, 0.525); 
+    h = new TH1D("mks1", "mass Ks->pi+pi- (pi within acc)", 50, 0.475, 0.525); 
+    h = new TH1D("mks5", "mass Ks->pi0pi0", 50, 0.475, 0.525); 
+
+    t = new TTree("tk", "tk"); 
+    t->Branch("pcms",  &fPcms, "pcms/D");
+    t->Branch("mxhad", &fMxhad, "mxhad/D");
+
+    t->Branch("mks",  &mks, "mks/D");
+    t->Branch("pks",  &pks, "pks/D");
+    t->Branch("rks",  &rks, "rks/D");
+    t->Branch("r3ks", &r3ks, "r3ks/D");
+    t->Branch("alpha",&alpha, "alpha/D");
+    t->Branch("chi2", &chi2, "chi2/D");
+    t->Branch("st",   &st, "st/D");
+    t->Branch("dof",  &dof, "dof/D");
+
+    t->Branch("mcks", &mctks, "mcks/I");
+    t->Branch("mcpi1",&mctpi1, "mcpi1/I");
+    t->Branch("mcpi2",&mctpi2, "mcpi2/I");
+
+    t->Branch("donottake", &donottake, "donottake/I");
+    t->Branch("noel", &noel, "noel/I");
+    t->Branch("noka", &noka, "noka/I");
+
+    t->Branch("aa",  &aa, "aa/D");
+    t->Branch("apt", &apt, "apt/D");
+
+
+  }
+
+
+  // -- Normalization from generator block
+  int OK(0);
+  int d1, d2, d3, d4, d5;
+  for (int i = 0; i < nMc; ++i) {
+    if (idMc[i] == 310) { 
+      OK = 0;
+      getMcDaughters(i, d1, d2, d3, d4, d5); 
+      if ((d1 < 0) || (d1 > nMc) || (d2 < 0) || (d2 > nMc)) continue;
+      if (TMath::Abs(idMc[d1]) != 211) continue;
+      if ((DR*thetaMc[d1] > PITHETALO) && (DR*thetaMc[d1] < PITHETAHI) 
+	  && (DR*thetaMc[d2] > PITHETALO) && (DR*thetaMc[d2] < PITHETAHI) 
+	  && (pMc[d1] > PIMOMLO) && (pMc[d2] > PIMOMLO)
+	  ) {
+	OK = 1; 
+      }
+      
+      ((TH1D*)fHistFile->Get("mks0"))->Fill(massMc[i]);     
+      if (OK) ((TH1D*)fHistFile->Get("mks1"))->Fill(massMc[i]);     
+    }
+  }
+  
+
+
+  // -- Determine whether the daughters are shared including energy-order of Ks
+  int sharedWithHigherEnergy[100]; 
+  int ipi1, ipi2, jpi1, jpi2; 
+  double iE, jE; 
+  for (int i = 0; i < nKs; ++i) {
+    sharedWithHigherEnergy[i] = 0;     
+    // -- skip K0S->piz piz
+    if (TMath::Abs(d1KsLund[i]) != 211) {
+      continue;
+    }
+
+    ipi1 = d1KsIndex[i]-1;
+    ipi2 = d2KsIndex[i]-1; 
+    iE   = pKs[i]; 
+    
+
+    for (int j = 0; j < nKs; ++j) {
+      // -- skip K0S->piz piz
+      if (TMath::Abs(d1KsLund[j]) != 211) {
+	continue;
+      }
+      
+      if (i == j) continue; 
+
+      jpi1 = d1KsIndex[j]-1;
+      jpi2 = d2KsIndex[j]-1; 
+      jE   = pKs[j]; 
+
+      if ((ipi1 == jpi1) || 
+	  (ipi1 == jpi2) || 
+	  (ipi2 == jpi1) || 
+	  (ipi2 == jpi2)
+	  ) { 
+	if (iE < jE) { 
+	  sharedWithHigherEnergy[i] = 1;     
+	  // 	  cout << "KS " << i << " d(" << ipi1 << "," << ipi2 << "), E=" << iE 
+	  // 	       << " and KS " << j << " d(" << jpi1 << "," << jpi2 << "), E=" << jE 
+	  // 	       << endl;
+	}
+      }
+    }
+  }
+  
+  //   for (int i = 0; i < nKs; ++i) {
+  //     cout << " " << i << "->" << sharedWithHigherEnergy[i]; 
+  //   }
+  //   cout << endl;
+
+
+  // -- Reconstructed K0S
+  TVector3 p3K(0., 0., 0.), v3K(0., 0., 0.);
+
+  for (int i = 0; i < nKs; ++i) {
+    // -- skip K0S->piz piz
+    if (TMath::Abs(d1KsLund[i]) != 211) {
+      continue;
+    }
+
+    int pi1 = d1KsIndex[i]-1;
+    int pi2 = d2KsIndex[i]-1; 
+
+    dof  = dofKs[i];
+    chi2 = chi2Ks[i];
+    st   = stKs[i];
+
+
+    mks = massKs[i];
+    pks = pKs[i];
+    r3ks= TMath::Sqrt( (xKs[i]-beamSX)*(xKs[i]-beamSX) + (yKs[i]-beamSY)*(yKs[i]-beamSY) + (zKs[i]-beamSZ)*(zKs[i]-beamSZ) );
+    rks = TMath::Sqrt( (xKs[i]-beamSX)*(xKs[i]-beamSX) + (yKs[i]-beamSY)*(yKs[i]-beamSY) );
+
+    mk3Vector(p3K, pKs[i], thKs[i], phiKs[i]); 
+    v3K.SetXYZ(xKs[i], yKs[i], zKs[i]); 
+
+    alpha = p3K.Angle(v3K); 
+
+    // -- Look at truth-matched K0S
+    if (MCKs[i] > -1) mctks = idMc[MCKs[i]-1];
+    mctpi1 = idTrk[pi1];
+    mctpi2 = idTrk[pi2];
+    
+    donottake = sharedWithHigherEnergy[i]; 
+    pi1El = (isRecEl(pi1)? 1:0);
+    pi2El = (isRecEl(pi2)? 1:0);
+    pi1Ka = (isRecKaon(pi1)? 1:0);
+    pi2Ka = (isRecKaon(pi2)? 1:0);
+
+    noel = pi1El + pi2El; 
+    noka = pi1Ka + pi2Ka; 
+
+    // -- Armenteros plot
+    TVector3 p3pi1(0., 0., 0.),  p3pi2(0., 0., 0.);
+    mk3Vector(p3pi1, momentumTrk[pi1], thetaTrk[pi1], phiTrk[pi1]); 
+    mk3Vector(p3pi2, momentumTrk[pi2], thetaTrk[pi2], phiTrk[pi2]); 
+    double pl1 = p3pi1.Dot(p3K)/p3K.Mag();
+    double pl2 = p3pi2.Dot(p3K)/p3K.Mag();
+    apt  = TMath::Sqrt(p3pi1.Mag2() - pl1*pl1);
+    aa   = (pl1 - pl2) / (pl1 + pl2);
+    
+
+    t->Fill();
+  }
+
+   
+}	
+
+// ----------------------------------------------------------------------
+void b2uNtp::doKszz() {
+
+  static int first(1); 
+
+  double mks, pks, rks, r3ks, mcks, mcpi1, mcpi2; 
+  double chi2, st, dof, alpha; 
+  double aa, apt; // Armenteros
+  int mctks, mctpi1, mctpi2, donottake; 
+
+  double mpi1, mpi2; 
+  double epi1, epi2, eg1, eg2, eg3, eg4;
+  double lat1, lat2, lat3, lat4;
+  double theta1, theta2, theta3, theta4;
+
+  static TTree *t;
+
+  fHistFile->cd();
+
+  if (first) {
+    first = 0; 
+
+    TH1D *h = new TH1D("mks10", "mass Ks->pi0pi0 (all)", 50, 0.475, 0.525); 
+    h = new TH1D("mks11", "mass Ks->pi0pi0 (gamma within acc)", 50, 0.475, 0.525); 
+    h = new TH1D("mks15", "mass Ks->pi0pi0", 50, 0.475, 0.525); 
+
+    t = new TTree("tkzz", "tkzz"); 
+    t->Branch("pcms",  &fPcms, "pcms/D");
+    t->Branch("mxhad", &fMxhad, "mxhad/D");
+
+    t->Branch("mks",  &mks, "mks/D");
+    t->Branch("pks",  &pks, "pks/D");
+    t->Branch("rks",  &rks, "rks/D");
+    t->Branch("r3ks", &r3ks, "r3ks/D");
+    t->Branch("alpha",&alpha, "alpha/D");
+    t->Branch("chi2", &chi2, "chi2/D");
+    t->Branch("st",   &st, "st/D");
+    t->Branch("dof",  &dof, "dof/D");
+
+    t->Branch("donottake", &donottake, "donottake/I");
+
+    t->Branch("mcks", &mctks, "mcks/I");
+    t->Branch("mcpi1",&mctpi1, "mcpi1/I");
+    t->Branch("mcpi2",&mctpi2, "mcpi2/I");
+
+    t->Branch("mpi1", &mpi1, "mpi1/D");
+    t->Branch("mpi2", &mpi2, "mpi2/D");
+    t->Branch("epi1", &epi1, "epi1/D");
+    t->Branch("epi2", &epi2, "epi2/D");
+
+    t->Branch("eg1", &eg1, "eg1/D");
+    t->Branch("eg2", &eg2, "eg2/D");
+    t->Branch("eg3", &eg3, "eg3/D");
+    t->Branch("eg4", &eg4, "eg4/D");
+
+    t->Branch("lat1", &lat1, "lat1/D");
+    t->Branch("lat2", &lat2, "lat2/D");
+    t->Branch("lat3", &lat3, "lat3/D");
+    t->Branch("lat4", &lat4, "lat4/D");
+
+    t->Branch("theta1", &theta1, "theta1/D");
+    t->Branch("theta2", &theta2, "theta2/D");
+    t->Branch("theta3", &theta3, "theta3/D");
+    t->Branch("theta4", &theta4, "theta4/D");
+
+    t->Branch("aa",  &aa, "aa/D");
+    t->Branch("apt", &apt, "apt/D");
+  }
+
+
+  // -- Normalization from generator block
+  int OK(0);
+  int d1, d2, d3, d4, d5;
+  int D1, D2, D3, D4, D5;
+  int E1, E2;
+  for (int i = 0; i < nMc; ++i) {
+    if (idMc[i] == 310) { 
+      OK = 0;
+      getMcDaughters(i, d1, d2, d3, d4, d5); 
+      if ((d1 < 0) || (d1 > nMc) || (d2 < 0) || (d2 > nMc)) continue;
+      if (TMath::Abs(idMc[d1]) != 111) continue;
+
+      getMcDaughters(d1, D1, D2, D3, D4, D5); 
+      getMcDaughters(d2, E1, E2, D3, D4, D5); 
+
+      if ((DR*thetaMc[D1] > GAMMATHETALO) && (DR*thetaMc[D1] < GAMMATHETAHI) 
+	  && (DR*thetaMc[D2] > GAMMATHETALO) && (DR*thetaMc[D2] < GAMMATHETAHI) 
+	  && (DR*thetaMc[E1] > GAMMATHETALO) && (DR*thetaMc[E1] < GAMMATHETAHI) 
+	  && (DR*thetaMc[E2] > GAMMATHETALO) && (DR*thetaMc[E2] < GAMMATHETAHI) 
+	  ) {
+      
+	OK = 1;
+      }
+      
+      //       cout << "pi0: " << i << " with daughters: " << d1 << " (" << idMc[d1] << ") and " << d2 << " (" << idMc[d2] << ") " 
+      // 	   << " and subsequent daughters:  " 
+      // 	   << D1 << "/" << idMc[D1] << "  " 
+      // 	   << D2 << "/" << idMc[D1] << "  " 
+      // 	   << E1 << "/" << idMc[E1] << "  " 
+      // 	   << E2 << "/" << idMc[E2] << "  " 
+      // 	   << endl;
+
+      ((TH1D*)fHistFile->Get("mks10"))->Fill(massMc[i]);     
+      if (OK) ((TH1D*)fHistFile->Get("mks11"))->Fill(massMc[i]);     
+    }
+  }
+  
+
+
+  // -- Determine whether the daughters are shared including energy-order of Ks
+  int sharedWithHigherEnergy[100]; 
+  int ipi1, ipi2, jpi1, jpi2; 
+  double iE, jE; 
+  for (int i = 0; i < nKs; ++i) {
+    sharedWithHigherEnergy[i] = 0;     
+    // -- skip K0S->pi+ pi-
+    if (TMath::Abs(d1KsLund[i]) != 111) {
+      continue;
+    }
+
+    ipi1 = d1KsIndex[i]-1;
+    ipi2 = d2KsIndex[i]-1; 
+    iE   = pKs[i]; 
+    
+
+    for (int j = 0; j < nKs; ++j) {
+      // -- skip K0S->piz piz
+      if (TMath::Abs(d1KsLund[j]) != 211) {
+	continue;
+      }
+      
+      if (i == j) continue; 
+
+      jpi1 = d1KsIndex[j]-1;
+      jpi2 = d2KsIndex[j]-1; 
+      jE   = pKs[j]; 
+
+      if ((ipi1 == jpi1) || 
+	  (ipi1 == jpi2) || 
+	  (ipi2 == jpi1) || 
+	  (ipi2 == jpi2)
+	  ) { 
+	if (iE < jE) { 
+	  sharedWithHigherEnergy[i] = 1;     
+	  // 	  cout << "KS " << i << " d(" << ipi1 << "," << ipi2 << "), E=" << iE 
+	  // 	       << " and KS " << j << " d(" << jpi1 << "," << jpi2 << "), E=" << jE 
+	  // 	       << endl;
+	}
+      }
+    }
+  }
+
+
+  // -- Reconstructed K0S
+  TVector3 p3K(0., 0., 0.), v3K(0., 0., 0.); 
+
+  int pi1, pi2; 
+  int g1, g2, g3, g4; 
+  for (int i = 0; i < nKs; ++i) {
+    // -- skip K0S->pi+ pi-
+    if (TMath::Abs(d1KsLund[i]) != 111) {
+      continue;
+    }
+
+    pi1 = d1KsIndex[i]-1;
+    pi2 = d2KsIndex[i]-1; 
+
+    dof  = dofKs[i];
+    chi2 = chi2Ks[i];
+    st   = stKs[i];
+
+    donottake = sharedWithHigherEnergy[i]; 
+
+
+    mks = massKs[i];
+    pks = pKs[i];
+    r3ks= TMath::Sqrt( (xKs[i]-beamSX)*(xKs[i]-beamSX) + (yKs[i]-beamSY)*(yKs[i]-beamSY) + (zKs[i]-beamSZ)*(zKs[i]-beamSZ) );
+    rks = TMath::Sqrt( (xKs[i]-beamSX)*(xKs[i]-beamSX) + (yKs[i]-beamSY)*(yKs[i]-beamSY) );
+
+    mk3Vector(p3K, pKs[i], thKs[i], phiKs[i]); 
+    v3K.SetXYZ(xKs[i], yKs[i], zKs[i]); 
+
+    alpha = p3K.Angle(v3K); 
+
+    // -- Armenteros plot
+    TVector3 p3pi1(0., 0., 0.),  p3pi2(0., 0., 0.);
+    mk3Vector(p3pi1, pPi0[pi1], thPi0[pi1], phiPi0[pi1]); 
+    mk3Vector(p3pi2, pPi0[pi2], thPi0[pi2], phiPi0[pi2]); 
+    double pl1 = p3pi1.Dot(p3K)/p3K.Mag();
+    double pl2 = p3pi2.Dot(p3K)/p3K.Mag();
+    apt  = TMath::Sqrt(p3pi1.Mag2() - pl1*pl1);
+    aa   = (pl1 - pl2) / (pl1 + pl2);
+
+
+    // -- Look at truth-matched K0S
+    if (fIsMC) {
+      if (MCKs[i] > -1) mctks = idMc[MCKs[i]-1];
+      mctpi1  = idMc[MCPi0[pi1]-1];
+      mctpi2  = idMc[MCPi0[pi2]-1];
+    }
+
+    mpi1    = m0Pi0[pi1];
+    mpi2    = m0Pi0[pi2];
+
+    epi1    = pPi0[pi1];
+    epi2    = pPi0[pi2];
+
+    g1      = d1Pi0Index[pi1]-1; 
+    g2      = d2Pi0Index[pi1]-1; 
+    g3      = d1Pi0Index[pi2]-1; 
+    g4      = d2Pi0Index[pi2]-1; 
+
+    eg1     = ecalGam[g1]; 
+    eg2     = ecalGam[g2]; 
+    eg3     = ecalGam[g3]; 
+    eg4     = ecalGam[g4]; 
+
+    lat1    = lMomGam[g1]; 
+    lat2    = lMomGam[g2]; 
+    lat3    = lMomGam[g3]; 
+    lat4    = lMomGam[g4]; 
+
+    theta1  = thetaGam[g1]; 
+    theta2  = thetaGam[g2]; 
+    theta3  = thetaGam[g3]; 
+    theta4  = thetaGam[g4]; 
+    
+    t->Fill();
+  }
+
+   
+}	
+
+
+
+
+// ----------------------------------------------------------------------
+void b2uNtp::doKlongs() {
+
+  static int first(1); 
+
+  double lh0, lh1, lh2; 
+  double theta, ecal, lat, a42, sm, s1s9, s9s25; 
+  int mctkl, nxtal;
+  double ekl; 
+
+  static TTree *t;
+
+  fHistFile->cd();
+
+  if (first) {
+    first = 0; 
+
+    TH1D *h = new TH1D("mkl0", "mass Kl (all)", 50, 0.475, 0.525); 
+    h = new TH1D("mkl1", "mass Kl (within acc)", 50, 0.475, 0.525); 
+
+    t = new TTree("tkl", "tkl"); 
+    t->Branch("pcms",  &fPcms, "pcms/D");
+    t->Branch("mxhad", &fMxhad, "mxhad/D");
+    
+
+    t->Branch("theta", &theta, "theta/D");
+    t->Branch("ecal",  &ecal, "ecal/D");
+    t->Branch("lat",   &lat, "lat/D");
+    t->Branch("a42",   &a42, "a42/D");
+    t->Branch("sm",    &sm, "sm/D");
+    t->Branch("nxtal", &nxtal, "nxtal/I");
+    t->Branch("s1s9",  &s1s9, "s1s9/D");
+    t->Branch("s9s25", &s9s25, "s9s25/D");
+
+    t->Branch("lh0",   &lh0, "lh0/D");
+    t->Branch("lh1",   &lh1, "lh1/D");
+    t->Branch("lh2",   &lh2, "lh2/D");
+
+    t->Branch("mckl", &mctkl, "mckl/I");
+    t->Branch("ekl",  &ekl,   "ekl/D");
+
+  }
+
+
+  // -- Normalization from generator block
+  int OK(0);
+  int d1, d2, d3, d4, d5;
+  for (int i = 0; i < nMc; ++i) {
+    if (idMc[i] == 130) { 
+      OK = 0;
+      if ((DR*thetaMc[i] > MUTHETALO) && (DR*thetaMc[i] < MUTHETAHI) 
+	  ) {
+	OK = 1; 
+      }
+      
+      ((TH1D*)fHistFile->Get("mkl0"))->Fill(massMc[i]);     
+      if (OK) ((TH1D*)fHistFile->Get("mkl1"))->Fill(massMc[i]);     
+    }
+  }
+  
+  for (int i = 0; i < nGam; ++i) {
+    if (ecalGam[i] < 0.) continue;
+    theta = thetaGam[i]; 
+    ecal  = ecalGam[i]; 
+    lat   = lMomGam[i]; 
+    a42   = ZMom42Gam[i]; 
+    sm    = secMomGam[i]; 
+    nxtal = nCryGam[i]; 
+    s9s25 = s9s25Gam[i]; 
+    s1s9  = s1s9Gam[i]; 
+
+    lh0   = lhKlong00(i); 
+    lh1   = lhKlong01(i); 
+    lh2   = lhKlong02(i); 
+    mctkl = idGam[i]; 
+    ekl   = pMc[IndexGam[i]-1];
+    t->Fill();
+  }
+
+   
+ }	
+
+
+
+// ----------------------------------------------------------------------
+double b2uNtp::lhKlong00(int igam) {
+
+  double bin_ecal[12]={0.2, 0.23, 0.265, 0.31, 0.36 ,0.415, 0.48, 0.56, 0.66, 0.8, 1.05, 4.};
+  double bin_secmom[11] = {0., 0.0005, 0.0007, 0.0009, 0.0011, 0.0014, 0.0018, 0.0024, 0.0035, 0.006, 0.05};
+  double bin_zern42[12]={0., 0.01 , 0.02, 0.026, 0.035, 0.043, 0.05, 0.062, 0.081, 0.118, 0.175, 0.5};
+
+  //---------------- PDFs(signal)/PDFs(background) -----------------------    
+  double rapp_ecal[11] = {0.301264, 0.603186, 0.454526, 0.623907, 0.898884,0.880019, 1.10583, 1.548, 1.55347, 1.68106, 1.33072 };
+  double rapp_secmom[10] = {0.647, 0.41775, 0.480883, 0.502786, 0.523571, 1.15033, 1.6998, 2.30794, 2.19139, 1.39902};
+  double rapp_zern42[11] = {0.660619, 0.382701, 0.625601, 0.578903, 0.857912, 0.839228, 0.88757, 1.35823, 2.02477, 1.90629, 1.45819};
+
+  double like_ecal = -10.;
+  double like_secmom = -10.;
+  double like_zern42 = -10.;
+  double likelihood = 0.;
+  
+  for(int i = 0; i<=10; i++) {
+    if(ecalGam[igam]>=bin_ecal[i] && ecalGam[igam]<bin_ecal[i+1]){
+      like_ecal = log(rapp_ecal[i]);
+      break;
+    }
+  }
+  if(ecalGam[igam]>=bin_ecal[11]){
+    like_ecal = -10.;
+  }
+
+  for(int j = 0; j<=9; j++) {
+    if(secMomGam[igam]>=bin_secmom[j] && secMomGam[igam]<bin_secmom[j+1]){
+      like_secmom = log(rapp_secmom[j]);
+      break;
+    }
+  }
+  if(secMomGam[igam]>=bin_secmom[10]){
+    like_secmom = -10.;
+  }
+  
+  for(int k = 0; k<=10; k++) {
+    if(ZMom42Gam[igam]>=bin_zern42[k] && ZMom42Gam[igam]<bin_zern42[k+1]){
+      like_zern42 = log(rapp_zern42[k]);
+      break;
+    }
+  }
+  if(ZMom42Gam[igam]>=bin_zern42[11]){
+    like_zern42 = -10.;
+  }
+
+  likelihood = like_ecal + like_secmom + like_zern42;
+  return likelihood;
+
+  
+}
+
+
+// ----------------------------------------------------------------------
+double b2uNtp::lhKlong01(int igam) {
+
+  double bin_ecal[14]={0.2, 0.225, 0.255, 0.29, 0.33 ,0.375, 0.425, 0.485, 0.555, 0.64, 0.75, 0.92, 1.25, 4.};
+  double bin_secmom[11] ={0., 0.0005, 0.0007, 0.0009, 0.0011, 0.0014, 0.0018, 0.0024, 0.0035, 0.006, 0.05};
+  double bin_zern42[13]= {0., 0.01 , 0.02, 0.026, 0.035, 0.043, 0.05, 0.062, 0.081, 0.118, 0.175, 0.3, 0.5};
+
+  //---------------- PDFs(signal)/PDFs(background) -----------------------    
+  double rapp_ecal[13] = {0.397696, 0.549548, 0.297421, 0.597827, 0.74877, 0.839402, 1.00334, 1.32575, 1.61193, 1.59421, 1.61394, 1.59477, 0.867589};
+  double rapp_secmom[10] = {0.585188, 0.453729, 0.446209, 0.532921, 0.666205, 0.690908, 1.70983, 2.13953, 2.30114, 1.57608};
+  double rapp_zern42[12] = {0.393179, 0.569172, 0.629292, 0.611394, 0.662729, 0.825844, 1.20914, 1.45163, 1.88207, 1.94868, 1.46432, 1.23173};
+  
+  double like_ecal = -10.;
+  double like_secmom = -10.;
+  double like_zern42 = -10.;
+  double likelihood = 0.;
+  
+  for(int i = 0; i<=12; i++) {
+    if(ecalGam[igam]>= bin_ecal[i] && ecalGam[igam]< bin_ecal[i+1]){
+      like_ecal = log(rapp_ecal[i]);
+      break;
+    }
+  }
+  if(ecalGam[igam]>=bin_ecal[13]){
+    like_ecal = -10.;
+  }
+
+  for(int j = 0; j<=9; j++) {
+    if(secMomGam[igam]>= bin_secmom[j] && secMomGam[igam] < bin_secmom[j+1]){
+      like_secmom = log(rapp_secmom[j]);
+      break;
+    }
+  }
+  if(secMomGam[igam]>=bin_secmom[10]){
+    like_secmom = -10.;
+  }
+
+  for(int k = 0; k<=11; k++) {
+    if(ZMom42Gam[igam] >= bin_zern42[k] && ZMom42Gam[igam] < bin_zern42[k+1]){
+      like_zern42 = log(rapp_zern42[k]);
+      break;
+    }
+  }
+
+  if(ZMom42Gam[igam]>=bin_zern42[12]){
+    like_zern42 = -10.;
+  }
+  
+  likelihood = like_ecal + like_secmom + like_zern42;
+  return likelihood;
+
+}
+
+
+// ----------------------------------------------------------------------
+double b2uNtp::lhKlong02(int igam) {
+
+  double bin_ecal[12]={0.2, 0.23, 0.265, 0.31, 0.36 ,0.415, 0.48, 0.56, 0.66, 0.8, 1.05, 4.};
+  double bin_secmom[11] ={0., 0.0005, 0.0007, 0.0009, 0.0011, 0.0014, 0.0018, 0.0024,0.0035,0.006,0.05};
+  double bin_zern42[12]= {0., 0.01 , 0.02, 0.026, 0.035, 0.043, 0.05, 0.062, 0.081, 0.118, 0.175, 0.5};
+
+  //---------------- PDFs(signal)/PDFs(background) -----------------------    
+  double rapp_ecal[11] = {0.433207, 0.43654, 0.679982, 0.577463, 0.893009, 1.19631, 1.16281,1.53605, 1.61174, 1.45411, 1.11085};
+  double rapp_secmom[10] = {0.474654, 0.354145, 0.546827, 0.420432, 0.656281, 1.07523, 1.57887, 2.17165, 2.25741, 1.38324 };
+  double rapp_zern42[11] = {0.310454, 0.514843, 0.438853, 0.634539, 0.78664, 0.939736, 1.18344,  1.53788, 2.1836, 1.79884, 1.43289};
+
+  double like_ecal = -10.;
+  double like_secmom = -10.;
+  double like_zern42 = -10.;
+  double likelihood = 0.;
+  
+  for(int i = 0; i<=10; i++) {
+    if(ecalGam[igam] >= bin_ecal[i] && ecalGam[igam]< bin_ecal[i+1]){
+      like_ecal = log(rapp_ecal[i]);
+      break;
+    }
+  }
+  if(ecalGam[igam]>=bin_ecal[11]){
+    like_ecal = -10.;
+  }
+
+  for(int j = 0; j<=9; j++) {
+    if(secMomGam[igam]>= bin_secmom[j] && secMomGam[igam] < bin_secmom[j+1]){
+      like_secmom = log(rapp_secmom[j]);
+      break;
+    }
+  } 
+  if(secMomGam[igam]>=bin_secmom[10]){
+    like_secmom = -10.;
+  }
+
+  for(int k = 0; k<=10; k++) {
+    if(ZMom42Gam[igam] >= bin_zern42[k] && ZMom42Gam[igam] < bin_zern42[k+1]){
+      like_zern42 = log(rapp_zern42[k]);
+      break;
+    }
+  }
+  if(ZMom42Gam[igam]>=bin_zern42[11]){
+    like_zern42 = -10.;
+  }
+
+  likelihood = like_ecal + like_secmom + like_zern42;
+  return likelihood;
+}
+

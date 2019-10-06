@@ -1,0 +1,484 @@
+
+// ----------------------------------------------------------------------
+void recoilNtp::fastBookHist(const char *name) {
+
+  fHistFile->cd(); 
+  fHistFile->mkdir(name, name); 
+  fHistFile->cd(name);
+
+  int i(-1); 
+  int nbins(1);
+  int bins[20]; 
+
+  Bool_t *nocuts, *sigcuts, *aocuts; 
+  Bool_t *aoprmm2, *aomm2, *aocc; 
+
+  //  allcuts = &fGoodEvent; 
+  sigcuts = &fLowMx; 
+      
+  if      (!strcmp(name, "a_dep"))  {
+    i =  1; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoLepton; 
+    aoprmm2= &faoPRMM2;
+    aomm2  = &faoMM2;
+    aocc   = &faoChargeCons;
+  }  else if (!strcmp(name, "a_enh"))  {
+    i =  2; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoLepton; 
+    aoprmm2= &faoPRMM2;
+    aomm2  = &faoMM2;
+    aocc   = &faoChargeCons;
+  }  else if (!strcmp(name, "e_dep"))  {
+    i =  3; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoElectron; 
+    aoprmm2= &faoPRMM2E;
+    aomm2  = &faoMM2E;
+    aocc   = &faoChargeConsE;
+  }  else if (!strcmp(name, "e_enh"))  {
+    i =  4; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoElectron; 
+    aoprmm2= &faoPRMM2E;
+    aomm2  = &faoMM2E;
+    aocc   = &faoChargeConsE;
+  }  else if (!strcmp(name, "m_dep"))  {
+    i =  5; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMuon; 
+    aoprmm2= &faoPRMM2M;
+    aomm2  = &faoMM2M;
+    aocc   = &faoChargeConsM;
+  }  else if (!strcmp(name, "m_enh"))  {
+    i =  6; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMuon; 
+    aoprmm2= &faoPRMM2M;
+    aomm2  = &faoMM2M;
+    aocc   = &faoChargeConsM;
+
+  }  else if (!strcmp(name, "ars_dep"))  {
+    i = 10; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoRS; 
+    aoprmm2= &faoPRMM2RS;
+    aomm2  = &faoMM2RS;
+    aocc   = &faoChargeConsRS;
+  }  else if (!strcmp(name, "ars_enh"))  {
+    i = 11; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoRS; 
+    aoprmm2= &faoPRMM2RS;
+    aomm2  = &faoMM2RS;
+    aocc   = &faoChargeConsRS;
+  }  else if (!strcmp(name, "aws_dep"))  {
+    i = 12; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoWS; 
+    aoprmm2= &faoPRMM2WS;
+    aomm2  = &faoMM2WS;
+    aocc   = &faoChargeConsWS;
+  }  else if (!strcmp(name, "aws_enh"))  {
+    i = 13; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoWS; 
+    aoprmm2= &faoPRMM2WS;
+    aomm2  = &faoMM2WS;
+    aocc   = &faoChargeConsWS;
+
+  }  else if (!strcmp(name, "arf_dep"))  {
+    i = 14; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoRF; 
+    aoprmm2= &faoPRMM2RF;
+    aomm2  = &faoMM2RF;
+    aocc   = &faoChargeConsRF;
+  }  else if (!strcmp(name, "arf_enh"))  {
+    i = 15; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoRF; 
+    aoprmm2= &faoPRMM2RF;
+    aomm2  = &faoMM2RF;
+    aocc   = &faoChargeConsRF;
+  }  else if (!strcmp(name, "awf_dep"))  {
+    i = 16; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoWF; 
+    aoprmm2= &faoPRMM2WF;
+    aomm2  = &faoMM2WF;
+    aocc   = &faoChargeConsWF;
+  }  else if (!strcmp(name, "awf_enh"))  {
+    i = 17;
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoWF; 
+    aoprmm2= &faoPRMM2WF;
+    aomm2  = &faoMM2WF;
+    aocc   = &faoChargeConsWF;
+
+  }  else if (!strcmp(name, "ers_dep"))  {
+    i = 20; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoERS; 
+    aoprmm2= &faoPRMM2ERS;
+    aomm2  = &faoMM2ERS;
+    aocc   = &faoChargeConsERS;
+  }  else if (!strcmp(name, "ers_enh"))  {
+    i = 21; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoERS; 
+    aoprmm2= &faoPRMM2ERS;
+    aomm2  = &faoMM2ERS;
+    aocc   = &faoChargeConsERS;
+  }  else if (!strcmp(name, "ews_dep"))  {
+    i = 22; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoEWS; 
+    aoprmm2= &faoPRMM2EWS;
+    aomm2  = &faoMM2EWS;
+    aocc   = &faoChargeConsEWS;
+  }  else if (!strcmp(name, "ews_enh"))  {
+    i = 23; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoEWS; 
+    aoprmm2= &faoPRMM2EWS;
+    aomm2  = &faoMM2EWS;
+    aocc   = &faoChargeConsEWS;
+
+  }  else if (!strcmp(name, "erf_dep"))  {
+    i = 24; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoERF; 
+    aoprmm2= &faoPRMM2ERF;
+    aomm2  = &faoMM2ERF;
+    aocc   = &faoChargeConsERF;
+  }  else if (!strcmp(name, "erf_enh"))  {
+    i = 25; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoERF; 
+    aoprmm2= &faoPRMM2ERF;
+    aomm2  = &faoMM2ERF;
+    aocc   = &faoChargeConsERF;
+  }  else if (!strcmp(name, "ewf_dep"))  {
+    i = 26; 
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoEWF; 
+    aoprmm2= &faoPRMM2EWF;
+    aomm2  = &faoMM2EWF;
+    aocc   = &faoChargeConsEWF;
+  }  else if (!strcmp(name, "ewf_enh"))  {
+    i = 27;
+    nocuts = &fGoodAccElectron; 
+    aocuts = &faoEWF; 
+    aoprmm2= &faoPRMM2EWF;
+    aomm2  = &faoMM2EWF;
+    aocc   = &faoChargeConsEWF;
+
+  }  else if (!strcmp(name, "mrs_dep"))  {
+    i = 30; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMRS; 
+    aoprmm2= &faoPRMM2MRS;
+    aomm2  = &faoMM2MRS;
+    aocc   = &faoChargeConsMRS;
+  }  else if (!strcmp(name, "mrs_enh"))  {
+    i = 31; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMRS; 
+    aoprmm2= &faoPRMM2MRS;
+    aomm2  = &faoMM2MRS;
+    aocc   = &faoChargeConsMRS;
+  }  else if (!strcmp(name, "mws_dep"))  {
+    i = 32; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMWS; 
+    aoprmm2= &faoPRMM2MWS;
+    aomm2  = &faoMM2MWS;
+    aocc   = &faoChargeConsMWS;
+  }  else if (!strcmp(name, "mws_enh"))  {
+    i = 33; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMWS; 
+    aoprmm2= &faoPRMM2MWS;
+    aomm2  = &faoMM2MWS;
+    aocc   = &faoChargeConsMWS;
+
+  }  else if (!strcmp(name, "mrf_dep"))  {
+    i = 34; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMRF; 
+    aoprmm2= &faoPRMM2MRF;
+    aomm2  = &faoMM2MRF;
+    aocc   = &faoChargeConsMRF;
+  }  else if (!strcmp(name, "mrf_enh"))  {
+    i = 35; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMRF; 
+    aoprmm2= &faoPRMM2MRF;
+    aomm2  = &faoMM2MRF;
+    aocc   = &faoChargeConsMRF;
+  }  else if (!strcmp(name, "mwf_dep"))  {
+    i = 36; 
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMWF; 
+    aoprmm2= &faoPRMM2MWF;
+    aomm2  = &faoMM2MWF;
+    aocc   = &faoChargeConsMWF;
+  }  else if (!strcmp(name, "mwf_enh"))  {
+    i = 37;
+    nocuts = &fGoodAccMuon; 
+    aocuts = &faoMWF; 
+    aoprmm2= &faoPRMM2MWF;
+    aomm2  = &faoMM2MWF;
+    aocc   = &faoChargeConsMWF;
+ 
+  }  else if (!strcmp(name, "all"))     {
+    i = 0; 
+    nocuts = &fGoodAccLepton; 
+    aocuts = &faoLepton; 
+    aoprmm2= &faoPRMM2;
+    aomm2  = &faoMM2;
+    aocc   = &faoChargeCons;
+
+  }  else {
+    cout << "Unknown directory name " << endl;
+  }
+
+  // -- Lepton (NOTE: aocuts does NOT include fOneLepton!)
+  d1050[i] = new valHist(1050, "pcms ", 18, 0., 3.0);  
+  d1050[i]->setup(&fPcms, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocuts); 
+
+  d1550[i] = new valHist(1550, "plab ", 20, 0., 4.);  
+  d1550[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocuts); 
+
+  d1650[i] = new valHist(1650, "theta", 18, 0., 180.);  
+  d1650[i]->setup(&fTlabDR, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocuts); 
+
+  d1750[i] = new valHist(1750, "phi", 18, -180., 180.);  
+  d1750[i]->setup(&fFlabDR, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocuts); 
+
+
+  // -- Mxhad 
+  d2050[i] = new valHist(2050, "MxHad ", 15, 0., 3.);  
+  d2050[i]->setup(&fMxhad, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d2150[i] = new valHist(2150, "Q^{2} ", 20, 0., 20.);  
+  d2150[i]->setup(&fQ2, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d2250[i] = new valHist(2250, "#Delta MxHad ", 10, -1., 1.);  
+  d2250[i]->setup(&fMxhadRes, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d2350[i] = new valHist(2350, "#Delta Q^{2} ", 10, -3., 3.);  
+  d2350[i]->setup(&fQ2Res, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+
+  // -- Mxhadfit 
+  d2550[i] = new valHist(2550, "MxHadFit ", 15, 0., 3.);  
+  d2550[i]->setup(&fMxhadfit, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+  d2650[i] = new valHist(2650, "#Delta MxHadFit ", 10, -1., 1.);  
+  d2650[i]->setup(&fMxhadfitRes, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d2750[i] = new valHist(2750, "Prob(chi2)", 10, 0., 1.);  
+  d2750[i]->setup(&fProbChi2, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+  d2850[i] = new valHist(2850, "chi2", 10, 0., 40.);  
+  d2850[i]->setup(&fChi2, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+
+  // -- Neutrino
+  d3050[i] = new valHist(3050, "m_{miss}^{2} ", 30, -5., 10.);  
+  d3050[i]->setup(&fMM2, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aomm2); 
+
+  d3150[i] = new valHist(3150, "m_{miss}^{2} (partial reco'ed D*)", 30, -50., 10.);  
+  d3150[i]->setup(&fwdeltaM, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aoprmm2); 
+
+  d3550[i] = new valHist(3550, "|pmiss| ", 16, 0., 4.);  
+  d3550[i]->setup(&fPNu, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aomm2); 
+
+  d3650[i] = new valHist(3650, "Emiss ", 16, 0., 4.);  
+  d3650[i]->setup(&fEmiss, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aomm2); 
+
+  d3750[i] = new valHist(3750, "cos #theta_{miss} ", 10, -1., 1.);  
+  d3750[i]->setup(&fCosTNu, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aomm2); 
+
+
+  // -- Event quantities
+  d4050[i] = new valHist(4050, "Q_{total} ", 8, -4., 4.);  
+  d4050[i]->setup(&fQtot, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocc); 
+
+  d4150[i] = new valHist(4150, "Q_{recoil} ", 8, -4., 4.);  
+  d4150[i]->setup(&fQrecoil, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, aocc); 
+
+  d4250[i] = new valHist(4250, "N_{Tracks}", 10, 0., 10.);  
+  d4250[i]->setup(&fNtracks, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d4350[i] = new valHist(4350, "N_{Neutrals} ", 14, 0., 14.);  
+  d4350[i]->setup(&fNneutrals, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d4450[i] = new valHist(4450, "N_{Leptons} ", 4, 0., 4., nbins, bins);  
+  d4450[i]->setup(&frealNLepton, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d4550[i] = new valHist(4550, "N_{Kaons} ", 4, 0., 4., nbins, bins);  
+  d4550[i]->setup(&frealNKp, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d4650[i] = new valHist(4650, "N_{KS} ", 4, 0., 4.);  
+  d4650[i]->setup(&frealNKp, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+
+  // -- plab for miscellaneous particles
+  d5050[i] = new valHist(5050, "plab_{Tracks} ", 20, 0., 3.0);  
+  d5050[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d5150[i] = new valHist(5150, "Elab_{Neutrals} ", 10, 0., 1.5);  
+  d5150[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d5250[i] = new valHist(5250, "plab_{K+} ", 20, 0., 3.0);  
+  d5250[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d5350[i] = new valHist(5350, "plab_{Ks} ", 20, 0., 3.0);  
+  d5350[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d5450[i] = new valHist(5450, "plab_{Pions} ", 20, 0., 3.0);  
+  d5450[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+
+  // -- theta for miscellaneous particles
+  d6050[i] = new valHist(6050, "#theta_{tracks}", 12, 0., 3.15);  
+  d6050[i]->setup(&fTlabDR, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d6150[i] = new valHist(6150, "#theta_{neutrals}", 12, 0., 3.15);  
+  d6150[i]->setup(&fTlabDR, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7000[i] = new valHist(7000, "track length ", 20, 0., 200.0);  
+  d7000[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7050[i] = new valHist(7050, "chi2/ndof ", 12, 0., 4.0);  
+  d7050[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7100[i] = new valHist(7100, "log(dca) ", 20, -4., .5);  
+  d7100[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7150[i] = new valHist(7150, "dca z ", 15, -3., 3.0);  
+  d7150[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7200[i] = new valHist(7200, "NDch ", 20, 10., 50.0);  
+  d7200[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d7250[i] = new valHist(7250, "NSvt ", 13, 0., 13.0);  
+  d7250[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d8000[i] = new valHist(8000, "LAT ", 20, 0., 1.0);  
+  d8000[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d8050[i] = new valHist(8050, "secmom ", 20, 0., 0.005);  
+  d8050[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d8100[i] = new valHist(8100, "A20 ", 20, 0.5, 1.0);  
+  d8100[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d8150[i] = new valHist(8150, "A42 ", 20, 0., 0.3);  
+  d8150[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+  d8200[i] = new valHist(8200, "s9s25 ", 20, 0.5, 1.0);  
+  d8200[i]->setup(&fPlab, &fMes, &signalBox, &mesSideband, nocuts, sigcuts, &fGoodEvent); 
+
+ 
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::fastFillHist(const char *name) {
+  int i(-1);
+
+
+  if      (!strcmp(name, "a_dep"))    i =  1; 
+  else if (!strcmp(name, "a_enh"))    i =  2; 
+  else if (!strcmp(name, "e_dep"))    i =  3; 
+  else if (!strcmp(name, "e_enh"))    i =  4; 
+  else if (!strcmp(name, "m_dep"))    i =  5; 
+  else if (!strcmp(name, "m_enh"))    i =  6; 
+
+  else if (!strcmp(name, "ars_dep"))  i = 10; 
+  else if (!strcmp(name, "ars_enh"))  i = 11; 
+  else if (!strcmp(name, "aws_dep"))  i = 12; 
+  else if (!strcmp(name, "aws_enh"))  i = 13; 
+  else if (!strcmp(name, "arf_dep"))  i = 14; 
+  else if (!strcmp(name, "arf_enh"))  i = 15; 
+  else if (!strcmp(name, "awf_dep"))  i = 16; 
+  else if (!strcmp(name, "awf_enh"))  i = 17;
+
+  else if (!strcmp(name, "ers_dep"))  i = 20; 
+  else if (!strcmp(name, "ers_enh"))  i = 21; 
+  else if (!strcmp(name, "ews_dep"))  i = 22; 
+  else if (!strcmp(name, "ews_enh"))  i = 23; 
+  else if (!strcmp(name, "erf_dep"))  i = 24; 
+  else if (!strcmp(name, "erf_enh"))  i = 25; 
+  else if (!strcmp(name, "ewf_dep"))  i = 26; 
+  else if (!strcmp(name, "ewf_enh"))  i = 27;
+
+  else if (!strcmp(name, "mrs_dep"))  i = 30; 
+  else if (!strcmp(name, "mrs_enh"))  i = 31; 
+  else if (!strcmp(name, "mws_dep"))  i = 32; 
+  else if (!strcmp(name, "mws_enh"))  i = 33; 
+  else if (!strcmp(name, "mrf_dep"))  i = 34; 
+  else if (!strcmp(name, "mrf_enh"))  i = 35; 
+  else if (!strcmp(name, "mwf_dep"))  i = 36; 
+  else if (!strcmp(name, "mwf_enh"))  i = 37;
+ 
+  else if (!strcmp(name, "all"))     i = 0; 
+  else {
+    cout << "Unknown directory name " << endl;
+  }
+
+  d1050[i]->fillHist(fEvtW8);
+  d1550[i]->fillHist(fEvtW8); 
+  d1650[i]->fillHist(fEvtW8); 
+  d1750[i]->fillHist(fEvtW8);
+
+  d2050[i]->fillHist(fEvtW8); 
+  d2150[i]->fillHist(fEvtW8);
+  d2250[i]->fillHist(fEvtW8);
+  d2350[i]->fillHist(fEvtW8);
+
+  d2550[i]->fillHist(fEvtW8);
+  d2650[i]->fillHist(fEvtW8);
+  d2750[i]->fillHist(fEvtW8);   
+  d2850[i]->fillHist(fEvtW8);
+
+  d3050[i]->fillHist(fEvtW8);
+  d3150[i]->fillHist(fEvtW8);
+  d3550[i]->fillHist(fEvtW8); 
+  d3650[i]->fillHist(fEvtW8); 
+  d3750[i]->fillHist(fEvtW8);
+
+  d4050[i]->fillHist(fEvtW8); 
+  d4150[i]->fillHist(fEvtW8); 
+  d4250[i]->fillHist(fEvtW8); 
+  d4350[i]->fillHist(fEvtW8);
+  d4450[i]->fillHist(fEvtW8); 
+  d4550[i]->fillHist(fEvtW8); 
+  d4650[i]->fillHist(fEvtW8);
+
+  d5050[i]->fillHist(nTrk, &momentumTrk[0], &goodHadron[0], fEvtW8);
+  d5150[i]->fillHist(nGam, &energyGam[0], &goodPhoton[0], fEvtW8);
+  d5250[i]->fillHist(nTrk, &momentumTrk[0], &goodChargedKaon[0], fEvtW8);
+  d5350[i]->fillHist(nKs, &pKs[0], &goodKshort[0], fEvtW8);
+  d5450[i]->fillHist(nTrk, &momentumTrk[0], &goodPion[0], fEvtW8);
+
+  d6050[i]->fillHist(nTrk, &thetaTrk[0], &goodHadron[0], fEvtW8);
+  d6150[i]->fillHist(nGam, &thetaGam[0], &goodPhoton[0], fEvtW8);
+
+  d7000[i]->fillHist(nTrk, &tlenTrack[0], &goodTrack[0], fEvtW8);   
+  d7050[i]->fillHist(nTrk, &c2nTrack[0],  &goodTrack[0], fEvtW8);   
+  d7100[i]->fillHist(nTrk, &dcaTrack[0],  &goodTrack[0], fEvtW8);   
+  d7150[i]->fillHist(nTrk, &dcazTrack[0], &goodTrack[0], fEvtW8);   
+  d7200[i]->fillHist(nTrk, &ndchTrack[0], &goodTrack[0], fEvtW8);   
+  d7250[i]->fillHist(nTrk, &nsvtTrack[0], &goodTrack[0], fEvtW8);   
+ 
+  d8000[i]->fillHist(nTrk, &lMomGam[0],   &goodPhoton[0], fEvtW8);   
+  d8050[i]->fillHist(nTrk, &secMomGam[0], &goodPhoton[0], fEvtW8);   
+  d8100[i]->fillHist(nTrk, &ZMom20Gam[0], &goodPhoton[0], fEvtW8);   
+  d8150[i]->fillHist(nTrk, &ZMom42Gam[0], &goodPhoton[0], fEvtW8);   
+  d8200[i]->fillHist(nTrk, &s9s25Gam[0],  &goodPhoton[0], fEvtW8);   
+
+
+}

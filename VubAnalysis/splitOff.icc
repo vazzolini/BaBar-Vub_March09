@@ -1,0 +1,141 @@
+void recoilNtp::doSplitOffStudy(bool book){
+  fHistFile->cd();
+  fHistFile->cd("SplitOff");
+  if(book ){
+    if(fOptGammas == 2){
+      TH1 *h;
+      h = new TH1D("DthTracks","tracks splitoffs theta" , 50, -0.1, 0.1);
+      h = new TH1D("DphTracks","tracks splitoffs phi" , 50, -0.1, 0.1);
+      h = new TH2D("DthDphTracks","tracks splitoffs phi-theta" , 100, -0.1, 0.01, 100, -0.1, 0.1);
+      h = new TH1D("minDthTracks","tracks splitoffs theta at min phi" , 50, -0.1, 0.1);
+      h = new TH1D("minDphTracks","tracks splitoffs phi at min theta" , 50, -0.1, 0.1);
+      h = new TH2D("minDthDphTracks","tracks splitoffs phi-theta at min" , 100, -0.1, 0.01, 100, -0.1, 0.1);
+      
+      h = new TH1D("DthNeut","neutral splitoffs theta" , 50, -0.1, 0.1);
+      h = new TH1D("DphNeut","neutral splitoffs phi" , 50, -0.1, 0.1);
+      h = new TH2D("DthDphNeut","neutral splitoffs phi-theta" , 100, -0.1, 0.1, 100, -0.1, 0.1);
+      h = new TH1D("minDthNeut","neutral splitoffs theta at min phi" , 50, -0.1, 0.1);
+      h = new TH1D("minDphNeut","neutral splitoffs phi at min theta" , 50, -0.1, 0.1);
+      h = new TH2D("minDthDphNeut","neutral splitoffs phi-theta at min" , 100, -0.1, 0.1, 100, -0.1, 0.1);
+      
+      h = new TH2D("PErej","neutral splitoffs momentum vs energy" , 100, 0., 3., 100, 0., 3.);
+      
+      fSOTree = new TTree("soff", "soff"); 
+      fSOTree->Branch("dth",    &SOdth, "dth/D");
+      fSOTree->Branch("dph",    &SOdph, "dph/D");
+      fSOTree->Branch("egam",    &SOegam, "egam/D");
+      fSOTree->Branch("ptrk",    &SOptrk, "ptrk/D");
+      fSOTree->Branch("thtrk",    &SOthtrk, "thtrk/D");
+      fSOTree->Branch("phitrk",    &SOphitrk, "phitrk/D");
+      fSOTree->Branch("ecaltrk",    &SOecaltrk, "ecaltrk/D");
+      fSOTree->Branch("thgam",    &SOthgam, "thgam/D");
+      fSOTree->Branch("phigam",    &SOphigam, "phigam/D");
+      fSOTree->Branch("charge",    &SOcharge, "charge/I");
+    }   
+    return;
+   
+  }
+  double magFac=0.1; // Pt corresponding to a radius on 22 cm (the edge of the DCH) - GeV
+  for (Int_t i1=0; i1<nTrk; i1++) {
+    int ndch1=ndchTrk[i1];
+    int nsvt1=nsvtTrk[i1];
+    double phiMinTrk(1000.),thetaMinTrk(1000.);
+    double thetaAtPhiMinTrk(1000.),phiAtThetaMinTrk(1000.);
+    // track track splitoffs
+    for (Int_t i2=i1+1; i2<nTrk; i2++) {
+      int ndch2=ndchTrk[i2];
+      int nsvt2=nsvtTrk[i2];
+      if( 
+	 (ndch1==0 && nsvt2==0) || (ndch2==0 && nsvt1==0)
+	 ){
+	if(chargeTrk[i1] != chargeTrk[i2])continue;
+	if(momentumTrk[i1]<0.1 || momentumTrk[i2]<0.1 )continue;
+	
+	double dph=phiTrk[i1]-phiTrk[i2];
+	double corr=2*(asin(0.1/momentumTrk[i1])-asin(0.1/momentumTrk[i2]));// angular correction at 22 cm (DCH - SVT boundary)
+	if(chargeTrk[i1]>0)corr=-corr;
+	dph+=corr;
+	
+	double dth=thetaTrk[i1]-thetaTrk[i2];
+	
+	if(TMath::Abs(dth) < thetaMinTrk){
+	  thetaMinTrk = TMath::Abs(dth);
+	  phiAtThetaMinTrk = dph;
+	}
+	if(TMath::Abs(dph) < phiMinTrk){
+	  phiMinTrk = TMath::Abs(dph);
+	  thetaAtPhiMinTrk = dth;
+	}
+	if(fOptGammas==2) {
+	  if(TMath::Abs(dph)<0.1)((TH1D*)gDirectory->Get("DthTracks"))->Fill(dth, 1.);
+	  if(TMath::Abs(dth)<0.1) ((TH1D*)gDirectory->Get("DphTracks"))->Fill(dph, 1.);
+	  ((TH2D*)gDirectory->Get("DthDphTracks"))->Fill(dph,dth, 1.);
+	}
+      }
+    }
+    if(phiMinTrk<1000. && fOptGammas==2){
+      ((TH1D*)gDirectory->Get("minDthTracks"))->Fill(thetaAtPhiMinTrk, 1.);
+      ((TH1D*)gDirectory->Get("minDphTracks"))->Fill(phiAtThetaMinTrk, 1.);
+      ((TH2D*)gDirectory->Get("minDthDphTracks"))->Fill(phiAtThetaMinTrk,thetaAtPhiMinTrk, 1.);
+    }
+    
+  }	
+  
+  // track cluster splitoffs
+  for (int ig=0;ig<nGam;ig++){
+    double phiMinNeu(1000.),thetaMinNeu(1000.);
+    double thetaAtPhiMinNeu(1000.),phiAtThetaMinNeu(1000.);
+    int imin = -1;
+    bool dumptree(false);
+    splitOffGam[ig]=0;
+    if (ecalGam[ig] < 0) continue; // no IFR only stuff
+    for (Int_t i1=0; i1<nTrk; i1++) {
+      double dph=phiAtEMCTrk[i1]-phiGam[ig];
+      double dth=thetaAtEMCTrk[i1]-thetaGam[ig];
+      
+      if(TMath::Abs(dth) < thetaMinNeu){
+	thetaMinNeu = TMath::Abs(dth);
+	phiAtThetaMinNeu = dph;
+      }
+      if(TMath::Abs(dph) < phiMinNeu){
+	phiMinNeu = TMath::Abs(dph);
+	thetaAtPhiMinNeu = dth;
+	if(TMath::Abs(dph)<0.1 && TMath::Abs(dth)<0.1 && fOptGammas==2){
+	  dumptree=true;
+	  SOdth=dth;
+	  SOdph=dph;
+	  SOegam=energyGam[ig];
+	  SOthgam=thetaGam[ig];
+	  SOphigam=phiGam[ig];
+	  SOptrk=momentumTrk[i1];
+	  SOthtrk=thetaTrk[i1];
+	  SOphitrk=phiTrk[i1];
+	  SOecaltrk=ecalTrk[i1];
+	  SOcharge=chargeTrk[i1];
+	}
+	
+	imin=i1;
+      }
+      // select splitOff photons
+      bool phicut = (chargeTrk[i1]>0 && dph>-0.03 && dph<0.07) || (chargeTrk[i1]<0 && dph>-0.07 && dph<0.03); 
+      bool acc = thetaGam[ig]> 0.41 && ecalTrk[i1] < 0; //track must not be matched
+      if(phicut && acc && (TMath::Abs(dth)<0.03))splitOffGam[ig]=1;
+      if(fOptGammas==2){
+	((TH1D*)gDirectory->Get("DthNeut"))->Fill(dth, 1.);
+	if(TMath::Abs(dth)<0.1) ((TH1D*)gDirectory->Get("DphNeut"))->Fill(dph, 1.);
+	((TH2D*)gDirectory->Get("DthDphNeut"))->Fill(dph,dth, 1.);
+      }
+    }
+    if( fOptGammas==2){
+      if(splitOffGam[ig]>0)((TH2D*)gDirectory->Get("PErej"))->Fill(energyGam[ig],momentumTrk[imin]);
+      if(dumptree)fSOTree->Fill();
+      if(thetaMinNeu<1000.){
+	((TH1D*)gDirectory->Get("minDthNeut"))->Fill(thetaAtPhiMinNeu, 1.);
+	((TH1D*)gDirectory->Get("minDphNeut"))->Fill(phiAtThetaMinNeu, 1.);
+	((TH2D*)gDirectory->Get("minDthDphNeut"))->Fill(phiAtThetaMinNeu,thetaAtPhiMinNeu, 1.);
+      }
+    }
+  }
+  
+}
+

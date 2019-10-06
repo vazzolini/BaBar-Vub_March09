@@ -1,0 +1,67 @@
+##############################################
+#
+#    input file for chisq calculation
+#
+#    LEGENDA
+# 
+#    pi0lnuq28     = pi0lnu q2<8GeV
+#    pi0lnuq2816   = pi0lnu 8GeV<q2<16GeV
+#    pi0lnuq216    = pi0lnu 16GeV<q2
+#    pilnuq28      = pilnu q2<8GeV
+#    pilnuq2816    = pilnu 8GeV<q2<16GeV
+#    pilnuq216     = pilnu 16GeV<q2
+#    
+#    value         = central value 
+#    stat          = stat error 
+#    statmc        = MC stat error
+#    uncorrsyst    = uncorrelated syst error  
+#    corrsyst      = correlated syst error  
+#
+#    the sixt element contains the expected average to follow 
+#    the HFAG prescription 
+#
+#    numbers for systematics are given as fraction
+#
+###############################################
+#
+pi0lnuq28 value       0.000161168
+pi0lnuq28 stat        9.26775e-05
+pi0lnuq28 statmc      3.21984e-05
+pi0lnuq28 uncorrsyst  3.1
+pi0lnuq28 corrsyst    7.0
+pi0lnuq28 expected    0.000119
+#
+pi0lnuq2816 value       0.000366267
+pi0lnuq2816 stat        0.000138773
+pi0lnuq2816 statmc      5.35924e-05
+pi0lnuq2816 uncorrsyst  3.1
+pi0lnuq2816 corrsyst    7.0
+pi0lnuq2816 expected    0.000277
+#
+pi0lnuq216 value       0.00024322
+pi0lnuq216 stat        0.000104658 
+pi0lnuq216 statmc      5.5673e-05
+pi0lnuq216 uncorrsyst  3.1
+pi0lnuq216 corrsyst    7.3
+pi0lnuq216 expected    0.00032
+#
+pilnuq28 value       0.0001365
+pilnuq28 stat        9.96154e-05
+pilnuq28 statmc      2.49196e-05
+pilnuq28 uncorrsyst  4.2
+pilnuq28 corrsyst    9.9
+pilnuq28 expected    0.00022
+#
+pilnuq2816 value       0.000341081
+pilnuq2816 stat        0.000142127
+pilnuq2816 statmc      4.03498e-05
+pilnuq2816 uncorrsyst  4.2
+pilnuq2816 corrsyst    9.9
+pilnuq2816 expected    0.00051
+#
+pilnuq216 value       0.000629899
+pilnuq216 stat        0.000196274
+pilnuq216 statmc      0.000110642
+pilnuq216 uncorrsyst  4.2
+pilnuq216 corrsyst    9.9
+pilnuq216 expected    0.00059

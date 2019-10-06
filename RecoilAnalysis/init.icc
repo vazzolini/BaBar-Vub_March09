@@ -1,0 +1,201 @@
+// ----------------------------------------------------------------------
+baseClass::baseClass(TString filename, TString treename,int isMC, int newFormat) {
+  fNewFormat = newFormat;
+  TFile *f = new TFile(filename);
+  TTree *tree = (TTree*)f->Get(treename);
+  if (!tree) { 
+    cout << "Did not find " << treename << " in file " << filename << endl;
+    f->ls();
+  } else {
+    Init(tree,isMC);
+  }
+  initRest();
+}
+
+void baseClass::initRest() {
+  DR = 57.29577951;
+  PCBIN = 30;
+  PCMAX = 3.0;
+  PLBIN = 40;
+  PLMAX = 4.0;
+  FBIN = 36;
+  B0LUND = 511;
+  CHBLUND = 521;
+
+  for (int i = 0; i < 100; ++i) fReturnLog[i] = 0; 
+
+  XMAX = 5.;
+  XBIN = 50;
+
+  ELMASS  = 0.000511;
+  MUMASS  = 0.10567;
+
+  PIPMASS = 0.13957; 
+  PIZMASS = 0.13498;
+  KAPMASS = 0.49368;
+  KAZMASS = 0.49767;
+  BPMASS  = 5.2790;
+  BZMASS  = 5.2794;
+  BMASS   = 5.2792;
+  BQMASS  = 4.800;
+  A0      = 1.29;
+
+  fOptBlind = fOptGammas = fOptCategories = fOptKlongs = fOptMakeEventList 
+    = fOptPidKilling = fOptPidKillingKaon = fOptPidKillingEl = fOptPidKillingMu 
+    = fOptSmearTracks = fOptSmearNeut = 0;
+
+  fOptFilterK0sPi0Pi0 = 1010000;// run number before which we need to apply the Ks bug fix
+
+  // -- CUTS
+  DESIGNALLO = -0.1; 
+  DESIGNALHI =  0.1; 
+
+  MESSIGNALLO   =  5.27; 
+  MESSIGNALHI   =  5.29; 
+
+  MESSIDEBANDLO = 5.20; 
+  MESSIDEBANDHI = 5.26; 
+
+  MESSIGNALBANDLO = 5.27; 
+  MESSIGNALBANDHI = 5.29; 
+
+  PURITY     = 0.;
+  INTPURITY  = 0.;
+  IPURDSTAR  = 0.;
+  IPURDC     = 0.;
+  IPURDSTAR0 = 0.;
+  IPURD0     = 0.;
+
+  TLABLO = 23.5;  // BAD 90 
+  TLABHI = 135.8;
+
+  PCMSLO = 1.0;
+  PLABLO = 0.5;
+  NLEPTON = 1;
+  ELMOMLO = 1.0;
+  MUMOMLO = 1.0;
+  KAMOMLO = 0.1;
+  IDEL = 32;
+  IDMU = 8; 
+  IDKA = 4; 
+
+  MM2LO = -9999.;
+
+  fParametrization = 0; // default: old parametrization for (CT,AS)
+
+  REQTOTALCHARGE = 1.;
+  REQCHARGECORR  = kTRUE; 
+
+  KSPIPLO = KSPIZLO = 0.2;
+  KSPIPHI = KSPIZHI = 0.8;
+  KSPIPRLO = -1.;
+  PTLO = 0.000;
+ 
+  GAMMAELO = 0.080;
+  GAMMAEHI = 100.0;
+  
+  fRunRange = TString("undefined"); 
+  fHistFile = 0;
+  fDump = 0;
+  fVerbose = 0;
+  fIsMakeParam = kFALSE;
+
+  Int_t i(0);
+  for (i = 0; i < 100; ++i) { 
+    recEl[i] = recMu[i] = recKa[i] = 0;
+    kshortLockTrk[i] = 0; 
+  }
+
+  // -- Get default Trk and Pid tables
+  SMEARELPIDTABLES = 0;
+  SMEARMUPIDTABLES = 0;
+  SMEARKAPIDTABLES = 0;
+  SMEARELMISTABLES = 0;
+  SMEARMUMISTABLES = 0;
+  SMEARKAMISTABLES = 0;
+  sprintf(TRKTABLES, "TrkTables.txt");
+  //  getTrkTables();
+  SMEARTRKPX = SMEARTRKPY = 1.3;
+  SIGMANEUT = 0.02;
+  SHIFTNEUT = -0.0075;
+  
+  TRACKSELECTION = PHOTONSELECTION = 0; 
+  DOTRACKKILLING = 0; 
+  SLOWPIONKILL = 0.016;
+  TRACKKILL = 0.013;
+
+  sprintf(PIDTABLES, "PidTables.txt");
+  //  getPidTables();
+
+  sprintf(WEIGHTNEU, "tableneu.dat");
+
+  sprintf(WEIGHTCHG, "tablechg.dat");
+
+  int therandom(0);
+  Dvar = new recoilDSys("ddecay.table",therandom,2);
+  Bsem = new recoilDSys(therandom);
+  DOBDECWEIGHT = DODDECWEIGHT = 1;
+ }
+
+// ----------------------------------------------------------------------
+void baseClass::initVariables() {
+  TLorentzVector p4Null(0., 0., 0., 0.);
+  fRunnumber = fLower = fUpper = -99;
+  fEvtW8 = 1.; 
+  
+  // -- MC Truth 
+  p4XhadGen = p4MissGen = p4RecoilGen = p4LeptonGen = p4Null;
+
+  fQ2Gen = fMxhadGen = fPxhadGen = fTxhadGen = fFxhadGen = fExhadGen = -99.;
+  fMxhadRes = fMxhadfitRes = -99.;
+  fPcmsGen = fTcmsGen = fFcmsGen = fEcmsGen = -99.;
+  fB1Index = fB2Index = fBVxb = fBVxbTyp = -99;
+  fMxCategory = 0;
+  fDpi = fDpiz = fDk = fDks = fDkmiss= fDlep = fDCfDs = fD0CfDs = 0;
+  fDkl = fDkspiopio = fDkspipi = 0;
+  // -- Reco
+  p4Brecoil = p4Breco = p4BrecoNC = p4BrecoGen = p4BrecoGenSmear = p4Null;
+
+  lundB = fSeedMode = fBmode = -999999;
+  
+  mesSideband = mesSignalband = signalBox = kFALSE;
+  fNLeptonMC = 0; 
+  genLeptonCharge = fBrecoCharge; 
+  fBrecoFlavor = 0;
+
+  fVub =  fVcb =  fOther =  0;
+  fBrecoMc = -99;
+  fNlep = fNLepton = fNEl = fNMu = fNKp = 0;
+
+  fPurity = fIntPurity = -99.;
+  fMes = fDeltaE = fBmass = -99.;
+ 
+  fQtot = -99; 
+  fNneutrals = fNtracks = -99.;
+  fRecoilCharge = fLeptonCharge = fRecoilTrkMult = fRecoilNutMult = 0;
+  //fRecoilNutMult80_160 = fRecoilNutMult160_320 = fRecoilNutMultfromB = fRecoilNutMultfromB80_160 = fRecoilNutMultfromB160_320 = 0;
+  fIsPrompt = fIsCascade = fElectron = fMuon = kFALSE;  
+
+  fGammaMax = fQ2 = fQ2NC = fQ2Fit = fQ2Res = -99.;
+  fPNu = fTNu = fFNu = fEmiss = fMM2 = -99.;
+  fPNuNC = fTNuNC = fFNuNC = fEmissNC = fMM2NC = -99.;
+  fPlab = fTlab = fFlab = fPcms = fTcms = fFcms = fEcms = fPups = -99.;
+  fPxhadchg = fMxhadchg = fTxhadchg = fExhadchg = fFxhadchg = -99.;
+  fPxhad = fTxhad = fFxhad = fExhad = fMxhad = -99.;
+  fPrecoil = fTrecoil = fFrecoil = fErecoil = fMrecoil = -99.;
+  fMxhadfit = fQ2Fit = 0.;
+  fPAllev = fTAllev = fFAllev = fEAllev = fMAllev =-99.; 
+
+  for (int i=0; i<100; i++){
+    loopTrack[i] = 0; 
+  }
+
+
+  // -- Some event quantities
+  fRunnumber = runNumber;
+  fLower = lowerID; 
+  fUpper = upperID; 
+
+
+
+}

@@ -1,0 +1,37 @@
+# Stick to the order 
+# - then +
+# el mu pi ka protons
+# ----------------------------------------------------------------------
+# electrons
+../RecoilAnalysis/PidTables/200x/electrons-/e.emcrad.LH.tight.urs           11 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons+/e.emcrad.LH.tight.urs          -11 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons-/mu.mumug2.LH.Tight              13 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons+/mu.mumug2.LH.Tight             -13 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons-/pi.ksTau31.LH.tight.urs       -211 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons+/pi.ksTau31.LH.tight.urs        211 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons-/k.dstar.LH.tight.urs          -321 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons+/k.dstar.LH.tight.urs           321 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons-/p.lambdaproton.LH.tight.urs  -2212 PidLHElectrons 11
+../RecoilAnalysis/PidTables/200x/electrons+/p.lambdaproton.LH.tight.urs   2212 PidLHElectrons 11
+# muons, note: the first two PidTables are bogus, they are not queried in isPidKillMu()!
+../RecoilAnalysis/PidTables/200x/muons-/mu.eemumu.Micro.Tight               11 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons+/mu.eemumu.Micro.Tight              -11 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons-/mu.eemumu.Micro.Tight               13 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons+/mu.eemumu.Micro.Tight              -13 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons-/pi.Dstar.Micro.Tight              -211 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons+/pi.Dstar.Micro.Tight               211 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons-/k.Dstar.Micro.Tight               -321 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons+/k.Dstar.Micro.Tight                321 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons-/p.Lambda.Micro.Tight             -2212 muMicroTight 13
+../RecoilAnalysis/PidTables/200x/muons+/p.Lambda.Micro.Tight              2212 muMicroTight 13
+# kaons
+../RecoilAnalysis/PidTables/200x/kaons-/e.emcrad.Micro.Tight                11 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons+/e.emcrad.Micro.Tight               -11 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons-/mu.mumug2.Micro.Tight               13 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons+/mu.mumug2.Micro.Tight              -13 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons-/pi.Dstar.Micro.Tight              -211 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons+/pi.Dstar.Micro.Tight               211 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons-/k.Dstar.Micro.Tight               -321 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons+/k.Dstar.Micro.Tight                321 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons-/p.Lambda.Micro.Tight             -2212 kMicroTight 321
+../RecoilAnalysis/PidTables/200x/kaons+/p.Lambda.Micro.Tight              2212 kMicroTight 321

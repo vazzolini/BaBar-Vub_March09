@@ -1,0 +1,76 @@
+macro check 1=1 2=1
+**************************************
+*
+* kumac to show/print all histograms
+*
+* 1=print(1) or not(0)
+* 2=wait(1) or not(0)
+*
+**************************************
+set *
+option *
+option stat
+option fit
+set stat 11111111111
+option nbox
+option zfl1
+set gsiz 0.5
+set ygti 1.0
+i=1
+while $HEXIST([i]+6000) .eq. 0 do
+  i=[i]+1
+endwhile
+
+TEXT 1 5 [i] 0.9
+* CECK FOR GAPS
+
+* got the first smooth histogram
+title 'Smoothing'
+zone 2 2
+opt nstat
+angle 20 -150
+while [i] .lt. 2000 do
+  while $HEXIST([i]) do
+    hi/plot [i] lego2
+    hi/plot $sigma([i]+2) lego2
+    hi/plot $sigma([i]+6000) surf2
+    hi/plot $sigma([i]+6002) surf2
+    if [2].gt.0 then
+      wait 'return for next page'
+    endif
+    if [1].gt.0 then
+      name=$HTITLE([i])
+      n=$INDEX([name],'=')
+      name=$SUBSTRING([name],$sigma([n]+1),$LEN([name]))
+      pid=$SUBSTRING([name],1,1)
+      n=$INDEX([name],'=')
+      parnum=$SUBSTRING([name],$sigma([n]+1),$LEN([name]))
+      parnum=$SUBSTRING([parnum],1,1)
+      pic/print smooth_//[pid]//_//[parnum]//.ps
+    endif
+    i=[i]+4
+  endwhile
+  while $HEXIST([i]) .eq. 0 do
+    i=[i]+1
+  endwhile
+endwhile
+set *
+option *
+option stat
+option fit
+set stat 1111111111111
+return
+
+
+
+
+
+
+
+
+
+
+
+
+
+

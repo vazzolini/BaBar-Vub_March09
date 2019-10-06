@@ -1,0 +1,453 @@
+#
+#  History file. Add to top and/or just add a blank line here, and
+#  the commit message will be automagically appended.
+#
+030709  -----  Alessio
+		Placed Q2 cut in right place.
+		Scale factors are needed when running the fermi reweighting
+		(current solution is to provide weight from script: ric will
+		produce already rew weights in future)
+030619  -----  Alessio
+		Added 3-d weights from Ric in sysWd/ dir.
+030619  -----  Alessio
+		Fixed once for all the colour PRL convention
+		Added DOVARSTU (was missing the reading from file part)
+030619  -----  Alessio
+		Uploaded a full backward compatible version of fit.
+		In order to have old results the fit can be ran
+		 without any change. To use new weights use 
+		(as before) -W option.
+		New variables study has been commented out by default
+		Can be turned on by setting the VARSTU env variable to 1.
+030609  -----  Alessio
+		Tried to reorganize a bit the code in order to minimize
+		cutpasting (still a lot of work to do)
+		Fit version FULLY compatible with the PRL tag
+		(validated against the 'default' result)
+		Added 3-d reweighting from Ric.
+030430  -----  Alessio
+		Added new variables to the fit
+		Implemented scan in csi (ciuchini et Al.)
+		Implemented fixing for vcb and oth comp
+		Implemented fit using q2 distrivution
+		Code is growing too much and too repetition are used
+		needs optimization (time) instead of cutpasting)
+
+030430  -----  Alessio
+                Added new variables and fixed a problem in q2 definition
+		I've tested it and works nicely let me know any problem
+
+030217  -----  Alessio
+		Added small changes in order to study KL.
+		Function for Energy correction is about to be committed.
+
+030217  -----  Alessio
+		Fixed inconsistency in sys calling for D decay modes
+		reweighting. Now default and sys reweighting is 
+		initialized in the proper way.
+
+030208  -----  Alessio
+		Included new Theo model. Few pieces of code
+		have been added: 
+		Theo* stuff: private machinery that deals with
+		theoretical problems
+		fit* : include of theoretical reweighting. Instructions	
+		on how to run the sys will follow by email
+
+030123  -----  Alessio
+		Bug Fix: B0 weight was always assigned (also to B+)
+		for total semileptonic difference.
+		Now the correct sum is taken (B+ no longer change
+		changing B0s)
+
+030123  -----  Alessio
+		Added code for Theo systematics. The first part is a 
+		standalone executable that calculates weights.
+		The second part is in the fit structure: I've added
+		a function that returns the weight as a function
+		of mx bins
+		Code has been tested on Linux2/Linux24.
+
+030122  -----  Alessio
+		Added chains for newly produced generic MC (~50fb-1)
+
+030121  -----  Alessio
+               Bug fix of previous bug fix in
+               in charmed semileptonic B decays categorization.
+               Now fBVub and fBVcb are correctly defined (no longer 
+	       fBVxb is used)
+
+030116  -----  Alessio
+               Bug fix in charmed semileptonic B decays categorization.
+	       Now all the particles founded as B daughters other from l,nu
+	       and ISR photons are called X in B->DXlnu decays and
+	       are assigned to category 6.
+	       Bug fix is realted to cases were we have 2 B that are
+	       semileptonic. Now the vcb or vub is chosen correctly 
+	       depending on the study.
+  	       Added true charge of B.
+
+020109  -----  Alessio
+               Committed code for my studies.....
+
+021219  -----  Silvia 
+	       Added categories for charmless exclusive semileptonic channels in mcTruth.icc and a new variable (mxhadchg). The flag  fBVxbTyp (Gvxbtyp in the tree) describes each channel with the convention: 
+	      fBVxbTyp = 11       B -> pi l+ nu   
+	      fBVxbTyp = 12       B -> eta l+ nu
+              fBVxbTyp = 13       B-> rho0 l+ nu
+     	      fBVxbTyp = 14       B-> omega l+ nu 
+	      fBVxbTyp = 15       B -> eta_prime l+ nu
+	      fBVxbTyp = 16       B -> a_10+-,a_20+-,h_1...l nu
+	      fBVxbTyp = 17       B -> b_10+- l+ nu
+	      fBVxbTyp = 18       B -> f_0, f'_0, f_2...l nu
+	      fBVxbTyp = 19       B -> a_00+-...l nu
+	      fBVxbTyp = 20       B ->f'_2, h'_1...l nu
+	      fBVxbTyp = 21       B -> f_1 l+ nu 
+	      fBVxbTyp = 22       B -> f'_1 l+ n
+The sign of fBVxbTyp tells if B0 (+) or B+/- (-)
+
+
+$Log: History,v $
+Revision 1.58  2003/07/09 12:23:44  asarti
+030709  -----  Alessio
+		Placed Q2 cut in right place.
+		Scale factors are needed when running the fermi reweighting
+		(current solution is to provide weight from script: ric will
+		produce already rew weights in future)
+
+Revision 1.57  2003/06/20 10:41:55  asarti
+030619  -----  Alessio
+		Added 3-d weights from Ric in sysWd/ dir.
+
+Revision 1.56  2003/06/19 19:49:01  asarti
+030619  -----  Alessio
+		Fixed once for all the colour PRL convention
+		Added DOVARSTU (was missing the reading from file part)
+		Colours are fixed also for other variables subtracted spectra
+
+Revision 1.55  2003/06/19 15:31:47  asarti
+030619  -----  Alessio
+		Uploaded a full backward compatible version of fit.
+		In order to have old results the fit can be ran
+		 without any change. To use new weights use
+		(as before) -W option.
+		New variables study has been commented out by default
+		Can be turned on by setting the VARSTU env variable to 1.
+
+Revision 1.54  2003/06/09 20:11:52  asarti
+030609  -----  Alessio
+		Tried to reorganize a bit the code in order to minimize
+		cutpasting (still a lot of work to do)
+		Fit version FULLY compatible with the PRL tag
+		(validated against the 'default' result)
+		Added 3-d reweighting from Ric.
+
+(I've realized I'm the only one committing and updating history file since:
+020109 :)) what an honour!)
+
+Revision 1.53  2003/04/30 09:42:55  asarti
+
+030430  -----  Alessio
+                Added new variables and fixed a problem in q2 definition
+		I've tested it and works nicely let me know any problem
+
+Revision 1.52  2003/03/12 13:54:02  asarti
+Code for Kl studies.
+
+Revision 1.51  2003/02/17 10:46:27  asarti
+Small bug fix affecting initialization of sys change of D exclusive weights.
+Now the values are well understood.
+
+Revision 1.50  2003/02/08 11:20:03  asarti
+Details on changes are in History file. Main issue:
+added new model.
+The new default is obtained by adding the -Theosys option to the fit call, updating to the -dA in the package (you need the sysWd/refWeights file) and submitting the fit having added in the setting file:
+ theomxweight  1
+bin0    1
+bin1    4.09971
+bin2    1.30544
+bin3    1.763
+bin4    1.39208
+bin5    1.70889
+bin6    1.87091
+bin7    2.18299
+bin8    1.62982
+bin9    1.42043
+bin10    2.34514
+bin11    2.41272
+bin12    2.01187
+bin13    1.90189
+bin14    2.45736
+bin15    1.64077
+bin16    1
+bin17    1
+bin0    1
+bin1    5.20933
+bin2    2.30252
+bin3    1.34659
+bin4    1.45464
+bin5    1.45958
+bin6    1.64968
+bin7    1.52691
+bin8    1.99392
+bin9    1.57907
+bin10    1.70728
+bin11    1.86048
+bin12    1.77522
+bin13    1.80239
+bin14    1.49867
+bin15    2.56872
+bin16    1
+bin17    1.38739
+)
+The weights are those ones  quoted in the sysWd/refWeights file.
+I have various scripts that are submitting jobs in ~asarti/script/sub*
+The main one in subVubFit.pl You can see what is my setup in order to submit theoretical reweighted fits.....
+Hope that everything is clear. I'll test with daniele the setup and see if any other explanation is needed....
+Alessio
+
+Revision 1.49  2003/02/03 21:09:41  asarti
+Bug fix on B semileptonic reweighting: always B0 weight was applied
+to D** categories...
+
+Revision 1.48  2003/01/23 13:18:55  asarti
+Added first code for theo sys reweighting.
+
+Revision 1.47  2003/01/22 09:53:32  asarti
+Added chains for newly produced generic MC (~50fb-1)
+
+Revision 1.46  2003/01/21 13:28:43  asarti
+               Bug fix of previous bug fix in
+               in charmed semileptonic B decays categorization.
+               Now fBVub and fBVcb are correctly defined (no longer
+	       fBVxb is used)
+
+Revision 1.45  2003/01/16 16:11:25  asarti
+Small bug fix in D semileptonic categorization when two semileptonic B were found. Added true B charge dumping in events.
+
+Revision 1.44  2003/01/09 13:29:30  asarti
+Added code for breakdown studies....
+
+Revision 1.43  2002/12/19 14:41:19  pisanos
+ Added categories for charmless exclusive semileptonic channels in mcTruth.icc and a new variable (mxhadchg). The flag  fBVxbTyp (Gvxbtyp in the tree) describes each channel with the convention:
+	      fBVxbTyp = 11       B -> pi l+ nu
+	      fBVxbTyp = 12       B -> eta l+ nu
+              fBVxbTyp = 13       B-> rho0 l+ nu
+     	      fBVxbTyp = 14       B-> omega l+ nu
+	      fBVxbTyp = 15       B -> eta_prime l+ nu
+	      fBVxbTyp = 16       B -> a_10+-,a_20+-,h_1...l nu
+	      fBVxbTyp = 17       B -> b_10+- l+ nu
+	      fBVxbTyp = 18       B -> f_0, f'_0, f_2...l nu
+	      fBVxbTyp = 19       B -> a_00+-...l nu
+	      fBVxbTyp = 20       B ->f'_2, h'_1...l nu
+	      fBVxbTyp = 21       B -> f_1 l+ nu
+	      fBVxbTyp = 22       B -> f'_1 l+ n
+The sign of fBVxbTyp tells if B0 (+) or B+/- (-)
+
+Revision 1.42  2002/11/27 19:54:12  asarti
+New (updated) checked chains for MC skims (generic new).
+Those skims are placed in AWG37.
+Data skims will follow soon
+
+Revision 1.41  2002/11/26 22:35:56  asarti
+Added generic cc and uds chains
+
+Revision 1.40  2002/11/26 02:21:17  asarti
+Data skims have been done.
+They're stored in AWG18.
+Chains have been added.
+Enjoy.
+
+Revision 1.39  2002/11/24 03:28:14  asarti
+New generic MC has been moved to AWG37. Tomorrow morning I'm going to delete AWG18 rootfiles....
+Chains have been update accordingly
+
+Revision 1.38  2002/11/22 19:09:27  asarti
+Added chains for skims.... (data and new generic)
+Still missing the skim for generic B+ 2001 old.
+As soon as I get it i'll commit also the chains for the old generic
+
+Revision 1.37  2002/11/22 02:31:33  asarti
+Added missing cocktail to chains.
+Modified history file in such a way that we no longer need to add by hand the comment in it :). Just add a blank line and the commit from emacs will be added....
+I've also checked the signal ones nothing is missing.
+Skim, generic uds and cc will follow soon.
+
+
+021121  -----   Ric
+		rename photonselection 8: same as photonselection 7 but with the cut on egamma*<2.8 GeV instead of egamma<4  GeV
+021113  -----   Alessio
+		Removed a printout from mcTruth.icc and removed 
+		LoopKill method from recoilNtp (we do no longer use it)
+021113  -----   Ric
+		implement fitOption in fitter to allow the vcb and oth component to be fixed to the same value (fitOption 1)
+		implement photonselection 8: same as photonselection 7 but without the cut on S9S25 and with the cut on Egammastar instead of egamma
+021108  -----   rf-081102
+		rewrite existing fitting technique in order to allow the possibility to account for the MC stat error in the fit itself
+		the signal content is now recomputed as the difference between the data in the first bin and the expected background
+		to turn al this on: 
+			fittoshape 2
+021103  -----   ddr-021103
+		b0cuts.dat: new cuts on the purity from optimization 
+            	yields ~15%, large gain in purity, lighter output root files
+		fitNtp.cc, ecc...:  impose the ratio Bch/B0 from data on the 
+		MC model. The errors are treated properly.
+                Improvements in the plots
+                The format for the output file with all numbers (to be 
+                read by scan.C)
+		scan.C:     code to produce scans. Instructions:
+                 - put list of outputs files *results_nocat.dat in a file(pippo)
+                 - .x scan.C("pippo","variable",reference value)
+	            for instance
+	            .x scan.C("datamm2scan","mnuSqHigh",.5)		
+
+021016  -----   Alessio
+		Added relevant code for Envelop study
+		Info available in http://www.slac.stanford.edu/~asarti/recoil/envelop
+		Script to run all machinery in ~asarti/script/Envelop.pl
+021015  -----   Tagged as rf-101502
+		Daniele
+		Implement new blinding
+		Riccardo 
+		switch off Ks->pi0pi0 with option "-F -1"
+021010  -----   Alessio
+ 		Final fix on string comparison.Removed strstream.
+		Tried to run with:
+		bsub -q medium -o ca.log ../bin/Linux2/Comp -d /afs/slac.stanford.edu/u/ec/asarti/public_html/recoil/mx_stu/splot0 -fd data/data_092902.root -fm data/gene_092502.root -v mm2 -m -15 -M 15 -C 2 -b 20 -c compcut.dat -F ca
+		and it works...
+
+021009  -----   Alessio
+                Comparison code has been fixed: b0mixing and chisquare are now ok.
+
+021008  -----   Ric
+		improved unmatched cluster's selection (phot 7)
+		splitoff rootuple is dumped if -g 2 is used (and the old
+		gamma studies are now -g 1 )
+020927  -----   Alessio
+                Committed chisquare calculation a'la Urs
+
+020927  -----   Ric
+		Implement track selection for noDch hits and photon selection for splitoffs
+020925  -----   Alessio
+                Added various flags to Comp in order to make the program more
+ 		flexible. Also a cut file has been added. Usage is going to
+		be documented in QA page.
+
+020924  -----   Alessio
+                make a compiling version of comparison code. The exec.
+		is Comp and it is produced with Comp.cc and CompTool.cc(hh)
+		Makefile is CompMake:
+		gmake -f CompMake lib Comp
+		flag and option are going to be updated soon: This version does		
+		not crashes!!!!! :) !!!!!
+
+020916  -----   Daniele
+		add code to study breco modes and X system in B->DX
+
+020907  -----   Daniele
+		fix B0 comparisons in thecomparison.C
+
+Tag Version V00-00-03
+=====================
+
+020909  -----   Ric
+
+- introduce photon selection #5 : photons in the acceptance, energy above 80 MeV and LAT>0.05
+- modify b0cuts.dat to apply this photon selection plus the kaon momentum cut at 300 MeV
+
+020905  -----   Daniele
+		Remove int pur tables per seed
+ 		Add common new table (tablepurity.dat)
+		New best B selection based on new int pur tables
+		Cut on single mode purity in b0cuts.dat
+		D* > 14%
+		Dc > 6.5%
+		D*0 > 5%
+		D0 > 6%
+		Change muon ID to 8 in b0cuts.dat (=tight selector)
+
+020829  -----   Daniele
+		Add features in semiexcl.C
+
+Tag Version V00-00-02
+=====================
+
+020829  -----   Daniele
+		- Add variables for deltam calculation for neutrals
+		- Add breco histograms after lepton cuts and all cuts + Mx cut
+		for int purity optimization
+		- Add code to produce reduced h1 trees. Usage:
+		anaRecoil -f "file" (-c "chain") -y 2 -w "output root file name"
+		It select events with at least one lepton that satisfies tight || 
+		verytight || likelihood selector with a P*>800 MeV
+
+020829  -----   Daniele
+		Add code to perform optimization and reordering of the breco
+		modes.
+
+020825  -----   Daniele
+ 		Add function.hh needed by histocomp.cc
+		Fix includes in histocomp.cc
+
+020825  -----   Daniele
+		Bug fix: tproTrk was not filled at all.
+
+020823  -----   Ric
+		BUG fix: the pi0 vectors where too short (100 instead of 150)
+
+020821  -----   Ric
+		add vertex and neutral energy comparisons
+
+020809	-----	Daniele
+		Add code to perform comparisons (histo based).
+			histocomp.cc histocomp.hh
+			comp_hist_html.csh
+		Add code to check lumi and duplicated events (to be developed).
+			lumi.C lumi.h
+
+020813  -----   Ric
+		VubRecoil rf-081302b has two fixes:                        
+	        1) the last fix to the 'upper' and 'lower' problem (see recent    
+		posting from Daniele and Alessio, was fixed in a way that crashed at run  
+		time on Solaris. This has been fixed
+	        2) when running on the old files with VubRecoil the overlap with  
+		the B reco was not dealt with properly, so that the recoil system was
+		including also the reco one. In order to fix this I modified the meaning  
+		of the -y option (which meant 'new format'). It now expects an integer    
+		argument which represents the production version:
+		0: Feb02, 1: apr 02, 2: aug02
+
+020809	-----	Daniele
+		Add code to perform comparisons. Fix Pidtable location in b0cuts.dat.
+		development in code for the history plots. 
+
+020806	-----	Daniele
+		Implement Delta M ( = M(X) - M(X - 1pi))
+
+020805	-----	Daniele
+		Fix brecooverlap to be consistent with new values from Ibu dumper
+
+020803	-----	Daniele
+		Fix brecoOverlap business
+		Fix mes histos per mode in booking to take care of modes 15000 
+		(Dstar0->D0gamma)
+
+020729	-----	Daniele
+		Implement best B selection and B-D flavor correlation fix 
+		(already there for IslBrecoilUser).
+
+020729	-----	Daniele
+		Add history.C, history.csh, countevents.csh.This code perfoms
+		history plots of yields and interesting quantities.
+
+020728	-----	Daniele
+		Add semiExcl.C, code to perfom mes fits per mode and check 
+		semiexcl reco
+
+Tag Version V00-00-01
+=====================
+020723	-----	Daniele
+		Add README and History files
+
+020718 	----- 	Urs 
+		Initial Migration to the new package

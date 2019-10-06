@@ -1,0 +1,37 @@
+# Stick to the order 
+# - then +
+# el mu pi ka protons
+# ----------------------------------------------------------------------
+# electrons
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons-/e.emcrad.LH.tight.urs           11 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons+/e.emcrad.LH.tight.urs          -11 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons-/mu.mumug2.LH.Tight              13 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons+/mu.mumug2.LH.Tight             -13 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons-/pi.ksTau31.LH.tight.urs       -211 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons+/pi.ksTau31.LH.tight.urs        211 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons-/k.dstar.LH.tight.urs          -321 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons+/k.dstar.LH.tight.urs           321 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons-/p.lambdaproton.LH.tight.urs  -2212 PidLHElectrons 11
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/electrons+/p.lambdaproton.LH.tight.urs   2212 PidLHElectrons 11
+# muons, note: the first two tables are bogus, they are not queried in isPidKillMu()!
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons-/mu.mumug2.Micro.Tight               11 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons+/mu.mumug2.Micro.Tight              -11 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons-/mu.mumug2.Micro.Tight               13 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons+/mu.mumug2.Micro.Tight              -13 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons-/pi.Dstar.Micro.Tight              -211 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons+/pi.Dstar.Micro.Tight               211 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons-/k.Dstar.Micro.Tight               -321 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons+/k.Dstar.Micro.Tight                321 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons-/p.Lambda.Micro.Tight             -2212 muMicroTight 13
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/muons+/p.Lambda.Micro.Tight              2212 muMicroTight 13
+# kaons
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons-/e.emcrad.Micro.Tight                11 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons+/e.emcrad.Micro.Tight               -11 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons-/mu.mumug2.Micro.Tight               13 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons+/mu.mumug2.Micro.Tight              -13 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons-/pi.Dstar.Micro.Tight              -211 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons+/pi.Dstar.Micro.Tight               211 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons-/k.Dstar.Micro.Tight               -321 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons+/k.Dstar.Micro.Tight                321 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons-/p.Lambda.Micro.Tight             -2212 kMicroTight 321
+/nfs/farm/babar/AWG1/PID/tables/200x-r10/kaons+/p.Lambda.Micro.Tight              2212 kMicroTight 321

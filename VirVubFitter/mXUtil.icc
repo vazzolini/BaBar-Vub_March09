@@ -1,0 +1,3614 @@
+  
+#include <ext/numeric>
+
+#include "TStopwatch.h"
+
+#include "RooFitCore/RooDataHist.hh"
+#include "RooFitCore/RooHist.hh"
+
+#include "RooFitCore/RooChi2Var.hh"
+#include "RooFitCore/RooMinuit.hh"
+#include "RooFitCore/RooFitResult.hh"
+#include "RooFitCore/RooNLLVar.hh"
+#include "RooFitCore/RooBinning.hh"
+
+#include "RooFitCore/RooAbsPdf.hh"
+#include "RooFitCore/RooAddPdf.hh"
+#include "RooFitCore/RooExtendPdf.hh"
+
+#include "RooFitModels/RooCBShape.hh"
+#include "RooFitModels/RooArgusBG.hh"
+#include "RooFitModels/RooGaussian.hh"
+#include "RooFitModels/RooBifurGauss.hh"
+
+#include "RooFitCore/RooFormulaVar.hh"
+
+#include "TDecompChol.h"
+#include "TMatrixD.h"
+#include "TVectorD.h"
+
+#include "VirVubFitter/XSLBToDstrlnu_DstrToDpi_CLN.hh"
+
+//! helper access method used by vubMesUnb
+RooRealVar* getPointer(RooAbsPdf* pdf, const char* name)
+{
+  RooArgSet* list = pdf->getParameters(RooArgSet());
+  RooRealVar* var = dynamic_cast<RooRealVar*>(list->find(name));
+  delete list;
+
+  return var;
+}
+//! helper access method used by vubMesUnb
+Double_t getVal(RooAbsPdf* pdf, const char* name)
+{
+  RooRealVar* var = getPointer(pdf, name);
+  return (var != 0 ? var->getVal() : 0.);
+}
+
+//! helper access method used by vubMesUnb
+Double_t getError(RooAbsPdf* pdf, const char* name)
+{
+  RooRealVar* var = getPointer(pdf, name);
+  return (var != 0 ? var->getError() : 0.);
+}
+
+// Displays the mes histogram, fits  argus+gaus and prints some numbers
+mesData* mXClass::vubMesUnb(RooDataSet *data, RooRealVar *x, std::vector<double>& results, int print, int fixpar, const std::vector<double>& inputPar, const double nSIG, const double nBKG, const char *simply)
+{
+  static bool firstCall = true;
+
+  /* --- prepare the dataset --- */
+  // maximum of mes
+  double mesMax((data==datadata) ? 5.291 : 5.2891);
+  mesMax = 5.291;
+
+  // get right bin size (given as width in keV)
+  int nBins = 40;
+
+  //Mes in a reduced range for yielding
+  RooRealVar* mes(x);
+  mes->setBins(nBins);
+  mes->setMin(5.22); mes->setMax(mesMax);
+  mes->setRange("mesint", 5.27, mesMax); //AGGIUNTI nel passaggio 14-24
+  // RooFit remembers old ranges
+  std::cout << "Binning is " << mes->getBins() << " for range [" << mes->getMin() << ";" << mes->getMax() << "]" << std::endl;
+  
+  // generate reduced dataset
+  std::cout << "Simply = " << simply << std::endl;
+  RooAbsData* datared = data->reduce(simply);
+  std::cout << "Number of entries in reduced " << data->GetName() << " dataset: " 
+	    << datared->numEntries() << " weighted: " << datared->numEntries(kTRUE) << std::endl;
+
+
+  // create binned dataset to evaluate chisquare
+  RooDataHist* bdatared = new RooDataHist("bmes", "bmes", RooArgSet(*mes), *datared);
+  
+  // overwrite unbinned dataset if binned fit requested
+  RooAbsData* dataset = datared;
+
+  std::cout << "This is a" << (dataset->IsA() == RooDataHist::Class()? " " : "n un") << "binned fit!" << std::endl;
+
+  /* --- prepare fit model --- */
+
+  //Signal and Background events
+  RooRealVar* nsig = new RooRealVar("S","number of sig events", 100., 0., 800000.);
+  RooRealVar* nbkg = new RooRealVar("B","number of bkg events", 1., 0., 800000.);
+
+  nsig->setMax(dataset->numEntries(kTRUE));
+  nbkg->setMax(dataset->numEntries(kTRUE));
+
+  // final model pdf
+  RooAbsPdf* model = 0;
+
+  //Putting this here is just a dirty fix...
+  /* --- Build Argus background PDF --- */
+  RooAbsPdf* a = createArgus(*mes);
+  
+  /* --- Build Crystal Ball signal function --- */
+  RooAbsPdf* cb = createCB(*mes);
+  
+  /* --- build extended pdfs --- */
+  RooExtendPdf* ae  = new RooExtendPdf("ae", "ae", *a, *nbkg, "mesint");
+  RooExtendPdf* cbe = new RooExtendPdf("cbe", "cbe", *cb, *nsig, "mesint");
+  
+  if (model == 0) { // build new models
+
+    
+    switch(MESFITMODEL) { 
+    
+    case GaussFit: { // GAUSSIAN FIT
+      
+      /* --- Build Argus background PDF --- */
+      RooAbsPdf* a = createArgus(*mes);
+
+      // Gaussian for signal component
+      RooRealVar* Rm = new RooRealVar("mean","mean of gaussian 1",5.28,5.275,5.285);
+      RooRealVar* Rs = new RooRealVar("sigma","width of gaussians",.003,.002,.004);
+
+      RooGaussian* g = new RooGaussian("g", "Gaussian", *mes, *Rm, *Rs);
+
+      /* --- build extended pdfs --- */
+      RooExtendPdf* ae = new RooExtendPdf("ae","ae", *a, *nbkg, "mesint");
+      RooExtendPdf* ge = new RooExtendPdf("ge","ge", *g, *nsig, "mesint");
+
+      /* --- build final model --- */
+      model = new RooAddPdf("gmodel","a+g",RooArgList(*ge,*ae),RooArgList(*nsig,*nbkg));
+
+    } break;
+
+    case ArgusAndCB: {//ARGUS AND CRYSTAL BALL MODEL
+
+      
+      /* --- build final model --- */
+      model = new RooAddPdf("model","a+cb",RooArgList(*cbe,*ae),RooArgList(*nsig,*nbkg));
+      
+    } break;
+      
+    default:
+      cout<<"mXClass::vubMesUnb(): W A R N I N G  No known mes fit model detected! This is an error!"<<endl;
+      break;
+    }
+  } // if (model == 0)
+
+
+  /* --- init parameters --- */
+  double nSignal = datared->sumEntries((std::string(simply)+"&&mes>5.27").c_str());
+
+  if (nSIG > 0.)  
+    nsig->setVal(nSIG); 
+  else {
+    nsig->setVal(nSignal);
+  }
+  
+  if (nBKG > 0.) 
+    nbkg->setVal(nBKG); 
+  else {
+    nbkg->setVal(datared->sumEntries((std::string(simply)+"&&mes<5.27").c_str())); 
+  }
+
+  //   ------> HORRIBLE IMPLEMENTATION ONWARD: an holder class would be more elegant  //
+  
+  /* ========= Set Parameter for Argus and Gauss Model  ============ */
+
+  if (MESFITMODEL == GaussFit) {
+
+    // get hook to parameters
+    RooRealVar* ar     = getPointer(model, "ar");
+    RooRealVar* cutoff = getPointer(model, "cutoff");
+
+    // get hook to parameters
+    RooRealVar* Rm     = getPointer(model, "mean");
+    RooRealVar* Rs     = getPointer(model, "sigma");
+
+    cutoff->setVal(5.29); cutoff->setConstant();
+
+    // preset parameters and fix some if requested by flag func
+    if (fixpar == 0) { // preset parameters only
+      Rm->setVal(inputPar[mXClass::iMean]); 
+      Rs->setVal(inputPar[mXClass::iSigma]);
+      ar->setVal(inputPar[mXClass::iArgus]);
+    } else if (fixpar == 1) { // set and fix all parameters (if reasonable value is given)
+      if (inputPar[mXClass::iMean]  > 0.)   { Rm->setVal(inputPar[mXClass::iMean]);  Rm->setConstant(); }
+      if (inputPar[mXClass::iSigma] > 0.)   { Rs->setVal(inputPar[mXClass::iSigma]); Rs->setConstant(); }
+      if (inputPar[mXClass::iArgus] > -55.) { ar->setVal(inputPar[mXClass::iArgus]); }
+      //CB we fit the argus shape with USECB=1 ar.setConstant();
+    }
+    std::cout<< "Parameters before fitting:: " << Rm->getVal() << " " << Rs->getVal() << " " << ar->getVal() 
+	     << " " << nsig->getVal() << " " << nbkg->getVal() << std::endl;
+  }
+  
+  /* ========= Set Parameter for Argus and CB Model  ============ */
+  
+  if(MESFITMODEL == ArgusAndCB){
+
+    // get hook to parameters
+    RooRealVar* ar     = getPointer(model, "ar");
+    RooRealVar* cutoff = getPointer(model, "cutoff");
+
+    // get hook to parameters
+    RooRealVar* Rm = getPointer(model, "mean");
+    RooRealVar* Rs = getPointer(model, "sigma");
+    RooRealVar* Ra = getPointer(model, "alpha");
+    RooRealVar* Rn = getPointer(model, "n");
+
+    cutoff->setVal(5.2895); 
+    cutoff->setConstant();
+
+    // preset parameters and fix some if requested by flag fixpar
+    if (fixpar == 0) {   // preset paramters and fix necessary parameters
+      Rm->setVal(inputPar[mXClass::iMean]); 
+      Rs->setVal(inputPar[mXClass::iSigma]);  
+      Ra->setVal(inputPar[mXClass::iAlpha]);
+      Rn->setVal(inputPar[mXClass::iN]);  //   Rn->setConstant();
+      ar->setVal(inputPar[mXClass::iArgus]);
+    } else if(fixpar == 1) {   // set and fix all parameters (if reasonable value is given)
+      if (inputPar[mXClass::iMean]  > 0.)   { Rm->setVal(inputPar[mXClass::iMean]); Rm->setConstant();  }
+      if (inputPar[mXClass::iSigma] > 0.)   { Rs->setVal(inputPar[mXClass::iSigma]); Rs->setConstant();  }
+      if (inputPar[mXClass::iN] > 0.)       { Rn->setVal(inputPar[mXClass::iN]);      Rn->setConstant();  }
+      if (inputPar[mXClass::iAlpha] > 0.)   { Ra->setVal(inputPar[mXClass::iAlpha]);  Ra->setConstant();  }
+      if (inputPar[mXClass::iArgus] > -55.) { ar->setVal(inputPar[mXClass::iArgus]); }
+      //CB we fit the argus shape with USECB=1 ar.setConstant();
+    }
+    std::cout<< "Parameters before fitting:: " << Rm->getVal() << " " << Rs->getVal() << " " << Ra->getVal() << " " << Rn->getVal() << " " << ar->getVal() 
+	     << " " << nsig->getVal() << " " << nbkg->getVal() << std::endl;
+  }
+   
+  if (firstCall) { model->printCompactTree(); firstCall = false; }
+
+  /* --- do the actual fitting --- */
+
+  switch(MESFITMODEL){
+  case GaussFit: std::cout << "Fitting Gaussian instead of Crystal Ball" << std::endl; break;
+  case ArgusAndCB:  std::cout << "Fitting Argus and Crystal Ball" << std::endl; break;
+  default: std::cout<<" W A R N I N G !   no known model to fit mES distribution ! ! ! This is an ERROR!" << std::endl; break;
+  }
+    
+  RooFitResult* r = 0; 
+  r = model->fitTo(*dataset, "rmhe");
+  
+  // dump final model
+  RooArgSet* comps = model->getComponents();
+  
+  std::cout << std::endl;
+  std::cout << "Full tree for " << model->ClassName() << "::" << model->GetName();
+  std::cout << " Components: "; comps->Print(); std::cout << std::endl;
+  
+  TIterator* iter= comps->createIterator();
+  RooAbsArg* pdf = 0;
+  while ((pdf=(RooAbsArg*)iter->Next())) {
+    
+    if (std::string(pdf->GetName()) == std::string(model->GetName())) continue;
+    
+    RooArgSet* params = pdf->getParameters(RooArgSet());
+    
+    std::cout << " Component " << pdf->ClassName() << "::" << pdf->GetName();
+    std::cout << " Variables: "; params->Print("v"); std::cout << std::endl;
+    
+    delete params;
+  }
+  
+  //determine nDOF
+  Int_t floatParms = (r->floatParsFinal()).getSize();
+  std::cout << " control : number of floating params ----> " << floatParms << std::endl; 
+
+  // make plot
+  xframe = mes->frame() ;
+  xframe->SetTitle((data->GetTitle()+std::string(" ")+simply).c_str());
+
+  // plot data on it
+  if (dataset->IsA() == RooDataHist::Class()) {
+    dataset->plotOn(xframe, RooFit::MarkerSize(0.25), RooFit::DataError(RooAbsData::SumW2));
+  } else {
+    RooBinning tbins(mes->getBins(), mes->getMin(), mes->getMax(), "plotbinning");
+    dataset->plotOn(xframe, RooFit::Binning(tbins), RooFit::MarkerSize(0.25), RooFit::DataError(RooAbsData::SumW2));
+  }
+
+  // plot PDFs
+  model->plotOn(xframe, RooFit::Components("ae"), RooFit::LineWidth(1), RooFit::LineColor(kYellow)) ;
+
+  // plot total model
+  model->plotOn(xframe, LineWidth(1));
+  model->paramOn(xframe, dataset, "Fit Results",1,"ne",0.15,0.55,0.8);
+
+  // plot data on it
+  if (dataset->IsA() == RooDataHist::Class()) {
+    dataset->plotOn(xframe, RooFit::MarkerSize(0.25), RooFit::DataError(RooAbsData::SumW2));
+  } else {
+    RooBinning tbins(mes->getBins(), mes->getMin(), mes->getMax(), "plotbinning");
+    dataset->plotOn(xframe, RooFit::Binning(tbins), RooFit::MarkerSize(0.25), RooFit::DataError(RooAbsData::SumW2));
+  }
+
+  // chi2
+  std::cout << "xframe chisquare = " << xframe->chiSquare(floatParms) << std::endl;
+
+  //compute single contributions to chisquare...
+  RooHist* pullhisto = xframe->pullHist();
+  RooPlot* pullframe = mes->frame();
+
+  //  pullframe->addPlotable(pullhisto);
+  pullframe->addObject(pullhisto);
+  pullframe->SetMaximum(4.);
+  pullframe->SetMinimum(-4.);
+  pullframe->SetMarkerStyle(24);
+  pullframe->SetNdivisions(504, "Y");
+  pullframe->SetLabelSize(0.22, "X");  pullframe->SetLabelSize(0.17, "Y");
+  pullframe->SetStats(0);
+  pullframe->SetTitle("");
+  pullframe->SetTitleSize(0.22, "Y");
+  pullframe->SetTitleOffset(0.22, "Y");
+  pullframe->SetYTitle("Pull");
+  pullhisto->Print("Verbose");
+
+  //compute chisquare probability
+  Double_t probchi = TMath::Prob((xframe->chiSquare(floatParms)) * 
+				 (pullhisto->GetN()-floatParms), (pullhisto->GetN()-floatParms));
+  std::cout << "chisq probability = " << probchi << std::endl;
+
+  //print chisquare
+  TPaveText*  tbox1 = new TPaveText(0.59, 0.94, 0.79, 0.99, "BRNDC");
+  char line1[50];
+  sprintf(line1, "#chi^{2} = %5.4f",  xframe->chiSquare(floatParms));
+  tbox1->AddText(line1);
+  xframe->addObject(tbox1);
+
+
+  //print chisquare probability
+  TPaveText*  tbox2 = new TPaveText(0.79, 0.94, 0.99, 0.99, "BRNDC");
+  char line2[50];
+  sprintf(line2, "Prob(#chi^{2}) = %4.2f", probchi);
+  tbox2->AddText(line2);
+  xframe->addObject(tbox2);
+
+
+  //CB put also pull distributions
+  TPad* mPad = new TPad("mES plot",  "", 0.05, 0.30, 0.95, 0.95);  mPad->Draw(); 
+  TPad* pPad = new TPad("pull plot", "", 0.05, 0.05, 0.95, 0.25); pPad->Draw(); 
+
+  mPad->cd();    shrinkPad(0.1,0.1,0.1,0.1);
+  xframe->Draw();
+
+  pPad->cd();    shrinkPad(0.1,0.1,0.1,0.1);
+  pullframe->Draw();
+  pPad->Modified();
+  pPad->Update();
+
+  // get results and fill mesData object
+  double p0 = nsig->getVal(); double Dp0 = nsig->getError();
+
+  if (p0 < 0.1 && Dp0 > 1000.) {
+    std::cout << "Warning: adjusting error for Nsig in dataset " << data->GetName() 
+	      << " and cuts " << simply << " from " << Dp0 << "to zero!" << std::endl;
+    Dp0 =0.;
+  }
+  double p1 = nbkg->getVal(); double Dp1 = nbkg->getError();  
+
+  //rescale to the signal region - Kerstin
+  mes->setRange(5.22,mesMax);
+  RooAbsReal* intRAR = cbe->createIntegral(RooArgSet(*mes));
+  double sig_full=intRAR->getVal();
+  mes->setRange(5.27,mesMax);
+  intRAR = cbe->createIntegral(RooArgSet(*mes));
+  double sig_sig=intRAR->getVal();
+  cout << "Kerstin: Signal integral " << sig_full << "  " << sig_sig << endl;
+  cout << "Kerstin: Signal before " << p0 << " +- " << Dp0 << endl;
+  p0 = p0*sig_sig/sig_full;
+  Dp0 = Dp0*sig_sig/sig_full;
+  cout << "Kerstin: Signal after " << p0 << " +- " << Dp0 << endl;
+
+  mes->setRange(5.22,mesMax);
+  intRAR = ae->createIntegral(RooArgSet(*mes));
+  double bkgd_full=intRAR->getVal();
+  mes->setRange(5.27,mesMax);
+  intRAR = ae->createIntegral(RooArgSet(*mes));
+  double bkgd_sig=intRAR->getVal();
+  cout << "Kerstin: Signal integral " << bkgd_full << "  " << bkgd_sig << endl;
+  cout << "Kerstin: Bkgd before " << p1 << " +- " << Dp1 << endl;
+  p1 = p1*bkgd_sig/bkgd_full;
+  Dp1 = Dp1*bkgd_sig/bkgd_full;
+  cout << "Kerstin: Bkgd after " << p1 << " +- " << Dp1 << endl;
+
+  //Kerstin: this is a test
+  cout << "MES: mES fit test..." << endl;
+  cout << "MES: default " << p0 << "+-" << Dp0 << endl;
+  RooAbsData* datatmp = dataset->reduce("mes>5.27");
+  p0 = datatmp->numEntries(kTRUE) - p1;
+  Dp0 = sqrt(datatmp->numEntries(kTRUE) + Dp1*Dp1);
+  cout << "MES: testint " << p0 << "+-" << Dp0 << "(" << datatmp->numEntries(kTRUE) << "  " << Dp1 << endl;
+  delete datatmp;
+
+
+  if (p1 < 0.1 && Dp1 > 1000.) {
+    std::cout << "Warning: adjusting error for Nbkg in dataset " << data->GetName() 
+	      << " and cuts " << simply << " from " << Dp1 << "to zero!" << std::endl;
+    Dp1 =0.;
+  }
+
+  if (datared->sumEntries() == 0) p0 = Dp0 = p1 = Dp1 = 0.;
+
+  mesData *pD = new mesData(datared->GetName(),p0,Dp0,p1,Dp1,p0/(p0+p1),dBinomial(p0, p0+p1));
+
+  // get best fit for reuse
+
+  if (MESFITMODEL==ArgusAndCB){
+    results.resize(5);
+    if (results.size() != inputPar.size()) {
+      std::cout << "Error: inconsistency in input/output parameters for mes fit! Exiting!" << std::cout;
+      exit(EXIT_FAILURE);
+    }
+
+    results[mXClass::iMean]  = getVal(model, "mean");
+    results[mXClass::iSigma] = getVal(model, "sigma");
+    results[mXClass::iAlpha] = getVal(model, "alpha");
+    results[mXClass::iN]     = getVal(model, "n");
+    results[mXClass::iArgus] = getVal(model, "ar");
+  }
+  
+  // clean up
+
+  delete datared;  datared  = 0;
+  delete bdatared; bdatared = 0;
+
+  // clean up model and associated pdfs/RooRealVars
+
+  // get list of parameters and delete them
+  RooArgSet* params = model->getParameters(RooArgSet());
+
+  iter = params->createIterator();
+  RooAbsArg* var = 0;
+  while ((var=(RooAbsArg*)iter->Next())) {
+    if (std::string(var->GetName()) == "mes") continue;
+    std::cout << "Deleting variable " << var->ClassName() << "::" << var->GetName() << std::endl;
+    delete var;
+  }
+  delete params;
+
+  // get list of pdfs and delete them
+  comps = model->getComponents();
+
+  iter = comps->createIterator();
+  pdf = 0;
+  while ((pdf=(RooAbsArg*)iter->Next())) {
+    std::cout << "Deleting component " << pdf->ClassName() << "::" << pdf->GetName() << std::endl;
+    delete pdf;
+  }
+  delete iter; delete comps;
+
+  model = 0;
+  return pD;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::dBinomial(double n, double N) {
+  if ((N <= 0) || (n < 0.)) return 0.;
+  double w = n/N;
+  return TMath::Sqrt(TMath::Abs(w*(1-w)/N));
+}
+
+void mXClass::FitMes(const char* comp, int mcat)
+{
+
+  TStopwatch timer; // for timing purpose  
+
+  vector<double> fitResults[3]; //3: one for each charge (bch, bos, bss);
+  vector<double> fitResults_allflav;
+  
+  std::map<std::string, RooDataSet*> dataSets; // xxx maybe move somewhere more general
+  dataSets["data"] = datadata;
+  dataSets["vub"]    = datamcvub;
+  dataSets["vcb"]    = datamcvcb; 
+  dataSets["other"]  = datamcoth;
+
+  if (dataSets.find(comp) == dataSets.end()) {
+    std::cout << "No dataset with name " << comp << " found! Doing nothing!" << std::endl;
+    return;
+  }
+    
+  TVector2 signalsig;
+  
+  char simply[200],name[100];
+  double sigs[nB-1]; double errsigs[nB-1];
+
+  int catnum = mcat ? 5 : 1;  // Multiplicity categories
+
+  std::vector<double> dummyVector;
+  Double_t corr;
+
+  //first, integrate over charges and mX bins
+  sprintf(simply,"%s%.3f%s%.3f%s","(chop>=",choplowB,") && chop<",chophighB," && lepYaSe==1");
+  if (std::string(comp) == "vub") 
+    signalsig = sighistounb(datamcvub, Vmes, fitResults_allflav, mesvubcuts, 2500., 200., simply, USECB);
+  else if (std::string(comp) == "vcb") 
+    signalsig = sighistounb(datamcvcb, Vmes, fitResults_allflav, mesvcbcuts, 4000., 700., simply, USECB);
+  else if (std::string(comp) == "other") 
+    signalsig = sighistounb(datamcoth, Vmes, fitResults_allflav, mesothcuts,  800., 180., simply, USECB);
+  if(std::string(comp) == "data") {
+    signalsig = sighistounb(datadata, Vmes, fitResults_allflav, mesdatacuts, 2000., 1000., simply, USECB);
+  }
+
+  // Calculating default fits parameters.
+
+  for(Int_t jFlav=3; jFlav<6; jFlav++){ // loop on neutrals and charged.
+
+    c1 = new TCanvas("c1"," ",1414,1000);//,200,10,1200,1000); 
+    c1->Clear();
+    
+    // The acutal number of pads in this Canvas depends on the number of bins in the kinematic variable: see mXClass.cc for nB; 
+    // We need at least 11 (10+1) for m_X. However, we need 19 with the current binning for the unfolding analysis.
+    // This following division is oversized for each kinematic variable but could not be sufficient if we change the default binning or do data-MC comparison.
+
+    c1->Divide(5, 4);
+    c1->cd(1); 
+
+    // Mes Fit on all cuts distribution without kinematic cut. This is needed to get PDF parameters for the kinematic 
+    // variable cut. MIXCORR not needed. We do this for each jFlav, that's why this is the main loop.
+
+    sprintf(simply,"%s%.3f%s%.3f%s%d%s","(chop>=",choplowB,") && chop<",chophighB," && flavB== ",jFlav," && lepYaSe==1");
+    if (std::string(comp) == "vub") 
+      signalsig = sighistounb(datamcvub, Vmes, fitResults[jFlav-3], mesvubcuts, 2500., 200., simply, USECB);
+    else if (std::string(comp) == "vcb") 
+      signalsig = sighistounb(datamcvcb, Vmes, fitResults[jFlav-3], mesvcbcuts, 4000., 700., simply, USECB);
+    else if (std::string(comp) == "other") 
+      signalsig = sighistounb(datamcoth, Vmes, fitResults[jFlav-3], mesothcuts,  800., 180., simply, USECB);
+    if(std::string(comp) == "data") {
+      signalsig = sighistounb(datadata, Vmes, fitResults[jFlav-3], mesdatacuts, 2000., 1000., simply, USECB);
+    }
+
+    // And now the 1d plane is filled
+
+    for (int k=1; k<catnum+1; k++) {
+      for (int iBin=1; iBin< nB; iBin++) {  
+
+        c1->cd(iBin+1);
+
+	// prepare the cut
+	sprintf(simply,"%s%.3f%s%.3f%s%d%s","(chop>=",chopB1[iBin-1],") && (chop<",chopB1[iBin],") && (flavB==",jFlav,") && lepYaSe==1");
+	
+	if (mcat) { sprintf(simply,"%s%s%d%s", simply," && (multcat== ",k,")");}
+	// default parameters
+	double nSignalStart = 200., nBackgroundStart = 1.;
+		
+	signalsig = sighistounb(dataSets[comp], Vmes, dummyVector, fitResults[jFlav-3], nSignalStart, nBackgroundStart, simply, 1);
+	
+	// getting fit result: number of events and error 
+	sigs[iBin-1] = errsigs[iBin-1] =  0.;
+	
+	if(signalsig.X()>0.00001) {
+	  sigs[iBin-1] = signalsig.X();
+	  errsigs[iBin-1] =  signalsig.Y();
+        }
+	
+	// put number of signal events and error into result grid
+        if(mcat) 
+          sprintf(name,"%s%d%s%d",comp,jFlav,"chop",k);
+	else 
+          sprintf(name,"%s%d%s",comp,jFlav,"chop");
+	
+        ((TH1D*)gDirectory->Get(name))->SetBinContent(iBin, sigs[iBin-1]);
+        ((TH1D*)gDirectory->Get(name))->SetBinError(iBin, errsigs[iBin-1]);
+      }
+    }
+
+    // generate plots
+    sprintf(name,"%s%s%s%s%d%s",DIRNAME.Data(),PREFIXOUT.Data(),"mES_",comp,jFlav,".eps");
+    gStyle->SetPaperSize(4.*20., 4.*26.);
+    c1->Print(name);
+    delete c1; c1 = NULL;
+  }  // jFlav Loop
+  
+  
+  // reset the standard paper size.
+  gStyle->SetPaperSize(20., 26.);
+
+  // print out timer
+  std::cout << "Timer for fitMes: "; timer.Print();
+
+  return;
+}
+
+/*
+  return values are results (best fit)
+ */
+//! wrapper function around binned/unbinned fitting
+TVector2 mXClass::sighistounb(RooDataSet *Adata, RooRealVar *Ax, std::vector<double>& results, const std::vector<double>& inputPar, const double AnSIG, const double AnBKG, const char* Asimply, int fixpar)
+{
+  mesData* themes = 0;
+
+  themes = vubMesUnb(Adata,Ax, results, 1, fixpar, inputPar, AnSIG, AnBKG, Asimply);
+  std::cout << "fit result: " << themes->theSig() << " +/- " << themes->theErrSig() << std::endl;
+
+  TVector2 temp(themes->theSig(),themes->theErrSig()); 
+
+  delete themes;
+  return temp;
+}
+
+void mXClass::chargeCorr()
+{
+  std::vector<double> fitResults;
+  char simply[100], line[200];
+
+  //Computes statistical correction for B0/B+ events ratio
+  TVector2 signalsig;
+  c1  = new TCanvas("c2"," ",200,10,1200,800); 
+  c1->Clear();
+  c1->Divide(3, 2);
+
+  //----------leptondatabch-----------
+  c1->cd(1);    
+  sprintf(simply,"(flavB==3) && lepYaSe==1");
+  signalsig = sighistounb(datadata, Vmes, fitResults, mesdatacuts,  20000, 10000, simply, USECB);
+  double nbchdata = signalsig.X();
+  //----------leptondatabos------------
+  c1->cd(2);    
+  sprintf(simply,"(flavB==4) && lepYaSe==1");
+  signalsig = sighistounb(datadata, Vmes, fitResults, mesdatacuts,  10000, 3000, simply, USECB);
+  double nb0data = signalsig.X();
+  //----------vcbleptonmcbch------------
+  c1->cd(3);    
+  sprintf(simply,"(flavB==3) && lepYaSe==1");
+  signalsig = sighistounb(datamcvcb, Vmes, fitResults, mesvcbcuts, 60000., 15000., simply, USECB);
+  double nbchvcb = signalsig.X();
+  //----------vcbleptonmcbos------------
+  c1->cd(4);  
+  sprintf(simply,"(flavB==4) && lepYaSe==1");
+  signalsig = sighistounb(datamcvcb, Vmes, fitResults, mesvcbcuts, 30000., 7000., simply, USECB);
+  double nb0vcb = signalsig.X();
+  //----------vubleptonmcbch-----------    
+  c1->cd(5);  
+  sprintf(simply,"(flavB==3) && lepYaSe==1");
+  sprintf(simply,"(flavB==3) && lepYaSe==1");
+  signalsig = sighistounb(datamcvub, Vmes, fitResults, mesvubcuts,  3000, 800,  simply, USECB);
+  double nbchvub = signalsig.X();
+  //----------vubleptonmcbos----------- 
+  c1->cd(6);    
+  sprintf(simply,"(flavB==4) && lepYaSe==1");
+  signalsig = sighistounb(datamcvub, Vmes, fitResults, mesvubcuts,  1600, 500, simply, USECB);
+
+  double nb0vub = signalsig.X();
+
+  //Print out the mES fits
+  sprintf(line,"%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"mES_ChCorr.eps");
+  gStyle->SetPaperSize(3.*20., 3.*26.);
+  c1->Print(line);
+  gStyle->SetPaperSize(20., 26.);
+
+  delete c1; c1=NULL;
+
+  double ratiobchb0 = nbchdata/nb0data;
+  double ratiobchb0vcb = nbchvcb/nb0vcb;
+  double ratiobchb0vub = nbchvub/nb0vub;
+  correctionratiovub = ratiobchb0/ratiobchb0vub;
+  correctionratiovcb = ratiobchb0/ratiobchb0vcb;
+
+//   if(COMP){
+//   correctionratiovub=1.;
+//   correctionratiovcb=1.;
+//   }
+
+  cout << "correctionratiovcb " << correctionratiovcb << endl;
+  cout << "correctionratiovub " << correctionratiovub << endl;
+}
+
+void mXClass::mixingCorr(int mult){    
+
+  char name[200],line[200], pref[200];
+  double tempbin, tempbinchb, tempbinb0os, tempbinb0ss;
+  double temperr, temperrchb, temperrb0os, temperrb0ss;
+  double chid = 0.188;
+  fHistFile->cd();
+
+  // Correction to have the right Bch/B0 ratio (as data)
+  double correctionratio = 1.;
+
+  //Call to charge correlation routine
+  chargeCorr();
+
+  c1 = new TCanvas("c2"," ",200,10,1200,1000); 
+  c1->Clear();
+  c1->Divide(2, 2);
+
+  for (int ii=1;ii<5;ii++){
+
+    if(ii == 1) {
+      sprintf(pref,"%s","data");
+      if (BTYPE == 2) {correctionratio = 1.;}
+    }  else if (ii == 2) {
+      sprintf(pref,"%s","vcb");
+      if (BTYPE == 2) {correctionratio = correctionratiovcb;}
+    }  else if (ii == 3) {
+      sprintf(pref,"%s","other");
+      if (BTYPE == 2) {correctionratio = correctionratiovcb;}
+    }  else {
+      sprintf(pref,"%s","vub");
+      if (BTYPE == 2) {correctionratio = correctionratiovcb;}
+    }
+
+    for (int i=1;i<nB;i++){
+      sprintf(name,"%s%s",pref,"3chop"); tempbinchb = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * correctionratio;
+      sprintf(name,"%s%s",pref,"4chop"); tempbinb0os = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+      sprintf(name,"%s%s",pref,"5chop"); tempbinb0ss = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+      sprintf(name,"%s%s",pref,"3chop"); temperrchb = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * correctionratio;
+      sprintf(name,"%s%s",pref,"4chop"); temperrb0os = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+      sprintf(name,"%s%s",pref,"5chop"); temperrb0ss = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+      if(MIXCORR==0){
+	tempbin = tempbinchb + tempbinb0os;
+	temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+      }else{      
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+      }
+      sprintf(name,"%s%s",pref,"chop"); 
+      ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+      ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+      
+    }
+    c1->cd(1);
+    sprintf(name,"%s%s",pref,"3chop"); 
+    ((TH1D*)gDirectory->Get(name))->Draw();
+    c1->cd(2);
+    sprintf(name,"%s%s",pref,"4chop"); 
+    ((TH1D*)gDirectory->Get(name))->Draw();
+    c1->cd(3);
+    sprintf(name,"%s%s",pref,"5chop"); 
+    ((TH1D*)gDirectory->Get(name))->Draw();
+    c1->cd(4);
+    sprintf(name,"%s%s",pref,"chop"); 
+    ((TH1D*)gDirectory->Get(name))->Draw();
+    gPad->Update();
+    sprintf(line,"%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),pref,"chop_all.eps");
+    c1->Print(line);
+    if(mult){
+      for(int j=1; j<6; j++){
+	for (int i=1;i<nB;i++){
+	  sprintf(name,"%s%s%d",pref,"3chop",j); tempbinchb = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * correctionratio;
+	  sprintf(name,"%s%s%d",pref,"4chop",j); tempbinb0os = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+	  sprintf(name,"%s%s%d",pref,"5chop",j); tempbinb0ss = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+	  sprintf(name,"%s%s%d",pref,"3chop",j); temperrchb = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * correctionratio;
+	  sprintf(name,"%s%s%d",pref,"4chop",j); temperrb0os = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+	  sprintf(name,"%s%s%d",pref,"5chop",j); temperrb0ss = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+	  if(MIXCORR==0){
+	    tempbin = tempbinchb + tempbinb0os;
+	    temperr = sqrt(temperrchb * temperrchb + temperrb0os * temperrb0os);
+	  }else{      
+	    tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	    temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+	  }
+	  sprintf(name,"%s%s%d",pref,"chop",j); 
+	  ((TH1D*)gDirectory->Get(name))->SetBinContent(i, tempbin);
+	  ((TH1D*)gDirectory->Get(name))->SetBinError(i, temperr); 
+	  
+	}
+      }
+    }
+  }
+  delete c1; c1=NULL;
+}
+// ---------------------------------------------------------------------
+
+void chi2Hist(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
+
+
+  //value of 3rd parameter ("flag") tells if the fit is with 2 (abs(flag)>2) or 3 (otherwise) parameters
+  //sign of 3rd parameter tells whether to add (<0.1) or not (otherwise) MC statistical error to chisq computation
+  int ioth=TMath::Abs(par[3])>2 ? 1 : 2 ;
+  Double_t chi2(0.);
+  int nBin = vubHist->GetNbinsX();
+  //CB bug fix
+  //  for (int j=0;j<nBin;j++){
+  for (int j=1;j<nBin+1;j++){
+
+    double x=par[0]*vubHist->GetBinContent(j)+par[1]*vcbHist->GetBinContent(j)+par[ioth]*othHist->GetBinContent(j);
+    if(x>0 && dataHist->GetBinContent(j)>0){
+      double s2=pow(dataHist->GetBinError(j),2);
+      if(par[3]<0.1) { 
+	s2+= // add MC stat
+	  (pow(par[0]*vubHist->GetBinError(j),2)+
+	   pow(par[1]*vcbHist->GetBinError(j),2)+
+	   //CB bug fix
+	   //pow(par[1]*othHist->GetBinError(j),2));
+	   //CB uncomment this to get it right
+	   pow(par[ioth]*othHist->GetBinError(j),2));
+      }
+      chi2+=pow((x-dataHist->GetBinContent(j)),2)/s2;
+    }
+  }
+  f=chi2;
+}
+
+// ---------------------------------------------------------------------
+
+void mXClass::fitWithErrors(char * typ)
+{
+  TMinuit aMinuit(4);
+  int ierflg;
+ 
+  // initialize minuit
+  cout<<"fitWithError"<<endl;
+  aMinuit.SetFCN(chi2Hist);
+  aMinuit.mnparm(0, "vubcomp",  1.00, 0.001, 0., 10., ierflg); 
+  aMinuit.mnparm(1, "vcbcomp",  1.00, 0.001, 0., 10., ierflg); 
+  aMinuit.mnparm(2, "othcomp",  0.06, 0.001, 0.,  1., ierflg); 
+
+  //
+  //FITOPT==0 means 2 parameters fit -- Vcb and other Lagrange multipliers fitted together
+  //FITOPT==1 means 3 parameters fit
+  //
+  aMinuit.mnparm(3, "flag",  -2., 0., -100., 100., ierflg);        // 3 parameter fit 
+  if(FITOPT==0){
+    // changed 3 -> -3  to take MC error into account into the chisq fit... 
+    aMinuit.mnparm(3, "flag",  -3., 0., -100., 100., ierflg);  // 2 parameter fit
+    aMinuit.FixParameter(2); 
+  }
+  if(FITOPT==5){
+    cout<<VCBCOMP<<" "<<OTHCOMP<<endl;
+    aMinuit.mnparm(1, "vcbcomp", VCBCOMP, 0.001, 0., 10., ierflg);
+    aMinuit.FixParameter(1);
+    aMinuit.mnparm(2, "othcomp", OTHCOMP, 0.001, 0., 10., ierflg);
+    aMinuit.FixParameter(2);
+  }
+  aMinuit.FixParameter(3); 
+
+  // get histograms
+  std::string name("chop");
+  std::string name2;
+
+  name2 = "vub" + name;
+  vubHist = (TH1D*)gDirectory->Get(name2.c_str());
+
+  name2 = "vcb" + name;
+  vcbHist = (TH1D*)gDirectory->Get(name2.c_str());
+
+  name2 = "other" + name;
+  othHist = (TH1D*)gDirectory->Get(name2.c_str());
+ 
+  name2 = "data" + name;
+  dataHist = (TH1D*)gDirectory->Get(name2.c_str());
+ 
+  // do the fit 
+  //Change default to be 2 if you want PRL results
+  int ioth=FITOPT==0 ? 1 : 2 ;
+  Double_t arglis[10];
+  arglis[0] = 10000; // maxcalls
+  arglis[1] = 0.001;  // tolerance
+  aMinuit.mnexcm("MINI", arglis, 2, ierflg);
+  if (ierflg!=0) std::cout <<"Error: fit with MC truth: mini  error " << ierflg << std::endl;
+  aMinuit.mnexcm("MINOS", arglis, 2, ierflg);
+  if (ierflg!=0) std::cout <<"Error: fit with MC truth: minos error " << ierflg << std::endl;
+  
+  // get parameters out
+  aMinuit.GetParameter(0,vubcomp,errvubcomp);
+  aMinuit.GetParameter(1,vcbcomp,errvcbcomp);  
+  aMinuit.GetParameter(ioth,othcomp,errothcomp);
+
+  // redo fit without errors from mc truth (negative parameter "flag")
+  //
+  //FITOPT==0 means 2 parameters fit -- Vcb and other Lagrange multipliers fitted together
+  //FITOPT==1 means 3 parameters fit
+  
+  aMinuit.mnparm(3, "flag",  2., 0., 0., 100., ierflg);    // 3 parameter fit
+  if(FITOPT==0){
+    aMinuit.mnparm(3, "flag",  3., 0., 0., 100., ierflg);  // 2 parameter fit
+    aMinuit.FixParameter(2);
+  }
+  if(FITOPT==5){
+    cout<<VCBCOMP<<" "<<OTHCOMP<<endl;
+    aMinuit.mnparm(1, "vcbcomp", VCBCOMP, 0.001, 0., 10., ierflg);
+    aMinuit.FixParameter(1);
+    aMinuit.mnparm(2, "othcomp", OTHCOMP, 0.001, 0., 10., ierflg);
+    aMinuit.FixParameter(2);
+  }
+  aMinuit.FixParameter(3); 
+
+  aMinuit.mnexcm("MINI", arglis, 2, ierflg);
+  if (ierflg!=0) std::cout <<"Error: fit without MC truth: mini  error " << ierflg << std::endl;
+  aMinuit.mnexcm("MINOS", arglis, 2, ierflg);
+  if (ierflg!=0) std::cout <<"Error: fit without MC truth: minos error " << ierflg << std::endl;
+
+  // get parameters out 
+  ioth=FITOPT==0 ? 1 : 2;
+  aMinuit.GetParameter(0,vubcompNOMC,errvubcompNOMC);
+  aMinuit.GetParameter(1,vcbcompNOMC,errvcbcompNOMC);
+  aMinuit.GetParameter(ioth,othcompNOMC,errothcompNOMC);
+  if (vubcompNOMC>vubcomp || vcbcompNOMC>vcbcomp || othcompNOMC>othcomp) {
+    cout <<" removing MC truth improves error!!! "<<" vub "<<vubcompNOMC<<" "<<vubcomp
+	 <<" vcb "<<vcbcompNOMC<<" "<<vcbcomp<<" oth "<<othcompNOMC<<" "<<othcomp<<endl;
+    cout <<" removing MC truth improves error ::  "<<" vub "<<errvubcompNOMC<<" "<<errvubcomp
+	 <<" vcb "<<errvcbcompNOMC<<" "<<errvcbcomp<<" oth "<<errothcompNOMC<<" "<<errothcomp<<endl;
+  }
+
+  std::cout << "Make scan plots" << std::endl;
+
+  TCanvas *cla1 = new TCanvas(); 
+  TGraph *g1 = scanParameter(0, 2, aMinuit, chi2Hist); 
+  g1->SetTitle("scan b2u"); 
+  g1->SetMarkerSize(0.5); 
+  g1->Draw("ap"); 
+  cla1->SaveAs(Form("%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"vub_scan.eps"));
+  
+  cla1->Clear(); 
+  TGraph *g2 = scanParameter(1, 2, aMinuit, chi2Hist); 
+  g2->SetTitle("scan b2c"); 
+  g2->SetMarkerSize(0.5); 
+  g2->Draw("ap"); 
+  cla1->SaveAs(Form("%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"vcb_scan.eps"));
+  
+  cla1->Clear(); 
+  TGraph *g3 = scanParameter(2, 2, aMinuit, chi2Hist); 
+  g3->SetTitle("scan other"); 
+  g3->SetMarkerSize(0.5); 
+  g3->Draw("ap"); 
+  cla1->SaveAs(Form("%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"oth_scan.eps"));
+  delete g1; 
+  delete g2; 
+  delete g3; 
+  delete cla1; 
+  
+  return;
+}
+
+    
+// ----------------------------------------------------------------------
+TGraph* mXClass::scanParameter(int parnum, int nsig, TMinuit &a, void (*func)(int &, double *, double &, double *, int)) {
+
+#define MAXPAR 100
+#define NSTEP  400
+
+  double par[MAXPAR], parE[MAXPAR];
+
+  int npar = a.GetNumPars(); 
+
+  for (int ipar = 0; ipar < npar; ++ipar) {
+    a.GetParameter(ipar, par[ipar], parE[ipar]); 
+  }
+
+  int iflag; 
+  double x[NSTEP], y[NSTEP], dummy[NSTEP]; 
+
+  double min  = par[parnum] - nsig*parE[parnum]; 
+  double max  = par[parnum] + nsig*parE[parnum]; 
+  double step = (max - min)/NSTEP; 
+  double val(0.); 
+
+  for (int ix = 0; ix < NSTEP; ++ix) {
+    par[parnum] = min + ix*step; 
+    (*func)(iflag, dummy, val, par, iflag); 
+    x[ix] = par[parnum]; 
+    y[ix] = val; 
+  }
+    
+  TGraph *tg = new TGraph(NSTEP, x, y); 
+  tg->Draw("ap"); 
+
+  return tg; 
+}
+
+void mXClass::compChisq(){    
+
+  // Chisq calculation :: histogram names shoud be updated
+  double tempchisq = 0;
+  //CB 
+  //  int nQ2B = 9; //AP
+  char name[100];
+  cout << "CHISQ CALCULATION:: " <<vubcomp<<" "<<vcbcomp<<" "<<othcomp<<endl;
+  double tempbin,temperr,tempbinvub,tempbinerrvub;
+  double tempbinvcb,tempbinerrvcb,tempbinoth,tempbinerroth;
+  NDOF = 0;
+  chisq = 0;
+  fHistFile->cd();
+
+  for(int i=1;i<nB;i++){ //KT
+    tempchisq = 0;
+    sprintf(name, "%s","datachop");	         
+    if(((TH1D*)gDirectory->Get(name))->GetBinContent(i)) {
+      tempbin = ((TH1D*)gDirectory->Get(name))->GetBinContent(i);
+      temperr = ((TH1D*)gDirectory->Get(name))->GetBinError(i);
+      sprintf(name, "%s","vubchop");	         
+      tempbinvub = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * vubcomp;
+      tempbinerrvub = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * vubcomp;
+      
+      sprintf(name, "%s","vcbchop");	         
+      tempbinvcb = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * vcbcomp;
+      tempbinerrvcb = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * vcbcomp;
+      sprintf(name, "%s","otherchop");	     
+      tempbinoth = ((TH1D*)gDirectory->Get(name))->GetBinContent(i) * othcomp;
+      tempbinerroth = ((TH1D*)gDirectory->Get(name))->GetBinError(i) * othcomp;
+      temperr = sqrt(temperr*temperr + tempbinerrvub*tempbinerrvub + tempbinerrvcb * tempbinerrvcb + tempbinerroth*tempbinerroth);
+      
+      if(temperr<1) temperr = 1; 
+      sprintf(name, "%s","datachop");	
+      tempchisq = (tempbinvub + tempbinvcb + tempbinoth - ((TH1D*)gDirectory->Get(name))->GetBinContent(i))/temperr;     
+      cout<<"Break of chi2 chop contrib:: "<<tempchisq<<" " <<NDOF<<" "<<((TH1D*)gDirectory->Get("datachop"))->GetBinContent(i)<<endl;
+      NDOF++;
+    }   
+    chisq += tempchisq*tempchisq;
+  }
+ 
+  if (FITOPT==0) {        // 2 parameters fit
+    NDOF -= 2;
+  } else if (FITOPT==1) { // 3 parameters fit
+    NDOF -= 3;
+  } else if (FITOPT==5) {
+    NDOF -= 1;
+  }
+  if (NDOF !=0) {
+    chisq = chisq / NDOF;
+  } 
+  std::cout << " Chi Square / NDoF of the Fit :" << chisq << std::endl;
+  std::cout << " NDOF " << NDOF << std::endl;
+
+  return;
+}
+
+void mXClass::makeBkgSubPlot()
+{
+  gROOT->SetStyle("Plain");
+  char name[200];
+  double themax, themin;
+  gStyle->SetOptStat(0); gStyle->SetOptTitle(0); gStyle->SetFillStyle(1001); 
+
+  // get title for spectrum
+  std::string xtitle("m_{X} / GeV");
+  xtitle = "m_{X} / GeV";
+
+  TCanvas *c1 = new TCanvas("c1"," ",200,10,1300,520); 
+  
+  sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"fitresults.eps");
+   
+  openEpsFile(name);
+  c1->Clear(); 
+  c1->Divide(2,1);  c1->cd(1);
+  sprintf(name, "%s","datachop");
+  TH1 *datH = new TH1D(*(TH1D*)gDirectory->Get(name));
+  datH->SetXTitle(xtitle.c_str());
+  themax = datH->GetMaximum() * 1.2; 
+  std::cout << "Maximum for data plot is " << themax << std::endl;
+  datH->SetMaximum(themax); 
+  datH->SetMarkerSize(1.); datH->SetMarkerColor(kBlack); 
+  datH->SetMarkerStyle(20);
+  datH->SetLineColor(kBlack);
+  datH->GetXaxis()->SetTitleSize(0.08);
+  datH->GetYaxis()->SetTitleSize(0.08);
+  datH->Draw("he");
+    
+  sprintf(name, "%s","allmcchop");
+  TH1 *amcH = new TH1D(*(TH1D*)gDirectory->Get(name));
+  amcH->SetLineColor(kBlack);
+  amcH->SetFillColor(38);
+  amcH->Draw("samehisto");  
+    
+  sprintf(name, "%s","allbkgchop");
+  TH1 *abkH = new TH1D(*(TH1D*)gDirectory->Get(name));
+  abkH->SetLineColor(kBlack);
+  abkH->SetFillColor(kYellow);
+  abkH->Draw("samehisto");
+    
+  sprintf(name,"SCotherchop");
+
+  TH1 *othH = new TH1D(*(TH1D*)gDirectory->Get(name));
+  othH->SetFillColor(13);
+  othH->SetLineColor(kBlack);
+  othH->Draw("samehisto");
+   
+  //Adding MC error
+  sprintf(name, "%s","allmcchop");
+  TH1 *boxerr = new TH1D(*(TH1D*)gDirectory->Get(name));
+  boxerr->SetFillColor(33);
+  boxerr->SetFillStyle(3003);
+  boxerr->Draw("samee2");
+
+  //  //Redraw Data for cleaning pourposes
+  //   datH->Draw("same");
+  
+  //Redraw MC for cleaning pourposes
+  sprintf(name, "%s","allmcchop");
+  TH1 *proallmc = new TH1D(*(TH1D*)gDirectory->Get(name));
+  proallmc->SetLineColor(38);
+  proallmc->SetFillStyle(4000);
+  proallmc->Draw("samehisto");
+
+  sprintf(name, "%s","allbkgchop");
+  TH1 *proabk = new TH1D(*(TH1D*)gDirectory->Get(name));
+  proabk->SetLineColor(kYellow);
+  proabk->SetFillStyle(4000);
+  proabk->Draw("samehisto");
+
+  //THStack *d = new THStack("d","MC and data");
+  //datachop.SetLineColor(kBlack);
+  //datachop.SetMarkerStyle(20);
+  //d->Add(datachop);
+  //TH1F *proallmc = (TH1F*)allmcchop->Clone();
+  //proallmc.SetLineColor(kBlack);
+  //proallmc.SetFillStyle(4000);
+  //d->Add(proallmc);
+  //d->Draw("sameh""nostack");
+ 
+  //Redraw Data for cleaning pourposes
+  datH->Draw("same");
+    
+  TLegendEntry *legge; 
+  TLegend *leg;
+  leg = new TLegend(0.6,0.6,0.88,0.89);
+  leg->SetBorderSize(0); leg->SetTextSize(0.06);
+  //make text size 0.08 to improve reading 
+  leg->SetFillStyle(4000);  leg->SetFillColor(0); 
+  legge = leg->AddEntry(amcH, "b->ulnu", "f"); 
+  legge = leg->AddEntry(abkH, "b->clnu", "f"); 
+  legge = leg->AddEntry(othH, "other", "f"); 
+  legge = leg->AddEntry(datH, "data", "p"); 
+  leg->Draw();
+  shrinkPad(0.18,0.07,0.02,0.02);
+  gPad->Update();
+    
+  c1->cd(2);
+    
+  sprintf(name, "%s","subdatachop");
+  TH1 *sdaH = new TH1D(*(TH1D*)gDirectory->Get(name));
+    
+  sprintf(name,"SCvubchop");
+  TH1 *svuH = new TH1D(*(TH1D*)gDirectory->Get(name));
+    
+  themax = 1.2*sdaH->GetMaximum();
+  if(1.2*svuH->GetMaximum() > themax) themax = 1.2*svuH->GetMaximum();
+  sdaH->SetMaximum(themax);
+    
+  if(sdaH->GetMinimum() < 0) {
+    themin = 1.2*sdaH->GetMinimum();
+    sdaH->SetMinimum(themin);
+  }
+  sdaH->SetMarkerStyle(20);
+  sdaH->SetStats(0);
+  sdaH->SetXTitle(xtitle.c_str());
+  sdaH->GetXaxis()->SetTitleSize(0.08);
+  sdaH->GetYaxis()->SetTitleSize(0.08);
+  sdaH->Draw();
+    
+  svuH->SetLineColor(kBlack);
+  svuH->SetFillColor(38);
+  svuH->DrawCopy("sameh");  
+  sdaH->DrawCopy("same");
+  TLegendEntry *legge2; 
+  TLegend* leg2(0);
+  leg2 = new TLegend(0.5,0.6,0.88,0.89);
+  leg2->SetBorderSize(0); //leg2->SetTextSize(0.08); 
+  //restore 0.08 size to improve reading
+  leg2->SetTextSize(0.06); 
+  leg2->SetFillStyle(4000); 
+  legge2 = leg2->AddEntry(svuH, "scaled MC", "f"); 
+  legge2 = leg2->AddEntry(sdaH, "data subtr.", "p"); 
+  leg2->Draw();
+  TLine line(choplowB,0.,chophighB,0.);
+  line.SetLineColor(kRed); line.SetLineWidth(2); line.SetLineStyle(2); line.Draw();
+  shrinkPad(0.18,0.07,0.02,0.02);
+  gPad->Update();
+  closeEpsFile();
+
+  delete c1;
+    
+  c1 = new TCanvas("c1"," ",200,10,800,520); 
+  sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"mxspectrum.eps");
+    
+  openEpsFile(name);
+ 
+  c1->Clear(); 
+  c1->Divide(1);
+  c1->cd(1);
+
+  sdaH->Draw("h");
+  svuH->DrawCopy("sameh");  
+  sdaH->DrawCopy("sameh");
+  line.SetLineColor(kRed); line.SetLineWidth(2); line.SetLineStyle(2); line.Draw();   
+  leg2->Draw();
+
+  closeEpsFile();
+}
+
+void mXClass::resultDumping() {
+
+  //Dump results on file
+  char name[200];
+  fHistFile->cd();
+  sprintf(name,"%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"results.dat");  
+  ofstream outfile(name);
+   
+  outfile << "#NUMBERS FOR THE SCANS" << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << " mxCut               "  << MXBIN       << endl;
+  outfile << " chopCut             "  << CHOPCUT   <<  endl;  
+  outfile << " leptonPCut          "  << LEPTONPCUT   <<  endl;
+  outfile << " prmm2cut            "  << PRMM2CUT   <<  endl;
+  outfile << " neucut              "  << NEUCUT   <<  endl;
+  outfile << " mnuSqLow            "  << MNUSQLOW   <<  endl;  
+  outfile << " mnuSqHigh           "  << MNUSQHIGH   <<  endl;  
+  outfile << " chLow               "  << CHLOW   <<  endl;  
+  outfile << " chHigh              "  << CHHIGH   <<  endl;  
+  outfile << " depl                "  << DEPL   <<  endl;  
+  outfile << " Btype               "  << BTYPE   <<  endl;  
+  outfile << " lepttype            "  << LEPTTYPE   <<  endl;  
+  outfile << " minintpur           "  << MININTPUR    <<  endl;
+  outfile << " maxintpur           "  << MAXINTPUR    <<  endl;
+
+  outfile << endl;
+  outfile << endl;
+  outfile << "Before Chi2 fit"<<endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << "MX FIT" << endl;
+  outfile << "Vub comp = " << vubcomp << " +- " << errvubcomp << endl;
+  outfile << "Vcb comp = " << vcbcomp << " +- " << errvcbcomp << endl;
+  outfile << "Oth comp = " << othcomp << " +- " << errothcomp << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << endl;
+  outfile << "EFFICIENCY Vub" << endl;
+  outfile << endl;
+  outfile << "Vub total MC (lepton cut) = " << vubmc << endl;
+  outfile << "Vub MC (all cuts) = " << vubmcaftercuts << endl;
+  outfile << endl;
+  outfile << "Chi Square of the Fit = " << chisq << endl;
+  outfile << "NDOF = " << NDOF << endl;
+  outfile << endl;
+  outfile.close();
+}
+//Functions for graphics management
+// ----------------------------------------------------------------------
+void mXClass::shrinkPad(double b, double l, double r, double t) {
+  gPad->SetBottomMargin(b); 
+  gPad->SetLeftMargin(l);
+  gPad->SetRightMargin(r);
+  gPad->SetTopMargin(t);
+}
+
+
+// ----------------------------------------------------------------------
+void mXClass::openEpsFile(TString name, Int_t style) {
+  gROOT->SetStyle("Plain");
+  fPostScriptFile = new TPostScript(name.Data(),style);
+  //  cout << "Opened " << fPostScriptFile->GetName() << endl;
+}
+
+
+// --------------------------------------------------------------------
+void mXClass::closeEpsFile() {
+  //  cout << "Writing " << fPostScriptFile->GetName() << endl;
+  fPostScriptFile->Close();
+  delete fPostScriptFile;
+
+}
+
+//Routines needed for reweighting calculations
+// ----------------------------------------------------------------------
+double mXClass::getBsysweight(int decType, int thevub)
+{
+  double theweight = 1.;
+
+  if (DOBDECWEIGHT) theweight *= Bsem->fineweight(decType); 
+  //if (DOBDECWEIGHT) theweight *= Bsem->weight(decType); 
+
+  if (thevub) theweight = 1.;
+
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getFFDstarlnuWeight(const int decType)
+{
+  double theweight = 1.;
+  
+  
+  if (DOFFWEIGHT>0 && decType==2 && TMath::Abs(ctvgen)<2.) { // B0 -> D*lnu FF
+    static std::vector<double> sigma;
+    static bool first = true;
+    static double cor12(-0.84), cor13(+0.70), cor23(-0.83);
+  
+    sigma.resize(3);
+    if (DOFFWEIGHT == 1) { sigma[0] =  0.; sigma[1] =  0.; sigma[2] =  0.; }
+    if (DOFFWEIGHT == 2) { sigma[0] = +1.; sigma[1] =  0.; sigma[2] =  0.; }
+    if (DOFFWEIGHT == 3) { sigma[0] = -1.; sigma[1] =  0.; sigma[2] =  0.; }
+    if (DOFFWEIGHT == 4) { sigma[0] =  0.; sigma[1] = +1.; sigma[2] =  0.; }
+    if (DOFFWEIGHT == 5) { sigma[0] =  0.; sigma[1] = -1.; sigma[2] =  0.; }
+    if (DOFFWEIGHT == 6) { sigma[0] =  0.; sigma[1] =  0.; sigma[2] = +1.; }
+    if (DOFFWEIGHT == 7) { sigma[0] =  0.; sigma[1] =  0.; sigma[2] = -1.; }
+
+    if (DOFFWEIGHT > 10) {
+      TRandom2 random(DOFFWEIGHT*1000+(1000-DOFFWEIGHT));
+      
+      // prepare correlation matrix
+      TMatrixD cov(3,3);
+      
+      cov(0,0) =  1.;   cov(0,1) = cor12; cov(0,2) = cor13;
+      cov(1,0) = cor12; cov(1,1) =  1.;   cov(1,2) = cor23;
+      cov(2,0) = cor13; cov(2,1) = cor23; cov(2,2) =  1.;
+  
+      // do a Cholesky RtR decomposition and use Rt
+      TDecompChol L2(cov); L2.Decompose(); L2.Print();
+      TMatrixD *Lt= new TMatrixD(TMatrixD::kTransposed, L2.GetU());
+
+      // create a vector of unit Gaussian variables
+      TVectorD g(cov.GetNcols());
+      
+      for(Int_t k(0); k<g.GetNrows(); ++k) {
+	g(k) = random.Gaus(0.,1.);
+      }
+      g*= (*Lt);
+      
+      sigma[0] = g(0);
+      sigma[1] = g(1);
+      sigma[2] = g(2);
+    }
+    //    std::cout << "Systematics: Doing D*lnu FF reweighting in mode (" << DOFFWEIGHT << "): " << std::endl;
+    
+    
+    // CLEO numbers as in SP5/SP6
+    double def1,def2(-999); 
+    if(REL<18){
+      cout<<" USING D*lv FF reweighting for SP5/SP6 "<<endl;
+      def1 = dstlnuFF(1.18,0.72,0.92);       
+      
+      //BaBar numbers with systematics variation
+      double R1   = 1.396 + sigma[0]*0.075;
+      double R2   = 0.885 + sigma[1]*0.048;
+      double rho2 = 1.145 + sigma[2]*0.075;
+      double def2 = dstlnuFF(R1, R2, rho2);
+      //      std::cout << "Control: " << R1 << " " << R2 << " " << rho2 << std::endl;
+    
+      if (def1 <= 0.) {
+	std::cout << "Warning: form factor for CLEO is negative: " << def1 << " Setting to 1!" << std::endl;
+	def1 = 1.;
+      }
+      if (def2 <= 0.) {
+	std::cout << "Warning: form factor for BaBar is negative: " << def2 << " Setting to 1!" << std::endl;
+	def2 = 1.;
+      }
+
+      double def = 1.; if (def1>0. && def2>0.) def = def2/def1;
+
+      if (def>100.) {
+	std::cout << "Warning: D*lnu form factor weight too high " << def << " = " << def2 << "/" << def1
+		  << " Setting to 10!" << std::endl;
+	//      cout <<" kin "<<ctvgen<<" "<<ctlgen<<" " <<chigen<<" "<<q2Gen<<endl;
+	def = 10.;
+      }
+    
+      theweight *= def;    
+      cout<<"DSTARLNUFF:: weight "<<theweight<<endl;
+
+    } else {  // RELEASE 18 or higher
+  
+      //      cout<<"USING D*lv FF reweighting as in for SP8 "<<endl;
+      // BaBar numbers with systematics variation - Average of Art/Mandeep + Trieste analyses BAD1395v17
+      double R1   = 1.429 + sigma[0]*TMath::Sqrt(0.061*0.061+0.044*0.044);
+      double R2   = 0.827 + sigma[1]*TMath::Sqrt(0.038*0.038+0.022*0.022);
+      double rho2 = 1.191 + sigma[2]*TMath::Sqrt(0.048*0.048+0.028*0.028);
+  
+      //This function reweights SP8 to new model in BAD 1395. v17
+      theweight = dstlnuFFSP8(R1,R2,rho2);
+      //      std::cout << "Control: R1 " << R1 << " R2 " << R2 << " rho2 " << rho2 <<" weight newmod/SP8 "<< theweight << std::endl;
+      //      cout<<"DSTARLNUFF:: weight "<<theweight<<endl;
+    }
+  }
+  return theweight;
+}
+
+
+double mXClass::dstlnuFFSP8(double R1,double R2, double rho2){
+
+  double mB= 5.279; //Maybe update to the newest measurement?
+  double mDStar=2.01 ;  //Maybe update to the newest measurement?
+  
+  double cchi=cos(chigen);
+  double weightDstarlnu=1.;
+  XSLBToDstrlnu_DstrToDpi_CLN* S2 = new XSLBToDstrlnu_DstrToDpi_CLN(mB,mDStar,q2Gen,ctlgen,ctvgen,cchi,R1,R2,rho2);
+  //  weightDstarlnu = S2->FromSP6ToThisModel();
+  weightDstarlnu = S2->FromSP7ToThisModel();
+  delete S2;
+
+  ((TH1D*)gDirectory->Get("ffweight"))->Fill(weightDstarlnu);
+  return weightDstarlnu;
+}
+
+
+// ----------------------------------------------------------------------
+double mXClass::getDsysweight(int decDpi,int decDk,int decDks,int decDpiz,int decDlep,int decDgam,int decImode,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  int bla(1);
+  if(DODDECWEIGHT){
+    theweight = Dvar->weight(decDpi,decDk,decDks,decDpiz,decDlep,decImode,bla);    
+  }
+  if(thevub) theweight = 1.;
+  if(decDpi == decDk == decDks == decDpiz == decDlep == decDgam == 0) theweight == 1.;
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getGenericSPWeight(int brecoid)
+{
+  /*
+    calculates weight factor Nevents/luminosity by run period and
+    charged and neutral Bs.
+
+    returns the inverse of this weight factor.
+  */
+
+  double weight(1.);
+
+  std::string filename;
+  if (fChain!=0 && fChain->GetCurrentFile()!=0) filename = fChain->GetCurrentFile()->GetName();
+
+  if (this->IsCM2()&&REL==14) {
+
+    if (filename.find("genbch") != std::string::npos || filename.find("SP-1235") != std::string::npos) {
+      if (filename.find("Run1") != std::string::npos) weight = 3./( 24246000/19458963.);
+      if (filename.find("Run2") != std::string::npos) weight = 3./(119356000/60266741.);
+      if (filename.find("Run3") != std::string::npos) weight = 3./( 67974000/31061051.);
+      if (filename.find("Run4") != std::string::npos) weight = 3./(332944433/99762620.);
+    } else if (filename.find("genbnu") != std::string::npos || filename.find("SP-1237") != std::string::npos) {
+      if (filename.find("Run1") != std::string::npos) weight = 3./( 28762000/19458963.);
+      if (filename.find("Run2") != std::string::npos) weight = 3./(120299826/60266741.);
+      if (filename.find("Run3") != std::string::npos) weight = 3./( 61310000/31061051.);
+      if (filename.find("Run4") != std::string::npos) weight = 3./(336130399/99762620.);
+    }
+
+  } // if (this->IsCM2())
+
+  //see http://costard.lbl.gov/~kerstin/vubunf/ana32/mayprod.txt for numbers
+  if (this->IsCM2()&&REL==18) {
+    if (abs(brecoid)==521) {//charged B
+      if (filename.find("Run1") != std::string::npos) weight = 0.9031;
+      if (filename.find("Run2") != std::string::npos) weight = 0.9522;
+      if (filename.find("Run3") != std::string::npos) weight = 1.1003;
+      if (filename.find("Run4") != std::string::npos) weight = 0.9543;
+      if (filename.find("Run5") != std::string::npos) weight = 0.9750;
+    } else if (abs(brecoid)==511) {//neutral B
+      if (filename.find("Run1") != std::string::npos) weight = 0.8709;
+      if (filename.find("Run2") != std::string::npos) weight = 0.9272;
+      if (filename.find("Run3") != std::string::npos) weight = 0.9994;
+      if (filename.find("Run4") != std::string::npos) weight = 0.9346;
+      if (filename.find("Run5") != std::string::npos) weight = 1.0000;
+    }
+
+  }
+
+  //see http://costard.lbl.gov/~kerstin/vubunf/r22/lumi_aug_dEdx.txt for numbers
+  if (this->IsCM2()&&REL==22) {
+    if (abs(brecoid)==521) {//charged B
+      if (filename.find("Run1") != std::string::npos) weight = 0.9478;
+      if (filename.find("Run2") != std::string::npos) weight = 1.0224;
+      if (filename.find("Run3") != std::string::npos) weight = 1.1181;
+      if (filename.find("Run4") != std::string::npos) weight = 1.0285;
+      if (filename.find("Run5") != std::string::npos) weight = 0.9430;
+      if (filename.find("Run6") != std::string::npos) weight = 1.0222;
+      //weight for the different widths of Ups(4S) to charged and neutral B
+      weight *= 1.065; //PDG 08
+    } else if (abs(brecoid)==511) {//neutral B
+      if (filename.find("Run1") != std::string::npos) weight = 0.9479;
+      if (filename.find("Run2") != std::string::npos) weight = 1.0266;
+      if (filename.find("Run3") != std::string::npos) weight = 1.1077;
+      if (filename.find("Run4") != std::string::npos) weight = 1.0392;
+      if (filename.find("Run5") != std::string::npos) weight = 0.9466;
+      if (filename.find("Run6") != std::string::npos) weight = 1.0017;
+    }
+
+  }
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getSignalSPWeight(int brecoid)
+{
+  /*
+    correct ratio of SP5/SP6 signal MC to reflect ratio of Run1-3/Run4 = 1.105 in data
+    do this by reweighting the SP5 events
+  */
+
+  double weight(1.);
+
+  std::string filename;
+  if (fChain!=0 && fChain->GetCurrentFile()!=0) filename = fChain->GetCurrentFile()->GetName();
+
+  if (this->IsCM2()) {
+
+    if(REL==14){  
+      if (filename.find("nre") != std::string::npos || filename.find("SP-2575") != std::string::npos) {
+	if (filename.find("Run1") != std::string::npos || 
+	    filename.find("Run2") != std::string::npos ||
+	    filename.find("Run3") != std::string::npos ||
+	    filename.find("SP5") != std::string::npos) weight = 1.128;
+      } else if (filename.find("mix") != std::string::npos || filename.find("SP-3618") != std::string::npos) {
+	if (filename.find("Run1") != std::string::npos ||
+	    filename.find("Run2") != std::string::npos ||
+	    filename.find("Run3") != std::string::npos ||
+	    filename.find("SP5") != std::string::npos) weight = 0.908;
+      }
+    }
+    //see http://costard.lbl.gov/~kerstin/vubunf/ana32/mayprod.txt for numbers
+    if(REL==18){
+      if (abs(brecoid)==521) {//charged B
+	if (filename.find("Run1") != std::string::npos) weight = 0.9866;
+	if (filename.find("Run2") != std::string::npos) weight = 0.9964;
+	if (filename.find("Run3") != std::string::npos) weight = 0.9999;
+	if (filename.find("Run4") != std::string::npos) weight = 1.0135;
+	if (filename.find("Run5") != std::string::npos) weight = 1.0260;
+      } else if (abs(brecoid)==511) {//neutral B
+	if (filename.find("Run1") != std::string::npos) weight = 0.9616;
+	if (filename.find("Run2") != std::string::npos) weight = 0.9711;
+	if (filename.find("Run3") != std::string::npos) weight = 0.9746;
+	if (filename.find("Run4") != std::string::npos) weight = 0.9878;
+	if (filename.find("Run5") != std::string::npos) weight = 1.0000;
+      }
+    }
+  //see http://costard.lbl.gov/~kerstin/vubunf/r22/lumi_aug_dEdx.txt for numbers
+    if(REL==22){
+      if (filename.find("nre") || filename.find("2575")) {//nonres
+	if (filename.find("Run1") != std::string::npos) weight = 1.00480;
+	if (filename.find("Run2") != std::string::npos) weight = 1.01509;
+	if (filename.find("Run3") != std::string::npos) weight = 1.01881;
+	if (filename.find("Run4") != std::string::npos) weight = 1.03343;
+	if (filename.find("Run5") != std::string::npos) weight = 1.04648;
+	if (filename.find("Run6") != std::string::npos) weight = 0.87661;
+      } else if (filename.find("mix") || filename.find("6333")) {//res
+	if (filename.find("Run1") != std::string::npos) weight = 1.02049;
+	if (filename.find("Run2") != std::string::npos) weight = 1.03094;
+	if (filename.find("Run3") != std::string::npos) weight = 1.03471;
+	if (filename.find("Run4") != std::string::npos) weight = 1.04956;
+	if (filename.find("Run5") != std::string::npos) weight = 1.06282;
+	if (filename.find("Run6") != std::string::npos) weight = 0.82760;
+      }
+      if (abs(brecoid)==521) {//charged B
+	//weight for the different widths of Ups(4S) to charged and neutral B
+	weight *= 1.065; //PDG 08
+      }
+    }
+  }// if (this->IsCM2())
+
+  // std::cout << "Debug: found filename " << filename << " with weight " << weight << std::endl;
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getchMultWeight(int n){
+  double weight = 1.;
+
+  switch (n) {
+  case 1 : {
+    weight = 1.14401;
+    break;
+  }
+  case 2 : {
+    weight = 1.21387;
+    break;
+  }
+  case 3 : {
+    weight = 0.915328;
+    break;
+  }
+  case 4 : {
+    weight = 1.04196;
+    break;
+  }
+  case 5 : {
+    weight = 0.941904;
+    break;
+  }
+  case 6 : {
+    weight = 1.21008;
+    break;
+  }
+  case 7 : {
+    weight = 0.896795;
+    break;
+  }
+  case 8 : {
+    weight = 2.10644;
+    break;
+  }
+  case 9 : {
+    weight = 0.357248;
+    break;
+  }
+  default : {
+    weight = 1.;
+  }
+  }
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getneuMultWeight(int n){
+  double weight = 1.;
+
+  switch (n) {
+  case 0 : {
+    weight = 1.04348;
+    break;
+  }
+  case 1 : {
+    weight = 1.04293;
+    break;
+  }
+  case 2 : {
+    weight = 1.00682;
+    break;
+  }
+  case 3 : {
+    weight = 1.01679;
+    break;
+  }
+  case 4 : {
+    weight = 1.00121;
+    break;
+  }
+  case 5 : {
+    weight = 0.995124;
+    break;
+  }
+  case 6 : {
+    weight = 0.957862;
+    break;
+  }
+  case 7 : {
+    weight = 0.90838;
+    break;
+  }
+  case 8 : {
+    weight = 0.96284;
+    break;
+  }
+  case 9 : {
+    weight = 0.951542;
+    break;
+  }
+  default : {
+    weight = 1.;
+  }
+  }
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getchneuMultWeight(int n){
+  double weight = 1.;
+
+//   if(n==0) weight = 0;
+//   if(n==1) weight = 0;
+//   if(n==2) weight = 0;
+//   if(n==3) weight = 0;
+//   if(n==4) weight = 0;
+//   if(n==5) weight = 0;
+//   if(n==6) weight = 0;
+//   if(n==7) weight = 0;
+//   if(n==8) weight = 0;
+//   if(n==9) weight = 0;
+//   if(n==10) weight = 0;
+//   if(n==11) weight = 1.18966;
+//   if(n==12) weight = 1.12342;
+//   if(n==13) weight = 1.13897;
+//   if(n==14) weight = 1.15699;
+//   if(n==15) weight = 1.15962;
+//   if(n==16) weight = 1.09224;
+//   if(n==17) weight = 1.09825;
+//   if(n==18) weight = 1.22358;
+//   if(n==19) weight = 1.18677;
+//   if(n==20) weight = 1.27828;
+//   if(n==21) weight = 1.2994;
+//   if(n==22) weight = 1.20982;
+//   if(n==23) weight = 1.25371;
+//   if(n==24) weight = 1.21369;
+//   if(n==25) weight = 1.2126;
+//   if(n==26) weight = 1.0901;
+//   if(n==27) weight = 1.0253;
+//   if(n==28) weight = 1.27012;
+//   if(n==29) weight = 1.03082;
+//   if(n==30) weight = 0.939775;
+//   if(n==31) weight = 0.975415;
+//   if(n==32) weight = 0.953067;
+//   if(n==33) weight = 0.947631;
+//   if(n==34) weight = 0.925501;
+//   if(n==35) weight = 0.881854;
+//   if(n==36) weight = 0.870012;
+//   if(n==37) weight = 0.81927;
+//   if(n==38) weight = 0.810704;
+//   if(n==39) weight = 0.889399;
+//   if(n==40) weight = 0.98276;
+//   if(n==41) weight = 1.08558;
+//   if(n==42) weight = 1.01836;
+//   if(n==43) weight = 1.0753;
+//   if(n==44) weight = 1.00329;
+//   if(n==45) weight = 1.05602;
+//   if(n==46) weight = 0.962155;
+//   if(n==47) weight = 0.928049;
+//   if(n==48) weight = 0.971594;
+//   if(n==49) weight = 0.958591;
+//   if(n==50) weight = 0.971433;
+//   if(n==51) weight = 0.937;
+//   if(n==52) weight = 0.938961;
+//   if(n==53) weight = 0.911728;
+//   if(n==54) weight = 0.959005;
+//   if(n==55) weight = 1.02468;
+//   if(n==56) weight = 1.02638;
+//   if(n==57) weight = 0.98212;
+//   if(n==58) weight = 0.790171;
+//   if(n==59) weight = 0.650012;
+//   if(n==60) weight = 0.929493;
+//   if(n==61) weight = 1.23471;
+//   if(n==62) weight = 1.17836;
+//   if(n==63) weight = 1.08139;
+//   if(n==64) weight = 1.13011;
+//   if(n==65) weight = 1.35408;
+//   if(n==66) weight = 2.573;
+//   if(n==67) weight = 1.54327;
+//   if(n==68) weight = 0.931088;
+//   if(n==69) weight = 0.252119;
+//   if(n==70) weight = 0.706442;
+//   if(n==71) weight = 0.971585;
+//   if(n==72) weight = 1.08814;
+//   if(n==73) weight = 0.852398;
+//   if(n==74) weight = 1.2263;
+//   if(n==75) weight = 0.871189;
+//   if(n==76) weight = 0.599361;
+//   if(n==77) weight = 0.334216;
+//   if(n==78) weight = 1.48185;
+//   if(n==79) weight = 0.505474;
+//   if(n==80) weight = 2.52572;
+//   if(n==81) weight = 2.47743;
+//   if(n==82) weight = 0.968837;
+//   if(n==83) weight = 2.64109;
+//   if(n==84) weight = 5.95881;
+//   if(n==85) weight = 33.8764;
+//   if(n==86) weight = 1.;    
+//   if(n==87) weight = 0;
+//   if(n==88) weight = 1.;
+//   if(n==89) weight = 1.;
+//   if(n==90) weight = 0.202957;
+//   if(n==91) weight = 1.60573;
+//   if(n==92) weight = 1.;
+//   if(n==93) weight = 1.39343;
+//   if(n==94) weight = 0;
+//   if(n==95) weight = 0.16367;
+//   if(n==96) weight = 0.238703;
+//   if(n==97) weight = 0;
+//   if(n==98) weight = 0;
+//   if(n==99) weight = 0.833905;
+  if(n==0) weight = 0;
+  if(n==1) weight = 0;
+  if(n==2) weight = 0;
+  if(n==3) weight = 0;
+  if(n==4) weight = 0;
+  if(n==5) weight = 0;
+  if(n==6) weight = 0;
+  if(n==7) weight = 0;
+  if(n==8) weight = 0;
+  if(n==9) weight = 0;
+  if(n==10) weight = 0;
+  if(n==11) weight = 1.19609;
+  if(n==12) weight = 1.1352;
+  if(n==13) weight = 1.14288;
+  if(n==14) weight = 1.15909;
+  if(n==15) weight = 1.15936;
+  if(n==16) weight = 1.0904;
+  if(n==17) weight = 1.10515;
+  if(n==18) weight = 1.21813;
+  if(n==19) weight = 1.18649;
+  if(n==20) weight = 1.2018;
+  if(n==21) weight = 1.24642;
+  if(n==22) weight = 1.21731;
+  if(n==23) weight = 1.28041;
+  if(n==24) weight = 1.21584;
+  if(n==25) weight = 1.25203;
+  if(n==26) weight = 1.11535;
+  if(n==27) weight = 1.08852;
+  if(n==28) weight = 1.25043;
+  if(n==29) weight = 0.955999;
+  if(n==30) weight = 0.931374;
+  if(n==31) weight = 0.927347;
+  if(n==32) weight = 0.922054;
+  if(n==33) weight = 0.93816;
+  if(n==34) weight = 0.917005;
+  if(n==35) weight = 0.859898;
+  if(n==36) weight = 0.844164;
+  if(n==37) weight = 0.779033;
+  if(n==38) weight = 0.744892;
+  if(n==39) weight = 0.838604;
+  if(n==40) weight = 0.948425;
+  if(n==41) weight = 1.06308;
+  if(n==42) weight = 1.00732;
+  if(n==43) weight = 1.11882;
+  if(n==44) weight = 1.03614;
+  if(n==45) weight = 1.10453;
+  if(n==46) weight = 1.12689;
+  if(n==47) weight = 1.14486;
+  if(n==48) weight = 1.14052;
+  if(n==49) weight = 0.768249;
+  if(n==50) weight = 0.95407;
+  if(n==51) weight = 0.909807;
+  if(n==52) weight = 0.853348;
+  if(n==53) weight = 0.873286;
+  if(n==54) weight = 0.899031;
+  if(n==55) weight = 1.04785;
+  if(n==56) weight = 1.07685;
+  if(n==57) weight = 0.743415;
+  if(n==58) weight = 0.781707;
+  if(n==59) weight = 0.673171;
+  if(n==60) weight = 0.267308;
+  if(n==61) weight = 1.20313;
+  if(n==62) weight = 0.981664;
+  if(n==63) weight = 0.494732;
+  if(n==64) weight = 0.51979;
+  if(n==65) weight = 1.42681;
+  if(n==66) weight = 4.11028;
+  if(n==67) weight = 0.861117;
+  if(n==68) weight = 0.528136;
+  if(n==69) weight = 6.92525;
+  if(n==70) weight = 0.765811;
+  if(n==71) weight = 1.24971;
+  if(n==72) weight = 0.603811;
+  if(n==73) weight = 0.836935;
+  if(n==74) weight = 0.837795;
+  if(n==75) weight = 0.0696849;
+  if(n==76) weight = 0.185581;
+  if(n==77) weight = 0.0577841;
+  if(n==78) weight = 2.28842;
+  if(n==79) weight = 0;
+  if(n==80) weight = 0;
+  if(n==81) weight = 14.1606;
+  if(n==82) weight = 1.21979;
+  if(n==83) weight = 22.941;
+  if(n==84) weight = 0;
+  if(n==85) weight = 1.33026;
+  if(n==86) weight = 1.41244;
+  if(n==87) weight = 1.;
+  if(n==88) weight = 29.5513;
+  if(n==89) weight = -0;
+  if(n==90) weight = 0;
+  if(n==91) weight = 0;
+  if(n==92) weight = 0;
+  if(n==93) weight = 0;
+  if(n==94) weight = 0;
+  if(n==95) weight = 1.45785;
+  if(n==96) weight = 0;
+  if(n==97) weight = 0;
+  if(n==98) weight = 0;
+  if(n==99) weight = 0;
+  
+  if(DEPL){
+    if(n==0) weight = 0;
+    if(n==1) weight = 0;
+    if(n==2) weight = 0;
+    if(n==3) weight = 0;
+    if(n==4) weight = 0;
+    if(n==5) weight = 0;
+    if(n==6) weight = 0;
+    if(n==7) weight = 0;
+    if(n==8) weight = 0;
+    if(n==9) weight = 0;
+    if(n==10) weight = 0;
+    if(n==11) weight = 0.650227;
+    if(n==12) weight = 0.177155;
+    if(n==13) weight = 0.792868;
+    if(n==14) weight = 0.900229;
+    if(n==15) weight = 1.18909;
+    if(n==16) weight = 1.43747;
+    if(n==17) weight = 0.352729;
+    if(n==18) weight = 2.20375;
+    if(n==19) weight = 1.22942;
+    if(n==20) weight = 1.55734;
+    if(n==21) weight = 1.44684;
+    if(n==22) weight = 1.19103;
+    if(n==23) weight = 1.18519;
+    if(n==24) weight = 1.20806;
+    if(n==25) weight = 1.10932;
+    if(n==26) weight = 1.01801;
+    if(n==27) weight = 0.868662;
+    if(n==28) weight = 1.32597;
+    if(n==29) weight = 1.25504;
+    if(n==30) weight = 0.94928;
+    if(n==31) weight = 1.02713;
+    if(n==32) weight = 0.986303;
+    if(n==33) weight = 0.957893;
+    if(n==34) weight = 0.935088;
+    if(n==35) weight = 0.908303;
+    if(n==36) weight = 0.904803;
+    if(n==37) weight = 0.881666;
+    if(n==38) weight = 0.93637;
+    if(n==39) weight = 1.00459;
+    if(n==40) weight = 0.998069;
+    if(n==41) weight = 1.09314;
+    if(n==42) weight = 1.022;
+    if(n==43) weight = 1.06083;
+    if(n==44) weight = 0.992006;
+    if(n==45) weight = 1.03812;
+    if(n==46) weight = 0.902238;
+    if(n==47) weight = 0.846481;
+    if(n==48) weight = 0.889802;
+    if(n==49) weight = 1.06739;
+    if(n==50) weight = 0.978382;
+    if(n==51) weight = 0.948285;
+    if(n==52) weight = 0.977729;
+    if(n==53) weight = 0.929401;
+    if(n==54) weight = 0.990965;
+    if(n==55) weight = 1.01241;
+    if(n==56) weight = 0.995292;
+    if(n==57) weight = 1.14544;
+    if(n==58) weight = 0.795494;
+    if(n==59) weight = 0.63043;
+    if(n==60) weight = 1.00875;
+    if(n==61) weight = 1.2379;
+    if(n==62) weight = 1.20085;
+    if(n==63) weight = 1.14468;
+    if(n==64) weight = 1.19266;
+    if(n==65) weight = 1.34134;
+    if(n==66) weight = 2.47239;
+    if(n==67) weight = 1.75862;
+    if(n==68) weight = 1.02378;
+    if(n==69) weight = 0.586784;
+    if(n==70) weight = 0.694209;
+    if(n==71) weight = 0.922705;
+    if(n==72) weight = 1.22063;
+    if(n==73) weight = 0.856006;
+    if(n==74) weight = 1.27662;
+    if(n==75) weight = 1.1445;
+    if(n==76) weight = 0.739294;
+    if(n==77) weight = 0.429151;
+    if(n==78) weight = 1.27505;
+    if(n==79) weight = 0.655784;
+    if(n==80) weight = 2.63425;
+    if(n==81) weight = 2.31542;
+    if(n==82) weight = 0.940186;
+    if(n==83) weight = 2.54083;
+    if(n==84) weight = 6.81194;
+    if(n==85) weight = 1.;
+    if(n==86) weight = 1.;
+    if(n==87) weight = 0;
+    if(n==88) weight = 1.;
+    if(n==89) weight = 1.;
+    if(n==90) weight = 0;
+    if(n==91) weight = 1.69596;
+    if(n==92) weight = 1.;
+    if(n==93) weight = 1.57583;
+    if(n==94) weight = 0;
+    if(n==95) weight = 0;
+    if(n==96) weight = 0.238703;
+    if(n==97) weight = 0;
+    if(n==98) weight = 0;
+    if(n==99) weight = 0.833905;
+  }
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getpKWeight(double pk){
+  double weight = 1.;
+
+  if(pk > 0 && pk < 0.05) weight = 0.564648;
+  if(pk > 0.05 && pk < 0.1) weight = 2.3907;
+  if(pk > 0.1 && pk < 0.15) weight = 1.19813;
+  if(pk > 0.15 && pk < 0.2) weight = 0.928292;
+  if(pk > 0.2 && pk < 0.25) weight = 0.936409;
+  if(pk > 0.25 && pk < 0.3) weight = 0.922574;
+  if(pk > 0.3 && pk < 0.35) weight = 1.05056;
+  if(pk > 0.35 && pk < 0.4) weight = 1.08761;
+  if(pk > 0.4 && pk < 0.45) weight = 0.976235;
+  if(pk > 0.45 && pk < 0.5) weight = 1.00571;
+  if(pk > 0.5 && pk < 0.55) weight = 0.954774;
+  if(pk > 0.55 && pk < 0.6) weight = 1.00161;
+  if(pk > 0.6 && pk < 0.65) weight = 1.09167;
+  if(pk > 0.65 && pk < 0.7) weight = 1.1354;
+  if(pk > 0.7 && pk < 0.75) weight = 0.957767;
+  if(pk > 0.75 && pk < 0.8) weight = 0.908979;
+  if(pk > 0.8 && pk < 0.85) weight = 0.973297;
+  if(pk > 0.85 && pk < 0.9) weight = 0.926903;
+  if(pk > 0.9 && pk < 0.95) weight = 0.949736;
+  if(pk > 0.95 && pk < 1) weight = 1.02206;
+  if(pk > 1 && pk < 1.05) weight = 1.03784;
+  if(pk > 1.05 && pk < 1.1) weight = 1.01962;
+  if(pk > 1.1 && pk < 1.15) weight = 0.98137;
+  if(pk > 1.15 && pk < 1.2) weight = 0.954524;
+  if(pk > 1.2 && pk < 1.25) weight = 0.968756;
+  if(pk > 1.25 && pk < 1.3) weight = 0.923319;
+  if(pk > 1.3 && pk < 1.35) weight = 0.984665;
+  if(pk > 1.35 && pk < 1.4) weight = 0.97012;
+  if(pk > 1.4 && pk < 1.45) weight = 1.07387;
+  if(pk > 1.45 && pk < 1.5) weight = 1.04445;
+  if(pk > 1.5 && pk < 1.55) weight = 1.1974;
+  if(pk > 1.55 && pk < 1.6) weight = 1.0909;
+  if(pk > 1.6 && pk < 1.65) weight = 1.0771;
+  if(pk > 1.65 && pk < 1.7) weight = 0.949731;
+  if(pk > 1.7 && pk < 1.75) weight = 0.85409;
+  if(pk > 1.75 && pk < 1.8) weight = 1.00427;
+  if(pk > 1.8 && pk < 1.85) weight = 1.04317;
+  if(pk > 1.85 && pk < 1.9) weight = 0.974817;
+  if(pk > 1.9 && pk < 1.95) weight = 0.815793;
+  if(pk > 1.95 && pk < 2) weight = 1.09506;
+  if(pk > 2 && pk < 2.05) weight = 1.28604;
+  if(pk > 2.05 && pk < 2.1) weight = 0.776684;
+  if(pk > 2.1 && pk < 2.15) weight = 0.879084;
+  if(pk > 2.15 && pk < 2.2) weight = 1.11348;
+  if(pk > 2.2 && pk < 2.25) weight = 1.07684;
+  if(pk > 2.25 && pk < 2.3) weight = 0.467254;
+  if(pk > 2.3 && pk < 2.35) weight = 1.31404;
+  if(pk > 2.35 && pk < 2.4) weight = 1.30804;
+  if(pk > 2.4 && pk < 2.45) weight = 1.09751;
+  if(pk > 2.45 && pk < 2.5) weight = 1.08389;
+  if(pk > 2.5 && pk < 2.55) weight = 1.22908;
+  if(pk > 2.55 && pk < 2.6) weight = 0.905104;
+  if(pk > 2.6 && pk < 2.65) weight = 0.58496;
+  if(pk > 2.65 && pk < 2.7) weight = 1.80232;
+  if(pk > 2.7 && pk < 2.75) weight = 1.44641;
+  if(pk > 2.75 && pk < 2.8) weight = 1.16952;
+  if(pk > 2.8 && pk < 2.85) weight = 0.775122;
+  if(pk > 2.85 && pk < 2.9) weight = 1.30026;
+  if(pk > 2.9 && pk < 2.95) weight = 0.815776;
+  if(pk > 2.95 && pk < 3) weight = 0.71871;
+  
+//   if(pk > 0 && pk < 0.05) weight = 0.631344;
+//   if(pk > 0.05 && pk < 0.1) weight = 1.34627;
+//   if(pk > 0.1 && pk < 0.15) weight = 1.37513;
+//   if(pk > 0.15 && pk < 0.2) weight = 0.912258;
+//   if(pk > 0.2 && pk < 0.25) weight = 0.926871;
+//   if(pk > 0.25 && pk < 0.3) weight = 0.957081;
+//   if(pk > 0.3 && pk < 0.35) weight = 0.936248;
+//   if(pk > 0.35 && pk < 0.4) weight = 1.03883;
+//   if(pk > 0.4 && pk < 0.45) weight = 1.0661;
+//   if(pk > 0.45 && pk < 0.5) weight = 0.963779;
+//   if(pk > 0.5 && pk < 0.55) weight = 0.963678;
+//   if(pk > 0.55 && pk < 0.6) weight = 0.97742;
+//   if(pk > 0.6 && pk < 0.65) weight = 1.08391;
+//   if(pk > 0.65 && pk < 0.7) weight = 1.10827;
+//   if(pk > 0.7 && pk < 0.75) weight = 0.941248;
+//   if(pk > 0.75 && pk < 0.8) weight = 0.942358;
+//   if(pk > 0.8 && pk < 0.85) weight = 0.968078;
+//   if(pk > 0.85 && pk < 0.9) weight = 0.981088;
+//   if(pk > 0.9 && pk < 0.95) weight = 0.971912;
+//   if(pk > 0.95 && pk < 1) weight = 1.03039;
+//   if(pk > 1 && pk < 1.05) weight = 1.05097;
+//   if(pk > 1.05 && pk < 1.1) weight = 1.04753;
+//   if(pk > 1.1 && pk < 1.15) weight = 1.0095;
+//   if(pk > 1.15 && pk < 1.2) weight = 0.953672;
+//   if(pk > 1.2 && pk < 1.25) weight = 1.01268;
+//   if(pk > 1.25 && pk < 1.3) weight = 0.959623;
+//   if(pk > 1.3 && pk < 1.35) weight = 1.0094;
+//   if(pk > 1.35 && pk < 1.4) weight = 0.984043;
+//   if(pk > 1.4 && pk < 1.45) weight = 1.04311;
+//   if(pk > 1.45 && pk < 1.5) weight = 1.11687;
+//   if(pk > 1.5 && pk < 1.55) weight = 1.08437;
+//   if(pk > 1.55 && pk < 1.6) weight = 1.02497;
+//   if(pk > 1.6 && pk < 1.65) weight = 1.05465;
+//   if(pk > 1.65 && pk < 1.7) weight = 0.927749;
+//   if(pk > 1.7 && pk < 1.75) weight = 0.909371;
+//   if(pk > 1.75 && pk < 1.8) weight = 0.91081;
+//   if(pk > 1.8 && pk < 1.85) weight = 1.17212;
+//   if(pk > 1.85 && pk < 1.9) weight = 1.02443;
+//   if(pk > 1.9 && pk < 1.95) weight = 0.862468;
+//   if(pk > 1.95 && pk < 2) weight = 0.993537;
+//   if(pk > 2 && pk < 2.05) weight = 1.03836;
+//   if(pk > 2.05 && pk < 2.1) weight = 0.879155;
+//   if(pk > 2.1 && pk < 2.15) weight = 0.883176;
+//   if(pk > 2.15 && pk < 2.2) weight = 1.19818;
+//   if(pk > 2.2 && pk < 2.25) weight = 1.07616;
+//   if(pk > 2.25 && pk < 2.3) weight = 0.697369;
+//   if(pk > 2.3 && pk < 2.35) weight = 1.27172;
+//   if(pk > 2.35 && pk < 2.4) weight = 1.09131;
+//   if(pk > 2.4 && pk < 2.45) weight = 1.01398;
+//   if(pk > 2.45 && pk < 2.5) weight = 0.904517;
+//   if(pk > 2.5 && pk < 2.55) weight = 1.37704;
+//   if(pk > 2.55 && pk < 2.6) weight = 0.943717;
+//   if(pk > 2.6 && pk < 2.65) weight = 0.609223;
+//   if(pk > 2.65 && pk < 2.7) weight = 1.69898;
+//   if(pk > 2.7 && pk < 2.75) weight = 1.27954;
+//   if(pk > 2.75 && pk < 2.8) weight = 1.38342;
+//   if(pk > 2.8 && pk < 2.85) weight = 0.798391;
+//   if(pk > 2.85 && pk < 2.9) weight = 1.39082;
+//   if(pk > 2.9 && pk < 2.95) weight = 0.614496;
+//   if(pk > 2.95 && pk < 3) weight = 0.824479;
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+double mXClass::getmm2Weight(double mmsq){
+  double weight = 1.;
+
+  if(mmsq > -5 && mmsq < -4.75) weight = 2.06071;
+  if(mmsq > -4.75 && mmsq < -4.5) weight = 1.27183;
+  if(mmsq > -4.5 && mmsq < -4.25) weight = 2.34968;
+  if(mmsq > -4.25 && mmsq < -4) weight = 1.45525;
+  if(mmsq > -4 && mmsq < -3.75) weight = 1.01326;
+  if(mmsq > -3.75 && mmsq < -3.5) weight = 0.835163;
+  if(mmsq > -3.5 && mmsq < -3.25) weight = 1.51252;
+  if(mmsq > -3.25 && mmsq < -3) weight = 1.50284;
+  if(mmsq > -3 && mmsq < -2.75) weight = 1.36256;
+  if(mmsq > -2.75 && mmsq < -2.5) weight = 0.865064;
+  if(mmsq > -2.5 && mmsq < -2.25) weight = 1.08519;
+  if(mmsq > -2.25 && mmsq < -2) weight = 1.35739;
+  if(mmsq > -2 && mmsq < -1.75) weight = 1.36874;
+  if(mmsq > -1.75 && mmsq < -1.5) weight = 1.54578;
+  if(mmsq > -1.5 && mmsq < -1.25) weight = 1.11976;
+  if(mmsq > -1.25 && mmsq < -1) weight = 0.942081;
+  if(mmsq > -1 && mmsq < -0.75) weight = 1.04894;
+  if(mmsq > -0.75 && mmsq < -0.5) weight = 1.03736;
+  if(mmsq > -0.5 && mmsq < -0.25) weight = 0.919207;
+  if(mmsq > -0.25 && mmsq < 0) weight = 0.810572;
+  if(mmsq > 0 && mmsq < 0.25) weight = 0.943096;
+  if(mmsq > 0.25 && mmsq < 0.5) weight = 0.991898;
+  if(mmsq > 0.5 && mmsq < 0.75) weight = 1.04325;
+  if(mmsq > 0.75 && mmsq < 1) weight = 1.02179;
+  if(mmsq > 1 && mmsq < 1.25) weight = 1.0671;
+  if(mmsq > 1.25 && mmsq < 1.5) weight = 0.984809;
+  if(mmsq > 1.5 && mmsq < 1.75) weight = 1.03596;
+  if(mmsq > 1.75 && mmsq < 2) weight = 1.04116;
+  if(mmsq > 2 && mmsq < 2.25) weight = 0.9878;
+  if(mmsq > 2.25 && mmsq < 2.5) weight = 1.01076;
+  if(mmsq > 2.5 && mmsq < 2.75) weight = 1.02708;
+  if(mmsq > 2.75 && mmsq < 3) weight = 0.90598;
+  if(mmsq > 3 && mmsq < 3.25) weight = 1.17349;
+  if(mmsq > 3.25 && mmsq < 3.5) weight = 1.04183;
+  if(mmsq > 3.5 && mmsq < 3.75) weight = 0.918634;
+  if(mmsq > 3.75 && mmsq < 4) weight = 0.961935;
+  if(mmsq > 4 && mmsq < 4.25) weight = 1.04165;
+  if(mmsq > 4.25 && mmsq < 4.5) weight = 1.04195;
+  if(mmsq > 4.5 && mmsq < 4.75) weight = 0.965532;
+  if(mmsq > 4.75 && mmsq < 5) weight = 0.804903;
+  if(mmsq > 5 && mmsq < 5.25) weight = 1.0017;
+  if(mmsq > 5.25 && mmsq < 5.5) weight = 1.06752;
+  if(mmsq > 5.5 && mmsq < 5.75) weight = 1.12315;
+  if(mmsq > 5.75 && mmsq < 6) weight = 1.18208;
+  if(mmsq > 6 && mmsq < 6.25) weight = 1.13556;
+  if(mmsq > 6.25 && mmsq < 6.5) weight = 0.921954;
+  if(mmsq > 6.5 && mmsq < 6.75) weight = 1.02558;
+  if(mmsq > 6.75 && mmsq < 7) weight = 1.10259;
+  if(mmsq > 7 && mmsq < 7.25) weight = 0.961959;
+  if(mmsq > 7.25 && mmsq < 7.5) weight = 0.850096;
+  if(mmsq > 7.5 && mmsq < 7.75) weight = 0.897281;
+  if(mmsq > 7.75 && mmsq < 8) weight = 0.923746;
+  if(mmsq > 8 && mmsq < 8.25) weight = 0.985226;
+  if(mmsq > 8.25 && mmsq < 8.5) weight = 0.995589;
+  if(mmsq > 8.5 && mmsq < 8.75) weight = 1.1463;
+  if(mmsq > 8.75 && mmsq < 9) weight = 1.22949;
+  if(mmsq > 9 && mmsq < 9.25) weight = 1.12591;
+  if(mmsq > 9.25 && mmsq < 9.5) weight = 0.96964;
+  if(mmsq > 9.5 && mmsq < 9.75) weight = 0.682473;
+  if(mmsq > 9.75 && mmsq < 10) weight = 0.881182;
+  if(mmsq > 10 && mmsq < 10.25) weight = 1.1706;
+  if(mmsq > 10.25 && mmsq < 10.5) weight = 0.952063;
+  if(mmsq > 10.5 && mmsq < 10.75) weight = 1.26122;
+  if(mmsq > 10.75 && mmsq < 11) weight = 0.920333;
+  if(mmsq > 11 && mmsq < 11.25) weight = 1.26696;
+  if(mmsq > 11.25 && mmsq < 11.5) weight = 0.914205;
+  if(mmsq > 11.5 && mmsq < 11.75) weight = 0.857348;
+  if(mmsq > 11.75 && mmsq < 12) weight = 0.834014;
+  if(mmsq > 12 && mmsq < 12.25) weight = 1.0922;
+  if(mmsq > 12.25 && mmsq < 12.5) weight = 1.13039;
+  if(mmsq > 12.5 && mmsq < 12.75) weight = 0.572053;
+  if(mmsq > 12.75 && mmsq < 13) weight = 0.928975;
+  if(mmsq > 13 && mmsq < 13.25) weight = 1.29528;
+  if(mmsq > 13.25 && mmsq < 13.5) weight = 1.08268;
+  if(mmsq > 13.5 && mmsq < 13.75) weight = 1.1659;
+  if(mmsq > 13.75 && mmsq < 14) weight = 1.01675;
+  if(mmsq > 14 && mmsq < 14.25) weight = 1.9804;
+  if(mmsq > 14.25 && mmsq < 14.5) weight = 1.0104;
+  if(mmsq > 14.5 && mmsq < 14.75) weight = 1.21589;
+  if(mmsq > 14.75 && mmsq < 15) weight = 0.483005;
+
+  if(DEPL){
+    if(mmsq > -5 && mmsq < -4.75) weight = 1.40498;
+    if(mmsq > -4.75 && mmsq < -4.5) weight = 0.884431;
+    if(mmsq > -4.5 && mmsq < -4.25) weight = 1.59774;
+    if(mmsq > -4.25 && mmsq < -4) weight = 1.15291;
+    if(mmsq > -4 && mmsq < -3.75) weight = 1.70858;
+    if(mmsq > -3.75 && mmsq < -3.5) weight = 0.584456;
+    if(mmsq > -3.5 && mmsq < -3.25) weight = 1.09302;
+    if(mmsq > -3.25 && mmsq < -3) weight = 1.2857;
+    if(mmsq > -3 && mmsq < -2.75) weight = 0.849243;
+    if(mmsq > -2.75 && mmsq < -2.5) weight = 1.24263;
+    if(mmsq > -2.5 && mmsq < -2.25) weight = 1.58986;
+    if(mmsq > -2.25 && mmsq < -2) weight = 1.32409;
+    if(mmsq > -2 && mmsq < -1.75) weight = 1.30029;
+    if(mmsq > -1.75 && mmsq < -1.5) weight = 1.09886;
+    if(mmsq > -1.5 && mmsq < -1.25) weight = 1.05722;
+    if(mmsq > -1.25 && mmsq < -1) weight = 1.0918;
+    if(mmsq > -1 && mmsq < -0.75) weight = 1.058;
+    if(mmsq > -0.75 && mmsq < -0.5) weight = 0.99165;
+    if(mmsq > -0.5 && mmsq < -0.25) weight = 0.937934;
+    if(mmsq > -0.25 && mmsq < 0) weight = 0.934469;
+    if(mmsq > 0 && mmsq < 0.25) weight = 0.902212;
+    if(mmsq > 0.25 && mmsq < 0.5) weight = 0.970336;
+    if(mmsq > 0.5 && mmsq < 0.75) weight = 1.01509;
+    if(mmsq > 0.75 && mmsq < 1) weight = 1.0478;
+    if(mmsq > 1 && mmsq < 1.25) weight = 1.08005;
+    if(mmsq > 1.25 && mmsq < 1.5) weight = 1.04053;
+    if(mmsq > 1.5 && mmsq < 1.75) weight = 1.00097;
+    if(mmsq > 1.75 && mmsq < 2) weight = 1.08442;
+    if(mmsq > 2 && mmsq < 2.25) weight = 1.00619;
+    if(mmsq > 2.25 && mmsq < 2.5) weight = 0.969756;
+    if(mmsq > 2.5 && mmsq < 2.75) weight = 1.05554;
+    if(mmsq > 2.75 && mmsq < 3) weight = 1.03453;
+    if(mmsq > 3 && mmsq < 3.25) weight = 0.971356;
+    if(mmsq > 3.25 && mmsq < 3.5) weight = 1.02365;
+    if(mmsq > 3.5 && mmsq < 3.75) weight = 1.00774;
+    if(mmsq > 3.75 && mmsq < 4) weight = 0.982704;
+    if(mmsq > 4 && mmsq < 4.25) weight = 1.05343;
+    if(mmsq > 4.25 && mmsq < 4.5) weight = 1.04951;
+    if(mmsq > 4.5 && mmsq < 4.75) weight = 1.13157;
+    if(mmsq > 4.75 && mmsq < 5) weight = 1.17896;
+    if(mmsq > 5 && mmsq < 5.25) weight = 1.09316;
+    if(mmsq > 5.25 && mmsq < 5.5) weight = 1.0773;
+    if(mmsq > 5.5 && mmsq < 5.75) weight = 0.989686;
+    if(mmsq > 5.75 && mmsq < 6) weight = 1.13194;
+    if(mmsq > 6 && mmsq < 6.25) weight = 1.08565;
+    if(mmsq > 6.25 && mmsq < 6.5) weight = 1.05994;
+    if(mmsq > 6.5 && mmsq < 6.75) weight = 1.10188;
+    if(mmsq > 6.75 && mmsq < 7) weight = 1.15377;
+    if(mmsq > 7 && mmsq < 7.25) weight = 1.15647;
+    if(mmsq > 7.25 && mmsq < 7.5) weight = 0.90365;
+    if(mmsq > 7.5 && mmsq < 7.75) weight = 1.17688;
+    if(mmsq > 7.75 && mmsq < 8) weight = 1.2363;
+    if(mmsq > 8 && mmsq < 8.25) weight = 1.13084;
+    if(mmsq > 8.25 && mmsq < 8.5) weight = 1.08143;
+    if(mmsq > 8.5 && mmsq < 8.75) weight = 0.984699;
+    if(mmsq > 8.75 && mmsq < 9) weight = 0.939637;
+    if(mmsq > 9 && mmsq < 9.25) weight = 1.28694;
+    if(mmsq > 9.25 && mmsq < 9.5) weight = 1.12651;
+    if(mmsq > 9.5 && mmsq < 9.75) weight = 1.18174;
+    if(mmsq > 9.75 && mmsq < 10) weight = 0.983374;
+    if(mmsq > 10 && mmsq < 10.25) weight = 1.01171;
+    if(mmsq > 10.25 && mmsq < 10.5) weight = 1.05181;
+    if(mmsq > 10.5 && mmsq < 10.75) weight = 1.10302;
+    if(mmsq > 10.75 && mmsq < 11) weight = 1.07414;
+    if(mmsq > 11 && mmsq < 11.25) weight = 1.45712;
+    if(mmsq > 11.25 && mmsq < 11.5) weight = 1.21771;
+    if(mmsq > 11.5 && mmsq < 11.75) weight = 1.10053;
+    if(mmsq > 11.75 && mmsq < 12) weight = 1.05365;
+    if(mmsq > 12 && mmsq < 12.25) weight = 0.798536;
+    if(mmsq > 12.25 && mmsq < 12.5) weight = 0.76504;
+    if(mmsq > 12.5 && mmsq < 12.75) weight = 1.04532;
+    if(mmsq > 12.75 && mmsq < 13) weight = 0.958675;
+    if(mmsq > 13 && mmsq < 13.25) weight = 1.70209;
+    if(mmsq > 13.25 && mmsq < 13.5) weight = 1.31963;
+    if(mmsq > 13.5 && mmsq < 13.75) weight = 0.802806;
+    if(mmsq > 13.75 && mmsq < 14) weight = 1.53123;
+    if(mmsq > 14 && mmsq < 14.25) weight = 0.591354;
+    if(mmsq > 14.25 && mmsq < 14.5) weight = 2.0721;
+    if(mmsq > 14.5 && mmsq < 14.75) weight = 0.871471;
+    if(mmsq > 14.75 && mmsq < 15) weight = 1.36891;
+  }
+
+  return weight;
+}
+
+// ----------------------------------------------------------------------
+int mXClass::rHistmx(double cmx){
+  double   histRbA[14] = {0.0, 1.2,  1.341, 1.414, 1.549, 1.612,  1.732, 1.843,  1.949,  2.5, 3.0, 3.5, 4.0, 4.5};	  
+  // Mx categories
+  if(cmx<=histRbA[0]) return 0;
+  for(int i =0; i <13; i++) { 
+    if(cmx>histRbA[i] && cmx<=histRbA[i+1]) return i;
+  }
+
+  return 13;
+    
+}
+
+// ----------------------------------------------------------------------
+int mXClass::newrHistmx(double cmx){
+
+  double   histRbA[8] = {0.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 3.5};	  
+  // Mx categories
+  for(int i =0; i <8; i++)   if(cmx<histRbA[i]) return i-1;
+  
+  return 7;
+  
+}
+
+
+// ----------------------------------------------------------------------
+int mXClass::newbinrHistmx(double cmx){
+
+  double   histRbA[8] = {0.0, 1.4, 1.6, 1.8, 2.0, 2.5, 3.0, 3.5};	  
+  // Mx categories
+  for(int i =0; i <8; i++)   if(cmx<histRbA[i]) return i-1;
+  
+  return 7;
+  
+}
+
+
+// ----------------------------------------------------------------------
+int mXClass::rHistel(double bmx){
+  double   histREl[8]= { 0.0,0.5,1.,1.25,1.5,1.75,2.0,2.25};                                                               
+  // El
+  if(bmx<=histREl[0]) return 0;
+  for(int i =0; i <7; i++) { 
+    if(bmx>histREl[i] && bmx<=histREl[i+1]) return i; 
+  }
+  return 7;
+  
+}
+
+
+// ----------------------------------------------------------------------
+int mXClass::rHistq2(double amx){
+  double   histRQ2[8] = { 0.0,2.5,5.,7.5,10.,12.5,15.,20};
+  // Q2
+  if(amx<=histRQ2[0]) return 0;
+  for(int i =0; i <7; i++) {
+    if(amx>histRQ2[i] && amx<=histRQ2[i+1]) return i;
+  }
+  return 7;
+  
+}
+
+// ----------------------------------------------------------------------
+void mXClass::readWeights(const int runFlag) {
+  // read hybrid weights
+  //----------------------------------------------
+  int mxbin, q2bin, elbin; double WVal; char buffer2[200];
+  char label[20];
+  char binName[100];
+  sprintf(buffer2, "%s", fWeightFile.Data());
+  ifstream is3(buffer2);
+
+  if (!is3) {
+    std::cout << "Error: weight file " << buffer2 << " not found! Exiting!" << std::endl;
+    exit(EXIT_FAILURE);
+  } else {
+    std::cout << "Reading fermi weights from file " << buffer2 << std::endl;
+  }
+
+  if(fprlRew==10) {
+    cout <<"  reweighting 'a la Fortin "<<endl;
+    for (int ys=0;ys<1024;ys++){
+      is3.getline(buffer2, 200, '\n');
+      sscanf(buffer2, "%s%lf", label,&WVal);
+      if(WVal<0) {WVal =0;}
+      newMatrixW[ys] = WVal;
+      //cout<<"newMatrixW[ys]:: "<<newMatrixW[ys]<<" "<<ys<<endl;
+      //cout<<"wsys_3  "<<wsys<<"  WVAl  " <<WVal<<endl;
+    }
+  } else if(fprlRew==11) {
+    cout <<"  reweighting 'a la Fortin with the latest mx binning"<<endl;
+    for (int ys=0;ys<1024;ys++){
+      is3.getline(buffer2, 200, '\n');
+      sscanf(buffer2, "%s%lf", label,&WVal);
+      if(WVal<0) {WVal =0;}
+      newMatrixW[ys] = WVal;
+      //cout<<"newMatrixW[ys]:: "<<newMatrixW[ys]<<" "<<ys<<endl;
+      //cout<<"wsys_3  "<<wsys<<"  WVAl  " <<WVal<<endl;
+    }
+  } else if(fprlRew==12) {
+    std::cout << "  reweighting 'a la Fortin with the latest mx binning" << std::endl;
+
+    fprlRew=11; // to apply the weights as assumed
+
+    std::vector<double> inputs, bf(13);
+
+    std::string buffer;
+    while (getline(is3, buffer, '\n')) {
+      if (buffer[0] == '#') continue;
+      if (buffer.empty()) continue;
+      
+      std::istringstream bufferstream(buffer.c_str());
+      int ok(0);
+      std::string tag;
+      
+      if (bufferstream >> tag) {
+	// read the rest of line
+	std::string equal; 
+	bufferstream >> equal;
+
+	// check for consitency
+	if (equal != "=") {
+	  std::string input; bufferstream >> input;
+	  std::cout << "Error: input of file " << fWeightFile << " inconsistend "
+		    << "(" << tag << " " << equal << " " << input << " )! Exiting!" << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+
+	if (tag.find("weight") != std::string::npos) {
+	  double d; if (bufferstream >> d) { inputs.push_back(d); ok = 1; }
+	} else {
+	  if (tag == "pi+")    { double d; if (bufferstream >> d) { bf[ 0] = d; ok = 1; }}
+	  if (tag == "pi0")    { double d; if (bufferstream >> d) { bf[ 1] = d; ok = 1; }}
+	  if (tag == "eta0")   { double d; if (bufferstream >> d) { bf[ 2] = d; ok = 1; }}
+	  if (tag == "rho+")   { double d; if (bufferstream >> d) { bf[ 3] = d; ok = 1; }}
+	  if (tag == "rho0")   { double d; if (bufferstream >> d) { bf[ 4] = d; ok = 1; }}
+	  if (tag == "omega0") { double d; if (bufferstream >> d) { bf[ 5] = d; ok = 1; }}
+	  if (tag == "etap0")  { double d; if (bufferstream >> d) { bf[ 6] = d; ok = 1; }}
+	  if (tag == "Xu+")    { double d; if (bufferstream >> d) { bf[ 7] = d; bf[ 8] = d; ok = 1; }}
+	  if (tag == "Xu0")    { double d; if (bufferstream >> d) { bf[ 9] = d; bf[10] = d; ok = 1; }}
+	  if (tag == "tot+")   { double d; if (bufferstream >> d) { bf[11] = d; ok = 1; }}
+	  if (tag == "tot0")   { double d; if (bufferstream >> d) { bf[12] = d; ok = 1; }}
+
+	  if (tag == "form")   { ok = 1; }
+	  if (tag == "mb")     { ok = 1; }
+	  if (tag == "a")      { ok = 1; }
+	}
+
+	if (ok == 0) std::cout << "Warning: Don't know about variable " << tag 
+			       << " in file " << fWeightFile << std::endl;
+      
+      }
+    } // while (getline(is, buffer, '\n'))
+
+    // check if enought weights read
+    if (inputs.size() != 1024) {
+      std::cout << "Error: file " << fWeightFile << " has only " << inputs.size() << " / 1024 weights! Exiting!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    
+    // copy over and apply corrections
+    for (int i(0); i<inputs.size(); ++i) {
+      if (inputs[i] < 0.) inputs[i] = 0.;
+      newMatrixW[i] = inputs[i];
+    }
+
+    // calculate wfermi weights for SP5/SP6 for CM2 in 10^-4
+    const double bfSP5[] = { 0.18, 0.09, 0.03, 0.26, 0.13, 0.13, 0.06, 0.616, 0.616, 0.616, 0.616, 1.351, 1.346 };
+    const int nonr[] = { 5546000, 6255888, 5660000 }; // SP5, effective SP5, SP6
+    const int res[]  = { 2772000, 2516976, 2278000 }; // SP5, effective SP5, SP6
+
+    double ratio = 1.;
+    if (runFlag == 1 || runFlag ==2 || runFlag == 3 || runFlag == 12) {
+      ratio = double(res[1])/double(nonr[1]);
+    } else if (runFlag == 4) {
+      ratio = double(res[2])/double(nonr[2]);
+    } else if (runFlag == 14) {
+      ratio = double(res[1]+res[2])/double(nonr[1]+nonr[2]);
+    }
+
+    compmod.wfermivec.resize(11);
+    for (int i(0); i < 7; ++i) compmod.wfermivec[i] = bf[i]/bfSP5[i];
+    compmod.wfermivec[ 7] = ratio * bf[7]/(bfSP5[11]-bfSP5[7]) * 0.8512;
+    compmod.wfermivec[ 8] = 0.; // this number is for CM1 -> use wfermifile.dat instead
+    compmod.wfermivec[ 9] = ratio * bf[9]/(bfSP5[12]-bfSP5[9]) * 0.81247;
+    compmod.wfermivec[10] = 0.; // this number is for CM1 -> use wfermifile.dat instead
+
+    if(REL==18 || REL==22){
+      // calculate wfermi weights for SP8 for CM2 in 10^-4
+      const double bfSP8[] = { 0.133, 0.072, 0.084, 0.269, 0.145, 0.145, 0.084, 0.697, 0., 0.820};//the last two neq 0. here are the sum over all exclusive modes produced, first B0 then B+
+      int nonr = 11512000; // SP8
+      int res  = 11512000; // SP8
+      
+      if(REL==22){
+	nonr = 17697065;
+	res = 17973304;
+      }
+
+      double ratio = 1.;
+      ratio = double(res)/double(nonr);
+      
+      compmod.wfermivec.resize(11);
+      for (int i(0); i < 7; ++i) compmod.wfermivec[i] = bf[i]/bfSP8[i];
+      compmod.wfermivec[ 7] = ratio * bf[7]/(bfSP8[7]) * 0.8443; //the last number corrects for the taus in the exclusive sample
+      compmod.wfermivec[ 8] = 0.; // this number is for CM1 -> use wfermifile.dat instead
+      compmod.wfermivec[ 9] = ratio * bf[9]/(bfSP8[9]) * 0.8295;
+      compmod.wfermivec[10] = 0.; // this number is for CM1 -> use wfermifile.dat instead
+
+      cout << "The magic k factors" << endl;
+      cout << compmod.wfermivec[7] << endl;
+      cout << compmod.wfermivec[9] << endl;
+
+    }
+  } else {
+    cout <<" No known reweighting applied: "<<fprlRew<<endl;
+  }
+
+  return;
+}
+
+void mXClass::doBkgSub(int mult){
+
+  char name[100];
+  //Background subtraction
+  double  tempbin,temperr,tempbinvcb,tempbinerrvcb,temperrvcb;
+  double  tempbinoth,tempbinerroth,temperroth;
+
+  fHistFile->cd();
+
+  if(UNFBINNING){
+    cout << "vubcomp " << vubcomp << endl;
+    cout << "vcbcomp " << vcbcomp << endl;
+    cout << "errvcbcomp " << errvcbcomp << endl;
+    cout << "othcomp " << othcomp << endl;
+    cout << "errothcomp " << errothcomp << endl;
+  }
+
+  for(int ik=1;ik<nB;ik++){
+    sprintf(name, "%s","datachop");	         
+    tempbin = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik);
+    temperr = ((TH1D*)gDirectory->Get(name))->GetBinError(ik);
+
+    sprintf(name, "%s","vcbchop");
+    tempbinvcb = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * vcbcomp;
+    tempbinerrvcb = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * vcbcomp;
+    temperrvcb = tempbinvcb * errvcbcomp / vcbcomp;
+    
+    sprintf(name, "%s","otherchop");	         
+    tempbinoth = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * othcomp;
+    tempbinerroth = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * othcomp;
+    temperroth = tempbinoth * errothcomp / othcomp;     
+
+    tempbin = tempbin - tempbinvcb - tempbinoth;
+    temperr = sqrt(temperr*temperr + tempbinerrvcb*tempbinerrvcb + tempbinerroth*tempbinerroth);
+
+    sprintf(name, "%s","subdatachop");	 
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(ik, tempbin);
+    ((TH1D*)gDirectory->Get(name))->SetBinError(ik, temperr); 
+  }	
+  if(mult){
+    for(int jk=1; jk<6; jk++){
+      cout << "The " << jk << "s mult cat subtraction" << endl;
+      for(int ik=1;ik<nB;ik++){
+        sprintf(name, "%s%d","datachop",jk);	         
+        tempbin = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik);
+        temperr = ((TH1D*)gDirectory->Get(name))->GetBinError(ik);
+        sprintf(name, "%s%d","vcbchop",jk);	         
+        tempbinvcb = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * vcbcompcat[jk-1];
+        tempbinerrvcb = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * vcbcompcat[jk-1];
+        temperrvcb = tempbinvcb * errvcbcompcat[jk-1] / vcbcompcat[jk-1];
+        sprintf(name, "%s%d","otherchop",jk);	         
+        tempbinoth = ((TH1D*)gDirectory->Get(name))->GetBinContent(ik) * othcompcat[jk-1];
+        tempbinerroth = ((TH1D*)gDirectory->Get(name))->GetBinError(ik) * othcompcat[jk-1];
+        temperroth = tempbinoth * errothcompcat[jk-1] / othcompcat[jk-1];     
+        tempbin = tempbin - tempbinvcb - tempbinoth;
+        temperr = sqrt(temperr*temperr + tempbinerrvcb*tempbinerrvcb + tempbinerroth*tempbinerroth);
+        sprintf(name, "%s%d","subdatachop",jk);	 
+        ((TH1D*)gDirectory->Get(name))->SetBinContent(ik, tempbin);
+        ((TH1D*)gDirectory->Get(name))->SetBinError(ik, temperr); 
+      }	
+    }
+  }
+
+  //Rescaling of mX or q2 histograms
+  //cb take care of pathological fits (e.g. depleted sample) 
+  double vubcoef=vubcomp;
+  if(vubcomp<0.0001) vubcoef=vubcompNOMC;
+
+  ((TH1D*)gDirectory->Get("SCotherchop"))->Add(((TH1D*)gDirectory->Get("otherchop")),othcomp);
+  ((TH1D*)gDirectory->Get("SCvubchop"))->Add(((TH1D*)gDirectory->Get("vubchop")),vubcoef);
+ 
+
+  //Making allBkg and allMC histos
+  ((TH1D*)gDirectory->Get("allbkgchop"))->Add(((TH1D*)gDirectory->Get("vcbchop")),((TH1D*)gDirectory->Get("otherchop")),vcbcomp,othcomp);
+  ((TH1D*)gDirectory->Get("allmcchop"))->Add(((TH1D*)gDirectory->Get("allbkgchop")),((TH1D*)gDirectory->Get("vubchop")),1,vubcoef);
+  
+}
+
+// ----------------------------------------------------------------------
+
+void chi2vec(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
+  double chi2, tempchi, tempsig2;
+  chi2 = tempchi = tempsig2 = 0;
+  for(int i=0; i<5; i++){
+    for(int j=0; j<5; j++){
+      tempchi += multmatrix[i][j] * par[j];
+      tempsig2 += pow(par[j]+datmult[i],2) * multmatrix[i][j];
+      for(int k=0; k<5; k++)
+	if(k!=i)
+	  tempsig2 += pow(datmult[i],2) * multmatrix[k][j];
+      if(j!=i)
+	tempsig2 += pow(datmult[i]*vubsum*datmulterr[j]/datsum,2);
+    }
+    tempsig2 += pow((vubsum/datsum - datmult[i]*vubsum/datsum) * datmulterr[i],2);
+    chi2 += pow(tempchi - datmult[i]*vubsum,2)/tempsig2;
+    tempchi = 0;
+    tempsig2 = 0;
+  }
+  f=chi2;
+}
+
+void mXClass::UnfHistos(int mult){
+
+  // The m_X distributions, split up by charge, so we can use correctinratios
+  TH1D* mxgenwoph = new TH1D("mxgenwoph","mxhadgen wo photons",nB-1,0.,chophighB);
+  TH1D* mxgenwoph_alllep = new TH1D("mxgenwoph_alllep","mxhadgen wo photons, no El cut",nB-1,0.,chophighB);
+  TH1D* mxgenwoph_fit = new TH1D("mxgenwoph_fit","mxhadgen wo photons - fitted mult cat",nB-1,0.,chophighB);
+  TH1D* mxreco = new TH1D("mxreco","mxreco",nB-1,0.,chophighB);
+  TH1D* mxreco3 = new TH1D("mxreco3","mxreco3",nB-1,0.,chophighB);
+  TH1D* mxreco4 = new TH1D("mxreco4","mxreco4",nB-1,0.,chophighB);
+  TH1D* mxreco5 = new TH1D("mxreco5","mxreco5",nB-1,0.,chophighB);
+  TH2D* detmat = new TH2D("detmat","detector response",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat3 = new TH2D("detmat3","detector response 3",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat4 = new TH2D("detmat4","detector response 4",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat5 = new TH2D("detmat5","detector response 5",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat_alllep = new TH2D("detmat_alllep","detector response, no El cut",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat3_alllep = new TH2D("detmat3_alllep","detector response 3, no El cut",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat4_alllep = new TH2D("detmat4_alllep","detector response 4, no El cut",nB-1,0.,chophighB,nB-1,0.,chophighB);
+  TH2D* detmat5_alllep = new TH2D("detmat5_alllep","detector response 5, no El cut",nB-1,0.,chophighB,nB-1,0.,chophighB);
+
+  mxgenwoph->Sumw2();
+  mxgenwoph_alllep->Sumw2();
+  mxgenwoph_fit->Sumw2();
+  mxreco->Sumw2();
+  mxreco3->Sumw2();
+  mxreco4->Sumw2();
+  mxreco5->Sumw2();
+  detmat->Sumw2();
+  detmat3->Sumw2();
+  detmat4->Sumw2();
+  detmat5->Sumw2();
+  detmat_alllep->Sumw2();
+  detmat3_alllep->Sumw2();
+  detmat4_alllep->Sumw2();
+  detmat5_alllep->Sumw2();
+
+  // Multiplicity category distributions
+  TH1D* h_multgen = new TH1D("h_multgen","multiplicity category generated",6,0.,6.);
+  TH1D* h_mult = new TH1D("h_mult","multiplicity category",6,0.,6.);
+  TH1D* h_mult3 = new TH1D("h_mult3","multiplicity category 3",6,0.,6.);
+  TH1D* h_mult4 = new TH1D("h_mult4","multiplicity category 4",6,0.,6.);
+  TH1D* h_mult5 = new TH1D("h_mult5","multiplicity category 5",6,0.,6.);
+  TH2D* multmat = new TH2D("multmat","multiplicity categories matrix",6,0.,6.,6,0.,6.);
+  TH2D* multmat3 = new TH2D("multmat3","multiplicity categories matrix 3",6,0.,6.,6,0.,6.);
+  TH2D* multmat4 = new TH2D("multmat4","multiplicity categories matrix 4",6,0.,6.,6,0.,6.);
+  TH2D* multmat5 = new TH2D("multmat5","multiplicity categories matrix 5",6,0.,6.,6,0.,6.);
+  //these are just for understanding some more about our detector and reconstruction
+  TH2D* multmatpiz = new TH2D("multmatpiz","multiplicity categories matrix pi0",6,0.,6.,6,0.,6.);
+  TH2D* multmatpic = new TH2D("multmatpic","multiplicity categories matrix charged pi",6,0.,6.,6,0.,6.);
+  TH2D* multmatrhoz = new TH2D("multmatrhoz","multiplicity categories matrix rho0",6,0.,6.,6,0.,6.);
+  TH2D* multmatrhoc = new TH2D("multmatrhoc","multiplicity categories matrix charged rho",6,0.,6.,6,0.,6.);
+  TH2D* multprobmat = new TH2D("multprobmat","multiplicity categories probability matrix",6,0.,6.,6,0.,6.);
+  h_multgen->Sumw2();
+  h_mult->Sumw2();
+  h_mult3->Sumw2();
+  h_mult4->Sumw2();
+  h_mult5->Sumw2();
+  multmat->Sumw2();
+  multmat3->Sumw2();
+  multmat4->Sumw2();
+  multmat5->Sumw2();
+  multmatpiz->Sumw2();
+  multmatpic->Sumw2();
+  multmatrhoz->Sumw2();
+  multmatrhoc->Sumw2();
+  multprobmat->Sumw2();
+  
+  // The m_ES distributions, for understanding the truth matching
+  TH1D* mES = new TH1D("mES","mES after cuts",60,5.18,5.30);
+  TH1D* mESqual = new TH1D("mESqual","mES after cuts and truth matching",60,5.18,5.30);
+  TH1D* mES1 = new TH1D("mES1","mES after cuts",60,5.18,5.30);
+  TH1D* mESqual1 = new TH1D("mESqual1","mES after cuts and truth matching",60,5.18,5.30);
+  TH1D* mES2 = new TH1D("mES2","mES after cuts",60,5.18,5.30);
+  TH1D* mESqual2 = new TH1D("mESqual2","mES after cuts and truth matching",60,5.18,5.30);
+  TH1D* mES3 = new TH1D("mES3","mES after cuts",60,5.18,5.30);
+  TH1D* mESqual3 = new TH1D("mESqual3","mES after cuts and truth matching",60,5.18,5.30);
+  TH1D* mES4 = new TH1D("mES4","mES after cuts",60,5.18,5.30);
+  TH1D* mESqual4 = new TH1D("mESqual4","mES after cuts and truth matching",60,5.18,5.30);
+
+
+  char unfcuts[100];
+
+  //for the charge and mixing corrections
+  double chid = 0.188;
+  double tempbinchb(0.), tempbinb0os(0.), tempbinb0ss(0.), tempbin(0.);
+  double tempchberr(0.), tempb0oserr(0.), tempb0sserr(0.), temperr(0.);
+
+  if(mult){
+    // Get the factors to apply to the different multiplicity categories.
+    double recweights[5], genweights[5], recweightserr[5];
+    TMatrix recmat(5,5), mult2d(5,5), tempmat(5,5), genmat(5,5);
+    double genmult[5], genmultrew[5], recmult[5], recmulterr[5];
+
+    // Initializations
+    for(int i=0; i<5; i++){
+      recweights[i] = genweights[i] = recweightserr[i] = 0.;
+      genmult[i] = genmultrew[i] = recmult[i] = recmulterr[i] = 0.;
+      for(int j=0; j<5; j++){
+	recmat(i,j) = 0.;      mult2d(i,j) = 0.;
+	tempmat(i,j) = 0.;     genmat(i,j) = 0.;
+	multmatrix[i][j] = 0.;
+      }
+    }
+
+    sprintf(unfcuts,"%s%f","elmom>",TRUELEPTONPCUT);
+    unftmcvub->fillHistogram(h_multgen,RooArgList(*Vmultcatgen),unfcuts);
+    //these need to have the charge and mixing corrections now
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 && flavB==3");
+    unfmcvub->fillHistogram(h_mult3,RooArgList(*Vmultcat),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 && flavB==4");
+    unfmcvub->fillHistogram(h_mult4,RooArgList(*Vmultcat),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 && flavB==5");
+    unfmcvub->fillHistogram(h_mult5,RooArgList(*Vmultcat),unfcuts);
+
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 && allmes>5.27&& flavB==3 && elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmat3,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 && allmes>5.27&& flavB==4 && elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmat4,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 && allmes>5.27&& flavB==5 && elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmat5,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    //these are the detmats for some more understanding of the detector response
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 &&allmes>5.27&&vxbtyp==-11&&elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmatpiz,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 &&allmes>5.27&&vxbtyp==11&&elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmatpic,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 &&allmes>5.27&&vxbtyp==-13&&elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmatrhoz,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+    sprintf(unfcuts,"%s%f","lepYaSe && trumtch==2 &&allmes>5.27&&vxbtyp==13&&elmom>",TRUELEPTONPCUT);
+    unfmcvub->fillHistogram(multmatrhoc,RooArgList(*Vmultcat,*Vmultcatgen),unfcuts);
+
+    //now get the real histos
+    for(int i=1; i<nB; i++){
+      tempbinchb = h_mult3->GetBinContent(i)*correctionratiovcb;
+      tempbinb0os = h_mult4->GetBinContent(i);
+      tempbinb0ss = h_mult5->GetBinContent(i);
+      tempchberr = h_mult3->GetBinError(i)*correctionratiovcb;
+      tempb0oserr = h_mult4->GetBinError(i);
+      tempb0sserr = h_mult5->GetBinError(i);
+      tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+      temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+      h_mult->SetBinContent(i, tempbin);
+      h_mult->SetBinError(i, temperr);
+      for(int j=1; j<nB; j++){
+	tempbinchb = multmat3->GetBinContent(i,j)*correctionratiovcb;
+	tempbinb0os = multmat4->GetBinContent(i,j);
+	tempbinb0ss = multmat5->GetBinContent(i,j);
+	tempchberr = multmat3->GetBinError(i,j)*correctionratiovcb;
+	tempb0oserr = multmat4->GetBinError(i,j);
+	tempb0sserr = multmat5->GetBinError(i,j);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	multmat->SetBinContent(i,j, tempbin);
+	multmat->SetBinError(i,j, temperr);
+      }
+    }
+
+    cout << "2d matrix probability version" << endl;
+
+    double tempval;
+
+    // Move to probability matrix (not for the fit)
+    for(int i=1; i<7; i++){
+      if(i<6) genmult[i-1] = h_multgen->GetBinContent(i+1);
+      if(i<6) recmult[i-1] = h_mult->GetBinContent(i+1);
+      if(i<6) vubmult[i-1] = recmult[i-1];
+      for(int j=1; j<7; j++){
+	multprobmat->SetBinContent(i,j,multmat->GetBinContent(i,j)/h_multgen->GetBinContent(j));
+	cout <<  multmat->GetBinContent(i,j)/h_multgen->GetBinContent(j) << "  " << multprobmat->GetBinContent(i,j) << endl;
+      }
+    }
+
+    for(int i=1; i<6; i++){
+      for(int j=1; j<6; j++){
+	tempval = multprobmat->GetBinContent(i+1,j+1);
+	mult2d(i-1,j-1) = tempval;
+	tempval = multmat->GetBinContent(i+1,j+1);
+	multmatrix[i-1][j-1] = tempval;
+	cout << i-1 << " " << j-1 << "  " << mult2d(i-1,j-1) << endl;
+      }
+    }
+
+    // Get inverse
+    Double_t *det = new Double_t;
+    TMatrix invmult2d(mult2d);
+    invmult2d.Invert(det);
+
+    // Inversion ok?
+    if(*det==0) cout << "Matrix inversion failed..." << endl;
+
+    // Weights for reco
+    cout << "Weights for reco " << endl;
+
+    vubsum = 0;
+    for(int i=0; i<5; i++)
+      vubsum += vubmult[i];
+    for(int i=0; i<5; i++){
+      cout << "vubmult" << vubmult[i] << endl;
+      vubmult[i] = vubmult[i]/vubsum;
+      cout << "vubmult weight" << vubmult[i] << endl;
+    }
+
+    for(int i=0; i<5; i++){
+      recweights[i] = datmult[i]/vubmult[i];
+      recmat(i,i) = recweights[i];
+      recweightserr[i] = pow((1/vubmult[i]/datsum - datmult[i]/datsum/vubmult[i])*datmulterr[i],2);
+      cout << i << " " << recweightserr[i] << endl;
+      recweightserr[i] +=  pow((datmult[i]/vubmult[i]/vubsum - datmult[i]/vubmult[i]/vubmult[i]/vubsum),2)*vubmult[i]*vubsum;
+      cout << i << " " << recweightserr[i] << endl;
+      for(int j=0; j<5; j++)
+        if(j!=i){
+          recweightserr[i] += pow((datmult[i]/datsum/vubmult[i])*datmulterr[j],2); 
+          cout << i << " " << recweightserr[i] << endl;
+          recweightserr[i] += pow(datmult[i]/vubmult[i]/vubsum,2)*vubmult[j]*vubsum;
+          cout << i << " " << recweightserr[i] << endl;
+        }
+
+      recweightserr[i] = sqrt(recweightserr[i]);
+      cout << i << " " << recweightserr[i] << endl;
+      cout << i << " " << recweights[i] <<"+-" << recweightserr[i] << "  " << recmat(i,i) << endl;
+    }
+    
+    tempmat.Mult(recmat, mult2d);
+    genmat.Mult(invmult2d,tempmat);
+
+    // Calculation of xtilde
+    for(int i=0; i<5; i++)
+      for(int j=0; j<5; j++)
+	genmultrew[i] += genmat(i,j) * genmult[j];
+
+    // xtilde via minimization
+    double wtilde0, wtilde1, wtilde2, wtilde3, wtilde4, errwtilde[5], wtilde[5];
+    wtilde0 = wtilde1 = wtilde2 = wtilde3 = wtilde4 = 0;
+    TMinuit xMinuit(5);
+    int ierflg;
+    // initialize minuit
+    xMinuit.SetFCN(chi2vec);
+
+    xMinuit.mnparm(0, "wtilde0",  1., 0.001, 0., 10., ierflg);
+    xMinuit.mnparm(1, "wtilde1",  1., 0.001, 0., 10., ierflg);
+    xMinuit.mnparm(2, "wtilde2",  1., 0.001, 0., 10., ierflg);
+    xMinuit.mnparm(3, "wtilde3",  1., 0.001, 0., 10., ierflg);
+    xMinuit.mnparm(4, "wtilde4",  1., 0.001, 0., 10., ierflg);
+
+    Double_t arglis[10];
+    arglis[0] = 10000; // maxcalls
+    arglis[1] = 0.001;  // tolerance
+    xMinuit.mnexcm("HESSE", arglis, 0, ierflg);
+    xMinuit.mnexcm("MIGRAD", arglis, 2, ierflg);
+    xMinuit.mnexcm("HESSE", arglis, 0, ierflg);
+    for(int i=0; i<5; i++)
+      xMinuit.GetParameter(i,wtilde[i],errwtilde[i]);
+
+    cout << "The test" << endl;
+    double thetest[5], xtest[5];
+    for(int i=0; i<5; i++){
+      thetest[i] = xtest[i] = 0;
+      cout << "btilde " << recmult[i]*recweights[i] << endl;
+      cout << "check chi2 " << datmult[i]*vubsum << endl;
+      for(int j=0; j<5; j++)
+	thetest[i] += mult2d(i,j) * genmultrew[j];
+      cout << "Axtilde   " << i << "  " << thetest[i] << endl;
+      thetest[i] = 0;
+      for(int j=0; j<5; j++)
+	thetest[i] += multmatrix[i][j] * wtilde[j];
+      cout << "AEwtilde fit " << i << "  " << thetest[i] << endl;
+    }
+
+    cout << "The reweighted gen vector and weights" << endl;
+
+    for(int i=0; i<5; i++){
+      cout << i << "  " << genmultrew[i] << endl;
+      genmultrew[i] = genmultrew[i]/genmult[i];
+      cout << i << "  " << genmultrew[i] << endl;
+      cout << i << " wtilde  " << wtilde[i] << endl;
+      cout << i << " errwtilde  " << errwtilde[i] << endl;
+    }
+
+    char name[100];
+    TH1 *h;  TH2 *h2;
+    for(int i=1; i<6; i++){
+      sprintf(name,"%s%d", "mxhadgenwoph",i); h = new TH1D(name, name, nB - 1, 0., chophighB);  h->Sumw2();
+      sprintf(name,"%s%d", "mxhad",i); h = new TH1D(name, name, nB - 1, 0., chophighB);  h->Sumw2();
+      sprintf(name,"%s%d", "detmat",i); h2 = new TH2D(name, name, nB - 1, 0., chophighB, nB-1, 0., chophighB);  h2->Sumw2();
+      //for the charge and mixing corrections
+      for(int j=3; j<6; j++){
+	sprintf(name,"%s%d%d", "mxhad",i,j); h = new TH1D(name, name, nB - 1, 0., chophighB);  h->Sumw2();
+	sprintf(name,"%s%d%d", "detmat",i,j); h2 = new TH2D(name, name, nB - 1, 0., chophighB, nB-1, 0., chophighB);  h2->Sumw2();
+      }
+    }
+
+    for(int i=1; i<6; i++){
+      sprintf(name,"%s%d", "mxhadgenwoph",i);
+      sprintf(unfcuts,"%s%d%s%f","multcatgen==",i,"&&elmom>",TRUELEPTONPCUT);
+      unftmcvub->fillHistogram(((TH1D*)gDirectory->Get(name)),RooArgList(*Vmxgenwoph),unfcuts);
+      //for the charge and mixing corrections
+      for(int j=3; j<6; j++){
+	sprintf(name,"%s%d%d", "mxhad",i,j);
+	sprintf(unfcuts,"%s%d%s%d","lepYaSe && trumtch==2 &&allmes>5.27 && multcat==",i,"&&flavB==",j);
+	unfmcvub->fillHistogram(((TH1D*)gDirectory->Get(name)),RooArgList(*Vchop),unfcuts);
+	sprintf(name,"%s%d%d", "detmat",i,j);
+	sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27 && multcat==",i,"&&elmom>",TRUELEPTONPCUT,"&&flavB==",j);
+	unfmcvub->fillHistogram(((TH2D*)gDirectory->Get(name)),RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      }
+    }
+
+    //now do the charge and mixing corrections
+
+    for(int i=1; i<6; i++){
+      for(int bi=1; bi<nB; bi++){
+	sprintf(name,"%s%d%d", "mxhad",i,3);
+
+	tempbinchb = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi)*correctionratiovcb;
+	tempchberr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi)*correctionratiovcb;
+	sprintf(name,"%s%d%d", "mxhad",i,4);
+	tempbinb0os = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi);
+	tempb0oserr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi);
+	sprintf(name,"%s%d%d", "mxhad",i,5);
+	tempbinb0ss = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi);
+	tempb0sserr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	sprintf(name,"%s%d%d", "mxhad",i);
+	((TH1D*)gDirectory->Get(name))->SetBinContent(bi, tempbin);
+	((TH1D*)gDirectory->Get(name))->SetBinError(bi, temperr);
+	for(int bj=1; bj<nB; bj++){
+	  sprintf(name,"%s%d%d", "detmat",i,3);
+	  
+	  tempbinchb = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi,bj)*correctionratiovcb;
+	  tempchberr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi,bj)*correctionratiovcb;
+	  sprintf(name,"%s%d%d", "detmat",i,4);
+	  tempbinb0os = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi,bj);
+	  tempb0oserr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi,bj);
+	  sprintf(name,"%s%d%d", "detmat",i,5);
+	  tempbinb0ss = ((TH1D*)gDirectory->Get(name))->GetBinContent(bi,bj);
+	  tempb0sserr = ((TH1D*)gDirectory->Get(name))->GetBinError(bi,bj);
+	  tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	  temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	  sprintf(name,"%s%d%d", "detmat",i);
+	  ((TH1D*)gDirectory->Get(name))->SetBinContent(bi,bj, tempbin);
+	  ((TH1D*)gDirectory->Get(name))->SetBinError(bi,bj, temperr);
+	}
+      }
+    }
+
+    // Now sum them up with weights
+    mxgenwoph->Add(((TH1D*)gDirectory->Get("mxhadgenwoph1")),((TH1D*)gDirectory->Get("mxhadgenwoph2")),genmultrew[0],genmultrew[1]);
+    mxgenwoph->Add(((TH1D*)gDirectory->Get("mxhadgenwoph3")),genmultrew[2]);
+    mxgenwoph->Add(((TH1D*)gDirectory->Get("mxhadgenwoph4")),genmultrew[3]);
+    mxgenwoph->Add(((TH1D*)gDirectory->Get("mxhadgenwoph5")),genmultrew[4]);
+
+    mxgenwoph_fit->Add(((TH1D*)gDirectory->Get("mxhadgenwoph1")),((TH1D*)gDirectory->Get("mxhadgenwoph2")),wtilde[0],wtilde[1]);
+    mxgenwoph_fit->Add(((TH1D*)gDirectory->Get("mxhadgenwoph3")),wtilde[2]);
+    mxgenwoph_fit->Add(((TH1D*)gDirectory->Get("mxhadgenwoph4")),wtilde[3]);
+    mxgenwoph_fit->Add(((TH1D*)gDirectory->Get("mxhadgenwoph5")),wtilde[4]);
+
+    mxreco->Add(((TH1D*)gDirectory->Get("mxhad1")),((TH1D*)gDirectory->Get("mxhad2")),recweights[0],recweights[1]);
+    mxreco->Add(((TH1D*)gDirectory->Get("mxhad3")),recweights[2]);
+    mxreco->Add(((TH1D*)gDirectory->Get("mxhad4")),recweights[3]);
+    mxreco->Add(((TH1D*)gDirectory->Get("mxhad5")),recweights[4]);
+
+    detmat->Add(((TH1D*)gDirectory->Get("detmat1")),((TH1D*)gDirectory->Get("detmat2")),recweights[0],recweights[1]);
+    detmat->Add(((TH1D*)gDirectory->Get("detmat3")),recweights[2]);
+    detmat->Add(((TH1D*)gDirectory->Get("detmat4")),recweights[3]);
+    detmat->Add(((TH1D*)gDirectory->Get("detmat5")),recweights[4]);
+
+    //write the histos for the different mult cats
+    ((TH1D*)gDirectory->Get("mxhadgenwoph1"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhadgenwoph2"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhadgenwoph3"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhadgenwoph4"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhadgenwoph5"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhad1"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhad2"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhad3"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhad4"))->Write();    
+    ((TH1D*)gDirectory->Get("mxhad5"))->Write();    
+    ((TH1D*)gDirectory->Get("detmat1"))->Write();    
+    ((TH1D*)gDirectory->Get("detmat2"))->Write();    
+    ((TH1D*)gDirectory->Get("detmat3"))->Write();    
+    ((TH1D*)gDirectory->Get("detmat4"))->Write();    
+    ((TH1D*)gDirectory->Get("detmat5"))->Write();    
+
+  }else{
+    if(MU){
+      sprintf(unfcuts,"%s%d%s%f","multcatgen==",MU,"&&elmom>",TRUELEPTONPCUT);
+      unftmcvub->fillHistogram(mxgenwoph,RooArgList(*Vmxgenwoph),unfcuts);
+    } else {
+      sprintf(unfcuts,"%s%f","elmom>",TRUELEPTONPCUT);
+      unftmcvub->fillHistogram(mxgenwoph,RooArgList(*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f","elmom>",0.);
+      unftmcvub->fillHistogram(mxgenwoph_alllep,RooArgList(*Vmxgenwoph),unfcuts);
+    }
+    if(MU){
+      sprintf(unfcuts,"%s%d%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&flavB==",3);
+      unfmcvub->fillHistogram(mxreco3,RooArgList(*Vchop),unfcuts);
+      sprintf(unfcuts,"%s%d%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&flavB==",4);
+      unfmcvub->fillHistogram(mxreco4,RooArgList(*Vchop),unfcuts);
+      sprintf(unfcuts,"%s%d%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&flavB==",5);
+      unfmcvub->fillHistogram(mxreco5,RooArgList(*Vchop),unfcuts);
+
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",TRUELEPTONPCUT,"&&flavB==",3);
+      unfmcvub->fillHistogram(detmat3,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",TRUELEPTONPCUT,"&&flavB==",4);
+      unfmcvub->fillHistogram(detmat4,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",TRUELEPTONPCUT,"&&flavB==",5);
+      unfmcvub->fillHistogram(detmat5,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",0.,"&&flavB==",3);
+      unfmcvub->fillHistogram(detmat3_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",0.,"&&flavB==",4);
+      unfmcvub->fillHistogram(detmat4_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%d%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&multcatgen==",MU,"&&elmom>",0.,"&&flavB==",5);
+      unfmcvub->fillHistogram(detmat5_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+
+      //now apply the charge and mixing corrections
+      for(int i=1; i<nB; i++){
+	tempbinchb = mxreco3->GetBinContent(i)*correctionratiovcb;
+	tempbinb0os = mxreco4->GetBinContent(i);
+	tempbinb0ss = mxreco5->GetBinContent(i);
+	tempchberr = mxreco3->GetBinError(i)*correctionratiovcb;
+	tempb0oserr = mxreco4->GetBinError(i);
+	tempb0sserr = mxreco5->GetBinError(i);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	mxreco->SetBinContent(i, tempbin);
+	mxreco->SetBinError(i, temperr);
+	for(int j=1; j<nB; j++){
+	  tempbinchb = detmat3->GetBinContent(i,j)*correctionratiovcb;
+	  tempbinb0os = detmat4->GetBinContent(i,j);
+	  tempbinb0ss = detmat5->GetBinContent(i,j);
+	  tempchberr = detmat3->GetBinError(i,j)*correctionratiovcb;
+	  tempb0oserr = detmat4->GetBinError(i,j);
+	  tempb0sserr = detmat5->GetBinError(i,j);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	detmat->SetBinContent(i,j, tempbin);
+	detmat->SetBinError(i,j, temperr);
+	}
+	for(int j=1; j<nB; j++){
+	  tempbinchb = detmat3_alllep->GetBinContent(i,j)*correctionratiovcb;
+	  tempbinb0os = detmat4_alllep->GetBinContent(i,j);
+	  tempbinb0ss = detmat5_alllep->GetBinContent(i,j);
+	  tempchberr = detmat3_alllep->GetBinError(i,j)*correctionratiovcb;
+	  tempb0oserr = detmat4_alllep->GetBinError(i,j);
+	  tempb0sserr = detmat5_alllep->GetBinError(i,j);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	detmat_alllep->SetBinContent(i,j, tempbin);
+	detmat_alllep->SetBinError(i,j, temperr);
+	}
+      }
+    } else {
+      sprintf(unfcuts,"%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&flavB==",3);
+      unfmcvub->fillHistogram(mxreco3,RooArgList(*Vchop),unfcuts);
+      sprintf(unfcuts,"%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&flavB==",4);
+      unfmcvub->fillHistogram(mxreco4,RooArgList(*Vchop),unfcuts);
+      sprintf(unfcuts,"%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&flavB==",5);
+      unfmcvub->fillHistogram(mxreco5,RooArgList(*Vchop),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",TRUELEPTONPCUT,"&&flavB==",3);
+      unfmcvub->fillHistogram(detmat3,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",TRUELEPTONPCUT,"&&flavB==",4);
+      unfmcvub->fillHistogram(detmat4,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",TRUELEPTONPCUT,"&&flavB==",5);
+      unfmcvub->fillHistogram(detmat5,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",0.,"&&flavB==",3);
+      unfmcvub->fillHistogram(detmat3_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",0.,"&&flavB==",4);
+      unfmcvub->fillHistogram(detmat4_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+      sprintf(unfcuts,"%s%f%s%d","lepYaSe && trumtch==2 &&allmes>5.27&&elmom>",0.,"&&flavB==",5);
+      unfmcvub->fillHistogram(detmat5_alllep,RooArgList(*Vchop,*Vmxgenwoph),unfcuts);
+
+      //now apply the charge and mixing corrections
+      for(int i=1; i<nB; i++){
+	tempbinchb = mxreco3->GetBinContent(i)*correctionratiovcb;
+	tempbinb0os = mxreco4->GetBinContent(i);
+	tempbinb0ss = mxreco5->GetBinContent(i);
+	tempchberr = mxreco3->GetBinError(i)*correctionratiovcb;
+	tempb0oserr = mxreco4->GetBinError(i);
+	tempb0sserr = mxreco5->GetBinError(i);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	mxreco->SetBinContent(i, tempbin);
+	mxreco->SetBinError(i, temperr);
+	for(int j=1; j<nB; j++){
+	  tempbinchb = detmat3->GetBinContent(i,j)*correctionratiovcb;
+	  tempbinb0os = detmat4->GetBinContent(i,j);
+	  tempbinb0ss = detmat5->GetBinContent(i,j);
+	  tempchberr = detmat3->GetBinError(i,j)*correctionratiovcb;
+	  tempb0oserr = detmat4->GetBinError(i,j);
+	  tempb0sserr = detmat5->GetBinError(i,j);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	detmat->SetBinContent(i,j, tempbin);
+	detmat->SetBinError(i,j, temperr);
+	}
+	for(int j=1; j<nB; j++){
+	  tempbinchb = detmat3_alllep->GetBinContent(i,j)*correctionratiovcb;
+	  tempbinb0os = detmat4_alllep->GetBinContent(i,j);
+	  tempbinb0ss = detmat5_alllep->GetBinContent(i,j);
+	  tempchberr = detmat3_alllep->GetBinError(i,j)*correctionratiovcb;
+	  tempb0oserr = detmat4_alllep->GetBinError(i,j);
+	  tempb0sserr = detmat5_alllep->GetBinError(i,j);
+	tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+	temperr = sqrt(tempchberr*tempchberr + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * tempb0oserr * tempb0oserr + (chid/(1-2*chid)) * (chid/(1-2*chid)) * tempb0sserr * tempb0sserr);
+	detmat_alllep->SetBinContent(i,j, tempbin);
+	detmat_alllep->SetBinError(i,j, temperr);
+	}
+      }
+    }
+
+    //The plots to check the truth matching
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2");   
+    unfmcvub->fillHistogram(mESqual,RooArgList(*Vallmes),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe");
+    unfmcvub->fillHistogram(mES,RooArgList(*Vallmes),unfcuts);
+    
+    //Plots to check the brecoqual for separate regions of mX
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 &&chop<0.5");   
+    unfmcvub->fillHistogram(mESqual1,RooArgList(*Vallmes),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe&&chop<0.5");
+    unfmcvub->fillHistogram(mES1,RooArgList(*Vallmes),unfcuts);
+
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 &&chop<1.5&&chop>0.5");   
+    unfmcvub->fillHistogram(mESqual2,RooArgList(*Vallmes),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe&&chop<1.5&&chop>0.5");
+    unfmcvub->fillHistogram(mES2,RooArgList(*Vallmes),unfcuts);
+
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 &&chop<2.5&&chop>1.5");   
+    unfmcvub->fillHistogram(mESqual3,RooArgList(*Vallmes),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe&&chop<2.5&&chop>1.5");
+    unfmcvub->fillHistogram(mES3,RooArgList(*Vallmes),unfcuts);
+
+    sprintf(unfcuts,"%s","lepYaSe && trumtch==2 &&chop>2.5");   
+    unfmcvub->fillHistogram(mESqual4,RooArgList(*Vallmes),unfcuts);
+    sprintf(unfcuts,"%s","lepYaSe&&chop>2.5");
+    unfmcvub->fillHistogram(mES4,RooArgList(*Vallmes),unfcuts);
+
+
+  }
+
+  mxgenwoph->Write();
+  mxreco->Write();
+  detmat->Write();
+
+  mxgenwoph_alllep->Write();
+  detmat_alllep->Write();
+
+  h_multgen->Write();
+  h_mult->Write();
+  multmat->Write();
+  multprobmat->Write();
+
+  cout << "---> WROTE THE UNFOLDING HISTOS" << endl;
+
+  return;
+}
+
+
+// ----------------------------------------------------------------------
+//Find the relative amount of different multiplicity categories in data and signal MC, used for unfolding histos
+void mXClass::MultCorr(){
+  cout << "The multiplicity corrections" << endl;
+  char name[100];
+  char comp[15];
+  datmult[0]=datmult[1]=datmult[2]=datmult[3]=datmult[4]=datsum=0;
+  datmulterr[0]=datmulterr[1]=datmulterr[2]=datmulterr[3]=datmulterr[4]=0;
+  vubmult[0]=vubmult[1]=vubmult[2]=vubmult[3]=vubmult[4]=vubsum=0;
+
+  for(int k=1;k<6;k++){
+    sprintf(comp,"%s","subdatachop");
+    sprintf(name,"%s%d",comp,k);
+    datmult[k-1] = ((TH1D*)gDirectory->Get(name))->Integral();
+    datsum += ((TH1D*)gDirectory->Get(name))->Integral();
+    for(int i=1; i<nB; i++)
+      datmulterr[k-1] += pow(((TH1D*)gDirectory->Get(name))->GetBinError(i),2);
+    datmulterr[k-1] = sqrt(datmulterr[k-1]);
+  }
+
+  cout << "RELATIVE FRACTIONS MULTIPLICITY CATEGORIES" << endl;
+
+  for(int k=1;k<6;k++){
+    cout << "data cat " << k << "  " << datmult[k-1] << endl;
+    datmult[k-1] = datmult[k-1]/datsum;
+    cout << "data cat weight" << k << "  " << datmult[k-1] << endl;
+  }
+
+  return;
+}
+
+double  mXClass::dstlnuFF(double r1,double r2,double rho2){
+  // now calculate the 4D pdf
+  float mb(5.279),mdst(2.01);
+  float hp,h0,hm,a1,v,a2,ha1;
+  float cchi=cos(chigen);
+
+  a2=(mb+mdst)/2/sqrt(mb*mdst);
+  a1=a2*(1-q2Gen/pow((mb+mdst),2));
+  v=a2*r1;
+  a2=a2*r2;
+  // h_a1(w) has ben factorized in front of everything
+  ha1=1-rho2*((mb*mb+mdst*mdst-q2Gen)/2/mb/mdst-1);
+
+  hp=(mb+mdst)*a1-2*mb*pxhadgen*v/(mb+mdst);
+  hm=(mb+mdst)*a1+2*mb*pxhadgen*v/(mb+mdst);
+  h0=(mb*mb-mdst*mdst-q2Gen)*(mb+mdst)*a1-pow((2*mb*pxhadgen),2)*a2/(mb+mdst);
+  h0=h0/2/mdst/sqrt(q2Gen);
+
+  return ha1*ha1*pxhadgen*q2Gen*(
+				 (pow((1+ctlgen)*hp,2)+pow((1-ctlgen)*hm,2))*(1-ctvgen*ctvgen)+
+				 (1-ctlgen*ctlgen)*pow((2*h0*ctvgen),2)-
+				 2*(1-ctlgen*ctlgen)*(1-ctvgen*ctvgen)*(2*cchi*cchi-1)*hp*hm+
+				 4*sqrt((1-ctlgen*ctlgen)*(1-ctvgen*ctvgen))*ctvgen*cchi*h0*
+				 (-ctlgen*(hp+hm)+(hm-hp))
+				 );
+
+}
+void ReadwFermiFile(const TString & file,vector<float>& vettore,int runs)
+{
+  ifstream fin;
+  fin.open(file.Data());
+  char buff[250];
+  float tmp;
+  int row=0;	
+  while(fin.getline(buff,250,'\n')){
+    if(buff[0]!='#'){
+      row++;
+      if(row==8||row==10){
+	switch(runs){
+	case 0:  sscanf(buff,"%f %*f %*f %*f %*s", &tmp); break; //CM1 case, not important
+	case 12: sscanf(buff,"%f %*f %*f %*f %*s", &tmp); break; //Run1-2 
+	case 3:  sscanf(buff,"%*f %f %*f %*f %*s", &tmp); break; //Run3 only
+	case 4:  sscanf(buff,"%*f %*f %f %*f %*s", &tmp); break; //Run4 only
+	case 14: sscanf(buff,"%*f %*f %*f %f %*s", &tmp); break; //Run1-4
+	default: sscanf(buff,"%f %*f %*f %*f %*s", &tmp); //runs flag invalid, default Run1-2
+	}
+      }else{
+	sscanf(buff,"%f %*s",&tmp);
+      }
+      vettore.push_back(tmp);
+    }
+  }
+  fin.close();
+}
+
+
+RooAbsPdf* mXClass::createCB(RooRealVar& mes)
+{
+  // return function
+  RooAbsPdf* pFunction = 0;
+
+  // modified crystal ball parameters (same for all functions)
+  RooRealVar* Rm = new RooRealVar("mean","cb: mean of gaussian 1", 5.28, 5.275, 5.285);
+  RooRealVar* Rs = new RooRealVar("sigma","cb: width of gaussians", 0.003, 0.002, 0.004);
+  RooRealVar* Ra = new RooRealVar("alpha","cb: alpha parameter", 1.3, 0., 10.);
+  RooRealVar* Rn = new RooRealVar("n","cb: n parameter", 3.46, 1., 7.);
+
+  std::cout << "Building Crystal Ball Function" << std::endl;
+  pFunction = new RooCBShape("cb", "Crystal Ball", mes, *Rm, *Rs, *Ra, *Rn);
+
+  pFunction->printCompactTree();
+
+  return pFunction;
+}
+
+RooAbsPdf* mXClass::createArgus(RooRealVar& mes, const bool endpointCorrection)
+{
+  // return function
+  RooAbsPdf* pFunction = 0;
+
+  // argus parameters (same for all functions)
+  RooRealVar* pArgPar = new RooRealVar("ar", "argus shape parameter", -60., -100., -10.);
+  RooRealVar* pCutOff = new RooRealVar("cutoff", "argus cutoff", 5.2891, 5.28, 5.292);
+
+  std::cout << "Building single Argus" << std::endl;
+  pFunction = new RooArgusBG("a", "Argus PDF", mes, *pCutOff, *pArgPar);
+
+  pFunction->printCompactTree();
+  
+  return pFunction;
+}
+
+void mXClass::SetMesFitModel(Int_t fitmodel){
+  MESFITMODEL = fitmodel;
+}
+
+
+int mXClass::Bmode(int theid){
+
+  int hasPi0(0);	
+  int bmode = theid%100;  
+  
+  if(bmode == 3)  hasPi0 = 1;
+  if(bmode == 4)  hasPi0 = 1; 
+  if(bmode == 7)  hasPi0 = 1; 
+  if(bmode == 8)  hasPi0 = 1; 
+  if(bmode == 12) hasPi0 = 1; 
+  if(bmode == 13) hasPi0 = 1; 
+  if(bmode == 14) hasPi0 = 1; 
+  if(bmode == 15) hasPi0 = 1; 
+  if(bmode == 16) hasPi0 = 1; 
+  if(bmode == 17) hasPi0 = 1; 
+  if(bmode == 19) hasPi0 = 1; 
+  if(bmode == 20) hasPi0 = 1; 
+  if(bmode == 21) hasPi0 = 1; 
+  if(bmode == 25) hasPi0 = 1; 
+  if(bmode == 26) hasPi0 = 1; 
+  if(bmode == 27) hasPi0 = 1; 
+  if(bmode == 29) hasPi0 = 1; 
+  if(bmode == 31) hasPi0 = 1; 
+  if(bmode == 32) hasPi0 = 1; 
+  if(bmode == 33) hasPi0 = 1; 
+  if(bmode == 34) hasPi0 = 1; 
+  if(bmode == 35) hasPi0 = 1; 
+  if(bmode == 40) hasPi0 = 1; 
+  if(bmode == 41) hasPi0 = 1; 
+  if(bmode == 42) hasPi0 = 1; 
+  if(bmode == 43) hasPi0 = 1; 
+  if(bmode == 44) hasPi0 = 1; 
+  if(bmode == 45) hasPi0 = 1; 
+  if(bmode == 46) hasPi0 = 1; 
+  if(bmode == 47) hasPi0 = 1; 
+  if(bmode == 51) hasPi0 = 1; 
+  if(bmode == 52) hasPi0 = 1; 
+  if(bmode == 53) hasPi0 = 1; 
+
+  return hasPi0;
+
+}
+
+// FUNCTION TO RETRIEVE number of tracks for truth-matching algorithm 
+void GetMultiplicity(int mode, int &ncha, int &ngamma, int &nk0, int &npi0){
+
+  int dmode, bmode;
+
+  // mode = dmode*100+bmode;
+
+  ncha =0;
+  ngamma=0;
+  npi0=0;
+  nk0=0;
+
+  dmode = (int)mode/100;
+  bmode = mode - dmode*100;
+
+  //  cout << "Mode " << mode << " " << bmode << " " << dmode << endl;
+
+  if(dmode == 110){
+    //  "D0->kpi"
+    ncha=2;
+  }else if(dmode == 111){
+    //"D0->kpipi0"
+    ncha=2;
+    npi0=1;
+  }else if(dmode == 112){
+    //"D0->k3pi"
+    ncha=4;
+  }else if(dmode == 113){
+    //"D0->kspipi"
+    ncha=2;
+    nk0=1;
+  }else if(dmode == 130){
+    //"D*,D0->kpi"
+    ncha=3;
+  }else if(dmode == 131){
+    //"D*,D0->kpipi0"
+    ncha=3;
+    npi0=1;
+  }else if(dmode == 132){
+    //"D*,D0->k3pi"
+    ncha=5;
+  }else if(dmode == 133){
+    //"D*,D0->kspipi"
+    ncha=3;
+    nk0=1;
+  }else if(dmode == 120){
+    //"Dc->kspi"
+    ncha=1;
+    nk0=1;
+  }else if(dmode == 121){
+    //"Dc->kpipi"
+    ncha=3;
+  }else if(dmode == 122){
+    //"Dc->kspipi0"
+    ncha=1;
+    nk0=1;
+    npi0=1;
+  }else if(dmode == 123){
+    //"Dc->kpipipi0"
+    ncha=3;
+    npi0=1;
+  }else if(dmode == 124){
+    //"Dc->kspipipi"
+    ncha=3;
+    nk0=1;
+  }else if(dmode == 140){
+    //"D*0->D0pi0,D0->kpi"
+    ncha=2;
+    npi0=1;
+  }else if(dmode == 141){
+    //"D*0->D0pi0,D0->kpipi0"
+    ncha=2;
+    npi0=2;
+  }else if(dmode == 142){
+    //"D*0->D0pi0,D0->k3pi"
+    ncha=4;
+    npi0=1;
+  }else if(dmode == 143){
+    //"D*0->D0pi0,D0->kspipi"
+    ncha=2;
+    nk0=1;
+    npi0=1;
+  }else if(dmode == 150){
+    //"D*0->D0gamma,D0->kpi"
+    ncha=2;
+    ngamma=1;
+  }else if(dmode == 151){
+    //"D*0->D0gamma,D0->kpipi0"
+    ncha=2;
+    npi0=1;
+    ngamma=1;
+  }else if(dmode == 152){
+    //"D*0->D0gamma,D0->k3pi"
+    ncha=4;
+    ngamma=1;
+  }else if(dmode == 153){
+    //"D*0->D0gamma,D0->kspipi"
+    ncha=2;
+    nk0=1;
+    ngamma=1;
+  }else{
+    //    cout << "Unrecognised D Mode " << dmode << endl;
+  }
+
+  if(bmode == 1){
+    //"B->Dpi"
+    ncha+=1;
+  }else if(bmode == 2){
+    //"B->Dk"
+    ncha+=1;
+  }else if(bmode == 3 || bmode == 4){
+    //"B->Dpipi0 or DKpi0"
+    ncha+=1;
+    npi0+=1;
+  }else if(bmode == 5 || bmode == 6){
+    //"B->DpiKs or DKKs"
+    ncha+=1;
+    nk0+=1;
+  }else if(bmode == 7 || bmode == 8){
+    //"B->Dpi2pi0 or DK2pi0"
+    ncha+=1;
+    npi0+=2;
+  }else if(bmode == 9){
+    //"B->D3pi"
+    ncha+=3;
+  }else if(bmode == 10){
+    //"B->DK2pi"
+    ncha+=3;
+  }else if(bmode == 11){
+    //"B->D2kpi_Ds"
+    ncha+=3;
+  }else if(bmode == 12){
+    //"B->Domegah  ????" h probably one h+, see BAD 271
+    ncha+=3;
+    npi0+=1;
+  }else if(bmode == 13){
+    //"B->DK2pipi0"
+    ncha+=3;  
+    npi0+=1;
+  }else if(bmode == 14){
+    //"B->D2kpipi0_Ds*"
+    ncha+=3;  
+    npi0+=1;
+  }else if(bmode == 15){
+    //"B->Dpipi0ks"
+    ncha+=1;   
+    npi0+=1;
+    nk0+=1;
+  }else if(bmode == 16){
+    //"B->Dkpi0ks_<1.8GeV"
+    ncha+=1;   
+    npi0+=1;
+    nk0+=1;
+  }else if(bmode == 17){
+    //"B->Dk2pi0ks_1.8-2.2GeV"
+    ncha+=1;   
+    npi0+=2;
+    nk0+=1;
+  }else if(bmode == 18){
+    //"B->D2ksX ????"
+    nk0+=2;
+    ncha+=1;//maybe another pi0, maybe not
+  }else if(bmode == 19){
+    //"B->D3pi2pi0_<2.2GeV"
+    ncha+=3;   
+    npi0+=2;
+  }else if(bmode == 20){
+    //"B->Dk2pi2pi0_<2.2GeV"
+    ncha+=3;   
+    npi0+=2;
+  }else if(bmode == 21){
+    //"B->D2kpi2pi0_Ds*"
+    ncha+=3;   
+    npi0+=2;
+  }else if(bmode == 22){
+    //"B->D5pi_<2.3GeV"
+    ncha+=5;   
+  }else if(bmode == 23){
+    //"B->Dk4pi_<2.3GeV"
+    ncha+=5;   
+  }else if(bmode == 24){
+    //"B->D2K3pi_<2.7GeV"
+    ncha+=5;   
+  }else if(bmode == 25){
+    //"B->D5pipi0_<2.2GeV"
+    ncha+=5;   
+    npi0+=1;
+  }else if(bmode == 26){
+    //"B->Dk4pipi0_<2.2GeV"
+    ncha+=5;   
+    npi0+=1;
+  }else if(bmode == 27){
+    //"B->D2k3pipi0_<2.5GeV"
+    ncha+=5;   
+    npi0+=1;
+  }else if(bmode == 28){
+    //"B->D3piks_D*"
+    ncha+=3;   
+    nk0+=1;
+  }else if(bmode == 29){
+    //"B->D3pikspi0_D*"
+    ncha+=3;   
+    nk0+=1;
+    npi0+=1;
+  }else if(bmode == 30){
+    //"B->Dk2piks_D*"
+    ncha+=3;   
+    nk0+=1;
+  }else if(bmode == 31){
+    //"B->DD*_Dpi0 ???"
+    npi0+=2;
+    ncha+=5;
+  }else if(bmode == 32){
+    //"B->Dpipi0_>1.5GeV"
+    ncha+=1;
+    npi0+=1;
+  }else if(bmode == 33){
+    //"B->Dkpi0_>1.5GeV"
+    ncha+=1;
+    npi0+=1;
+  }else if(bmode == 34){
+    //"B->Dpi2pi0_1.5-2GeV"
+    ncha+=1;
+    npi0+=2;
+  }else if(bmode == 35){
+    //"B->Dk2pi0_>1.5GeV"
+    ncha+=1;
+    npi0+=2;
+  }else if(bmode == 36){
+    //"B->D3pi_1.5-2GeV"
+    ncha+=3;
+  }else if(bmode == 37){
+    //"B->Dk2pi_>1.5GeV"
+    ncha+=3;
+  }else if(bmode == 38){
+    //"B->D2kpi_K*"
+    ncha+=3;
+  }else if(bmode == 39){
+    //"B->D2kpi_other"
+    ncha+=3;
+  }else if(bmode ==40){
+    //"B->D3pipi0_<1.6GeV"
+    ncha+=3;
+    npi0+=1;
+  }else if(bmode ==41){
+    //"B->D3pipi0_1.6-2.2GeV"
+    ncha+=3;
+    npi0+=1;
+  }else if(bmode ==42){
+    //"B->Dk2pipi0_>2.2GeV"
+    ncha+=3;
+    npi0+=1;
+  }else if(bmode ==43){
+    //"B->D2kpipi0_other"
+    ncha+=3;
+    npi0+=1;
+  }else if(bmode ==44){
+    //"B->Dkpi0ks_>1.8GeV"
+    ncha+=1;
+    npi0+=1;
+    nk0+=1;
+  }else if(bmode ==45){
+    //"B->D3pi2pi0_>2.2GeV"
+    ncha+=3;
+    npi0+=2;
+  }else if(bmode ==46){
+    //"B->Dk2pi2pi0_>2.2GeV"
+    ncha+=3;
+    npi0+=2;
+  }else if(bmode ==47){
+    //"B->D2kpi2pi0_other"
+    ncha+=3;
+    npi0+=2;
+  }else if(bmode ==48){
+    //"B->D5pi_>2.3GeV"
+    ncha+=5;
+  }else if(bmode ==49){
+    //"B->Dk4p_>2.7GeV"
+    ncha+=5;
+  }else if(bmode ==50){
+    //"B->D2K3pi_>2.7GeV"
+    ncha+=5;
+  }else if(bmode ==51){
+    //"B->D5pipi0_>2.2GeV"
+    ncha+=5;
+    npi0+=1;
+  }else if(bmode ==52){
+    //"B->D3piks_noD*"
+    ncha+=3;
+    nk0+=1;
+  }else if(bmode ==53){
+    //"B->D3pikspi0_noD*"
+    ncha+=3;
+    nk0+=1;
+    npi0+=1;
+  }else{
+    //    cout << "Unrecognised B Mode " << bmode << endl;
+  }
+  
+  //  cout << "Mult. " << ncha << " " << nk0 << " " << npi0 << " " << ngamma << endl;
+
+}

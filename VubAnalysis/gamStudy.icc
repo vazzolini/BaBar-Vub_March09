@@ -1,0 +1,319 @@
+  
+// ----------------------------------------------------------------------
+
+void recoilNtp::GamStudy(TLorentzVector &m4Xhad) {
+
+  //  cout<<m4Xhad.Mag()<<endl;
+  //  cout<<"New Gamma Study ************** New event"<<endl;
+  Int_t Brecgamtmp ;
+  Int_t brecoOv(2); // this is flag for overlap with BRECO candidate  
+  Int_t bmctmp;
+
+  TLorentzVector p4boGam; 
+
+  fHistFile->cd();
+  fHistFile->cd("Photon");
+  int i;
+  for(int je=0;je<15;je++) {
+    fcountNeu[je] = 0;
+    pGS[je] = m4Xhad;
+  }
+
+  int inp1(-99), inp2(-99);
+  fcontKs =kFALSE;
+  bool isKSpipi =kFALSE;
+  int ngamks(0);
+
+  if (fIsMC){
+    for (int ik = 0; ik < nMc; ik++) {
+      if(TMath::Abs(idMc[ik]) == 310) {
+	ngamks++;
+	bool isfirPI = kTRUE;
+	int Npi = 0;
+	for (int ip = 0; ip < nMc; ip++) {
+	  if((TMath::Abs(idMc[ip]) == 111) && (mothMc[ip]-1 == ik) && Npi <2) {
+	    if(isfirPI) {
+	      inp1 = ip;
+	      isfirPI = kFALSE;
+	    } else {
+	      inp2 = ip;
+	    }
+	    Npi++;
+	    //	    cout<<" A Ks in piz piz"<<endl;
+	    for (i = 0; i < nGam; ++i) {
+	      Brecgamtmp = B0RecGam[i];
+	      if(fBmode) Brecgamtmp = chBRecGam[i];
+	      if(Brecgamtmp == brecoOv) continue;
+	      if(ecalGam[i] < 0) continue;
+	      //	      cout<<"this photon "<<i<<" is the piz son?"<<endl;
+	      if(idGam[i] == 22 && ((inp1 >= 0) && (inp2 >= 0))) {
+		if(i == (d1Pi0Index[inp1]-1) || i == (d1Pi0Index[inp2]-1) ||
+		   i == (d2Pi0Index[inp1]-1) || i == (d2Pi0Index[inp2]-1) ) {
+		    ((TH1D*)gDirectory->Get("EnGamKspiz"))->Fill(energyGam[i], 1.);
+		    //		    cout<<"Gamma from pi0 from Ks"<<endl;
+		}
+	      }
+	    }
+	    
+	  } else if ((TMath::Abs(idMc[ip]) == 211) && (mothMc[ip]-1 == ik) && Npi <2) {
+	    isKSpipi = kTRUE;
+	    if(isfirPI) {
+	      inp1 = ip;
+	      isfirPI = kFALSE;
+	    } else {
+	      inp2 = ip;
+	    }
+	    Npi++;
+	  }
+	}
+	
+	//Event with Ks -> pi0pi0 ; Ks -> pi+pi- 
+	
+	if(inp2 > 0 && inp1 > 0 && Npi == 2) fcontKs = kTRUE;
+	
+      }
+    }
+
+    for (i = 0; i < nGam; ++i) {
+      Brecgamtmp = B0RecGam[i];
+      if(fBmode) Brecgamtmp = chBRecGam[i];
+      if(Brecgamtmp == brecoOv) continue;
+      if(ecalGam[i] < 0) continue;
+      
+  //     if(TMath::Abs(idMc[mothMc[i]-1]) == 211) {
+// 	for(int ik = 0; ik <nMc; ik++) {
+// 	  if(TMath::Abs(idMc[mothMc[ik]-1]) == 211) cout<<idMc[ik]<<endl;
+// 	}
+//       }
+
+      // return kFALSE; 
+      //      cout<<"tr with initial"<<endl;
+      int MomId = 1;
+      bool isPAS = kFALSE;
+      if(idGam[i] == 22) {
+	mk4Vector(p4boGam,  energyGam[i], thetaGam[i], phiGam[i], 0);
+	
+	p4boGam.Boost(-cmsBoost);
+	
+	((TH1D*)gDirectory->Get("EnGam"))->Fill(energyGam[i], 1.);
+	((TH1D*)gDirectory->Get("EnGamBo"))->Fill(p4boGam.E(), 1.);
+	((TH1D*)gDirectory->Get("lMomGam"))->Fill( lMomGam[i], 1.);
+	((TH1D*)gDirectory->Get("ZMom42Gam"))->Fill( ZMom42Gam[i], 1.);
+	((TH2D*)gDirectory->Get("E vs th"))->Fill(TMath::Cos(thetaGam[i]),energyGam[i]);
+	((TH2D*)gDirectory->Get("E vs phi"))->Fill(energyGam[i],phiGam[i]);
+      
+	//Ks study
+	if(fcontKs) {
+	  if(isKSpipi) {
+	    ((TH1D*)gDirectory->Get("EnGamKspi"))->Fill(energyGam[i], 1.);
+	  } else {
+	    ((TH1D*)gDirectory->Get("EnGamKs"))->Fill(energyGam[i], 1.);
+	  }
+	} else {
+	  ((TH1D*)gDirectory->Get("EnGamNoKs"))->Fill(energyGam[i], 1.);
+	}	
+	//Ks study
+	
+	
+	((TH1D*)gDirectory->Get("EnGamMP"))->Fill(energyGam[i], 1.);  
+
+	if( isAncestor(fB1Index,i) || isAncestor(fB2Index,i) ) {
+	  ((TH1D*)gDirectory->Get("EGam Mt"))->Fill(energyGam[i], 1.);
+	  if(fVub == 1) ((TH1D*)gDirectory->Get("EGam Mt vub"))->Fill(energyGam[i], 1.);
+	  if(fVcb == 1) ((TH1D*)gDirectory->Get("EGam Mt vcb"))->Fill(energyGam[i], 1.);
+	} else {
+	  ((TH1D*)gDirectory->Get("EGam Un"))->Fill(energyGam[i], 1.);
+	  if(fVub == 1) ((TH1D*)gDirectory->Get("EGam Un vub"))->Fill(energyGam[i], 1.);
+	  if(fVcb == 1) ((TH1D*)gDirectory->Get("EGam Un vcb"))->Fill(energyGam[i], 1.);
+	}
+	
+	int indexmom;
+	bool isFir = kTRUE;
+	while(MomId != 0) { 
+	  if(isFir) {
+	    indexmom = mothMc[i]-1;
+	    isFir = kFALSE;
+	  }
+	  if ((indexmom > 0) && (indexmom < nMc)) {
+	    MomId = idMc[indexmom]; //Id of the mother
+	  } else {
+	    if(indexmom == 0) findUps++;
+	    MomId = 0;
+	    findPro++;
+	  }
+	  if( TMath::Abs(MomId) >= 1000000000 ) {
+	    ((TH1D*)gDirectory->Get("ThetaGam Un"))->Fill(TMath::Cos(thetaGam[i]), 1.);
+	    ((TH1D*)gDirectory->Get("PhiGam Un"))->Fill(phiGam[i], 1.);
+	    MomId = 0;
+	  }
+	  if( (TMath::Abs(MomId) == 511) || (TMath::Abs(MomId) == 521) ) { //B daughter
+	    ((TH1D*)gDirectory->Get("EnGamMB vub"))->Fill(energyGam[i], 1.);
+	    if(energyGam[i] <= 0.080 ) {
+	      ((TH1D*)gDirectory->Get("EnGam (MB) cut"))->Fill(energyGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("lMomGam (MB) cut"))->Fill( lMomGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("ZMom42Gam (MB) cut"))->Fill( ZMom42Gam[i], 1.);
+	      ((TH1D*)gDirectory->Get("PhiGam (MB) cut"))->Fill(phiGam[i], 1.);
+	    } else {
+	      ((TH1D*)gDirectory->Get("EnGam (MB)"))->Fill(energyGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("lMomGam (MB)"))->Fill( lMomGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("ZMom42Gam (MB)"))->Fill( ZMom42Gam[i], 1.);
+	      ((TH1D*)gDirectory->Get("PhiGam (MB)"))->Fill(phiGam[i], 1.);
+	    }
+	    ((TH2D*)gDirectory->Get("E vs theta (MB)"))->Fill(TMath::Cos(thetaGam[i]),energyGam[i]);
+	    MomId = 0;
+	  } else if ( (MomId == 0) ||(MomId == 70553))  { //I.M. daughter
+	    if(MomId == 70553) cout<<"Upsi ev."<<endl;
+	    ((TH1D*)gDirectory->Get("EnGamMA"))->Fill(energyGam[i], 1.);
+	    if(energyGam[i] <= 0.080 ) {
+	      ((TH1D*)gDirectory->Get("EnGam (MA) cut"))->Fill(energyGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("lMomGam (MA) cut"))->Fill( lMomGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("ZMom42Gam (MA) cut"))->Fill( ZMom42Gam[i], 1.);
+	      ((TH1D*)gDirectory->Get("PhiGam (MA) cut"))->Fill(phiGam[i], 1.);
+	    } else {
+	      ((TH1D*)gDirectory->Get("EnGam (MA)"))->Fill(energyGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("lMomGam (MA)"))->Fill( lMomGam[i], 1.);
+	      ((TH1D*)gDirectory->Get("ZMom42Gam (MA)"))->Fill( ZMom42Gam[i], 1.);
+	      ((TH1D*)gDirectory->Get("PhiGam (MA)"))->Fill(phiGam[i], 1.);
+	    }
+	    ((TH2D*)gDirectory->Get("E vs theta (MA)"))->Fill(TMath::Cos(thetaGam[i]),energyGam[i]);
+	    MomId = 0;
+	  } else {
+	    indexmom = mothMc[indexmom]-1;
+	  }
+	} //end while
+      } else {
+	((TH1D*)gDirectory->Get("EnGamNMP"))->Fill(energyGam[i], 1.);
+	if(energyGam[i] <= 0.080 ) {
+	  ((TH1D*)gDirectory->Get("EnGam (NMP) cut"))->Fill(energyGam[i], 1.);
+	  ((TH1D*)gDirectory->Get("lMomGam (NMP) cut"))->Fill( lMomGam[i], 1.);
+	  ((TH1D*)gDirectory->Get("ZMom42Gam (NMP) cut"))->Fill( ZMom42Gam[i], 1.);
+	  ((TH1D*)gDirectory->Get("PhiGam (NMP) cut"))->Fill(phiGam[i], 1.);
+	} else {
+	  ((TH1D*)gDirectory->Get("EnGam (NMP)"))->Fill(energyGam[i], 1.);
+	  ((TH1D*)gDirectory->Get("lMomGam (NMP)"))->Fill( lMomGam[i], 1.);
+	  ((TH1D*)gDirectory->Get("ZMom42Gam (NMP)"))->Fill( ZMom42Gam[i], 1.);
+	  ((TH1D*)gDirectory->Get("PhiGam (NMP)"))->Fill(phiGam[i], 1.);
+	}
+	((TH2D*)gDirectory->Get("E vs theta (NMP)"))->Fill(TMath::Cos(thetaGam[i]),energyGam[i]);
+      }
+      
+      //#Crystal distribution
+      int ind1pi0GS(0), ind2pi0GS(0);
+      for(int jj=0;jj<nPi0;jj++) {
+	ind1pi0GS =   d1Pi0Index[jj] - 1;
+	ind2pi0GS =   d2Pi0Index[jj] - 1;
+	if(i == ind1pi0GS || i == ind2pi0GS ) {
+	  if(energyGam[i] <= 0.080 ) {
+	    ((TH1D*)gDirectory->Get("CrySoftpi"))->Fill(nCryGam[i], 1.);
+	  } else {
+	    ((TH1D*)gDirectory->Get("CryHardpi"))->Fill(nCryGam[i], 1.);
+	  }
+	}
+      }
+      
+      //Global distributions
+      
+      if(energyGam[i] <= 0.080 ) {
+	((TH1D*)gDirectory->Get("CrySoft"))->Fill(nCryGam[i], 1.);
+	((TH2D*)gDirectory->Get("E vs phi cut"))->Fill(energyGam[i],phiGam[i]);
+	if(nCryGam[i] == 1 && isPAS == kFALSE) {
+	  //  ((TH1D*)gDirectory->Get("ThetaGam2"))->Fill(thetaGam[i], 1.);
+	  //((TH1D*)gDirectory->Get("ThetaGam"))->Fill(TMath::Cos(thetaGam[i]), 1.);
+	  isPAS == kTRUE;
+	} else {
+	  ((TH1D*)gDirectory->Get("ThetaGam2"))->Fill(thetaGam[i], 1.);
+	  ((TH1D*)gDirectory->Get("ThetaGam"))->Fill(TMath::Cos(thetaGam[i]), 1.);
+	  //	  cout<<TMath::Cos(thetaGam[i])<< "  Theta"<<endl;
+	}
+	((TH1D*)gDirectory->Get("PhiGam"))->Fill(phiGam[i], 1.);
+      } else {
+	((TH1D*)gDirectory->Get("CryHard"))->Fill(nCryGam[i], 1.);
+	((TH1D*)gDirectory->Get("ThetaGamcut"))->Fill(TMath::Cos(thetaGam[i]), 1.);
+      }
+      
+      if(energyGam[i] <= 0.010) continue;
+      
+    
+    
+      //-----------------------------------------------------------
+      TLorentzVector p4tph(0., 0., 0., 0.);
+      
+      mk4Vector(p4tph, energyGam[i], thetaGam[i], phiGam[i], 0.);
+      
+      //No cut vector
+      //Starting the cut study
+      for(int jk=0;jk<10;jk++) {
+	if(energyGam[i] >= (jk * 0.010 + 0.020))  {
+	  pGS[jk] += p4tph;
+	  fcountNeu[jk]++;          
+	}
+      }
+      
+      ((TH1D*)gDirectory->Get("MothGam"))->Fill(idMc[mothMc[i]-1], 1.);
+      if(idMc[mothMc[i]-1] == 111 ) {
+	pGS[10]    += p4tph;
+	fcountNeu[10]++;          
+      }
+
+      if(energyGam[i] >= 0.08 && lMomGam[i] >= 0.01) {
+	pGS[11]    += p4tph;
+	fcountNeu[11]++;          
+      }
+      
+      if(energyGam[i] >= 0.080 && fcountNeu[12]<2) { 
+	pGS[12]    += p4tph;
+	fcountNeu[12]++;          
+      }
+      
+      if( (energyGam[i] >= 0.080) || ((TMath::Cos(thetaGam[i]) <= 0.8)  && (TMath::Cos(thetaGam[i]) >= -0.7)) ) {
+	pGS[13]  += p4tph;
+	fcountNeu[13]++;          
+      }
+      if((energyGam[i] >= 0.050 && TMath::Cos(thetaGam[i]) > 0.8 ) ||
+	 (energyGam[i] >= 0.030 && TMath::Cos(thetaGam[i]) < -0.7) || 
+	 ((TMath::Cos(thetaGam[i])>=-0.7) && (TMath::Cos(thetaGam[i])<= 0.8))) {
+	pGS[14]    += p4tph;
+	fcountNeu[14]++;          
+      }
+    }
+  }
+  for(int jf=0; jf<15; jf++) {
+    tmpfMxhad[jf] = pGS[jf].Mag();
+    tmpfTxhad[jf] = pGS[jf].Theta(); 
+    tmpfFxhad[jf] = pGS[jf].Phi(); 
+    tmpfExhad[jf] = pGS[jf].E();
+  }
+
+}
+
+
+// ----------------------------------------------------------------------
+
+void recoilNtp::mcGam() {
+
+  for(int je=0;je<80;je++) {
+    ifromBGam[je] = 0;
+  }
+  
+  int idB[2];
+
+  int s = 0;
+
+  idB[0] = -100;
+  idB[1] = -100;
+  
+  for (int f = 0; f < nMc; f++) {
+    if ((TMath::Abs(idMc[f]) == 511) || (TMath::Abs(idMc[f]) == 521) ) {
+      idB[s] = f;
+      s++;
+    }
+  }
+
+  for (int h = 0; h < nGam; h++) {    
+    if(idGam[h] == 22) {
+      if (isAncestor(idB[0] ,h) ||  isAncestor(idB[1],h)) { 
+	ifromBGam[h] = 1; 
+      }
+    }
+  }
+}

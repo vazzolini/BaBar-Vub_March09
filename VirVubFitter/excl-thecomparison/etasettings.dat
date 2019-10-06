@@ -1,0 +1,19 @@
+# Various settings #
+
+file1 = /u/br/dorazioa/vol3/VVF-ana31/VirVubFitter/excl-thecomparison/data14
+file2 = /u/br/dorazioa/vol3/VVF-ana31/VirVubFitter/excl-thecomparison/genericSP8
+tree1 = ntp1
+tree2 = ntp1
+outdir = /afs/slac.stanford.edu/u/br/dorazioa/scra/prova
+#outdir = /afs/slac.stanford.edu/u/br/dorazioa/vol3/VVF-ana31/VirVubFitter/excl-thecomparison
+cutFile =/u/br/dorazioa/vol3/VVF-ana31/VirVubFitter/excl-thecomparison/settingfit_data_eta.dat
+
+# Histos settings #
+##Var name ##                  #min#  #max#   #bin#   #shift# #smear#
+
+mm2bestEta      mm2bestEta       1      9      30      0.      0.
+#modeEta         modeEta	          0.5    3.5       3      0.	0.
+#barembestEta    barembestEta     0.4    0.7    10      0.      0. 
+#nchgEta         nchgEta       0.5      8.5       8       0.      0.
+#pcmsEta          pcmsEta       0        3       15      0.      0. 
+#Gvxbtypeta      Gvxbtypeta    -23     7        30    0.       0.

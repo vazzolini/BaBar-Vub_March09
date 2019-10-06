@@ -1,0 +1,164 @@
+be a good citizen: 
+
+Bug fix in chi2 definition (negligible effect on mx fit, more important for 2D)
+
+Added options in subVirFit
+
+  -Run12   :       Run only on Run1-2 data (CM2 only; take chains from chain/ subdir)
+  -Run3    :       Run only on Run3 data (CM2 only; take chains from chain/ subdir)
+  -Run4    :       Run only on Run4 data (CM2 only; take chains from chain/ subdir)
+  -small   :       Run on reduced files (CM2 only; take chains from chain/ subdir)
+  -depl    :       Run on depleted sample
+  -fitdss  :       (mx 1-D fit only) =1: put D** together with other background
+                                     =2: D** is the "other" background (i.e. SL events in vcb)
+                                   WARNING: fitdss screws up the calculation of Nsl and other things
+                                            use only to evaluate the effect on the fit yields
+  -rew 11  :       use Dominique's reweightings with the new mx binning (0,1.4,...) instead of (0,1.2,...)
+
+added chain subdir
+added/restored Dominique's reweightings with summer04 normalization and new mx binning
+
+modified wfermifile.dat according to Ed's latest findings
+
+first attempt at writing a module (FitOnly) which does only the final fit by taking histograms for sig/bkg shapes from a 
+rootfile
+
+#
+#  History file. Add to top and/or just add a blank line here, and
+#  the commit message will be automagically appended.
+#
+
+$Log: History,v $
+Revision 1.17  2005/05/03 17:49:38  bozzi
+update history
+
+Revision 1.16  2004/12/09 19:48:51  azzolini
+Fixed some bugs. Use this tag to reproduce BAD 976.
+
+Revision 1.15  2004/09/29 15:21:14  azzolini
+Fix package used for analysis results submitted ICHEP04.
+
+1) introduced a flag in subVirfit.pl, connected with reweighting files.
+2) add three files:
+    a) theWorks.pl, as its name suggests it does the whole work, once you
+       have already run all jobs you need.
+       In particular it gives, as output, Partial Branching Fraction values +
+       errors, simple or added in quadrature; it can take into account
+       errors due to exclusive BR uncertainties and hadronization ones for
+       different phase space region, total signal or detector originated
+       useful:  to fill in Table 2 -BAD 976.
+       how to run:  perl theWorks.pl -t cleo (or belle) [cleo or belle refers
+       to the two different interpretations of b->s gamma spectrum given by
+       cleo or belle.
+    b) BRplotsuperWorks.C and VubplotWorks.C : macros used to finalize
+       BAD 976 - figure 8-a and  figure8-b,9, respectively.
+       to run them you need a intermediate file between theWorks and
+       these macro.
+       (see for example: ~azzolini/TheFiles/txtfiles/pbf_theworks_17)
+
+Revision 1.14  2004/04/02 15:40:01  azzolini
+Add way to take care of right sign events and wrong sign events in calculation mES values.
+Add possibility to use "smaller" input root files(reduced to contain events that have already passed semileptonic selection ) to run faster.
+
+Revision 1.13  2004/03/18 13:56:04  bozzi
+
+Main changes:
+
+1) float the Argus shape when fitting mES distributions. To keep it fixed, add the "-fixshape" flag.
+2) a 2-parameters Mx fit is the default. Use "-opt 1" flag for a 3 parameter fit.
+3) NDOF for the fit chisquare is now treated consistently for 2- and 3-parameter fits.
+4) Add flag "-prlrew" to use exactly the same reweighting technique as in the PRL result.
+5) Input files in subVirFit.pl are now the same as in the PRL analysis.
+6) Various small bug fixes.
+7) Reorganized the projection plots in mx-q2 space.
+
+Revision 1.12  2003/11/25 18:24:49  asarti
+Commit of last small changes (removing islept RooRealVar that is not used in the fit in any place, removal of debugging flags from almost every were and some other minor stuff)
+Now the package will be tested (mx fit) and tagged .
+Than will be released to all the people involved in Vub analyses.
+Care should be taken when committing: code is no longer intented JUST for our (me, concezio, virginia) use.
+Readme file should be updated.
+Web page will be created (hope from Vir) with instructions.
+
+
+Revision 1.11  2003/11/19 16:16:53  azzolini
+q2 different binning and add a loop for q2 "signal bin" choice.
+
+Revision 1.10  2003/11/04 08:52:15  asarti
+Fixed last bug in VirClass.cc (buggy request on 'other' flag).
+Now the fit runs and reobtains (<1% difference) the DEFAULT result.
+Time to check the Q2 fit. The individual results of mES fits seems to be all
+shifted toward higher values. This needs to be understood.
+
+Revision 1.9  2003/10/21 09:56:01  azzolini
+
+VirUtils: add binning restyling for a better plots comprehension
+     (Create binning object with range (5.2,5.3)  +
+       Add 40 bins with uniform spacing in range (5.2,5.3)  +
+        Make plot with specified binning)
+          and add cross check on each bin entries before Draw to avoid clone plot creation effect
+
+
+VirClass.cc: #include "RooFitCore/RooBinning.rdl"
+             and VirClass::Debug method for check on weight
+
+VirFit.cc: call to VirClass::Debug
+
+Revision 1.8  2003/10/15 13:45:30  asarti
+Finally got something that works.
+Numbers are getting better and better.
+Completed calculation of efficiencies and corrections.
+Reweighting seems in good shape.
+Still needs to:
+
+1) check the cut on number of leptons
+2) dump histos in files
+3) need to correct for B0 mixing inside mES histos for eff. calculations
+4) needs to check mX histos (BRBR result affected)
+
+Revision 1.7  2003/10/13 15:44:26  azzolini
+Add efficiency calculations.
+
+Revision 1.6  2003/09/12 12:49:12  azzolini
+Introduced Breco flavor category
+
+Revision 1.5  2003/08/07 14:42:11  azzolini
+
+
+VirUtils: improving FitMes.
+
+Revision 1.4  2003/07/31 14:44:59  azzolini
+
+VirClass.cc :
+initialized and added new variables in dataset.
+make some C++ style changes.
+
+Revision 1.3  2003/07/16 13:33:57  asarti
+Makefile:
+
+Added Roo libraries where missing
+Changed VubFit (already in use) to VirFit
+
+VirClass.cc :
+
+added a very first attempt (template) of RooDataSet usage
+
+VirFit.cc :
+
+added a template for mES fitting
+
+VirUtil.icc :
+
+added utilities for mES fitting (need to decide about recoilAnalysis)
+
+Revision 1.2  2003/07/16 08:43:56  asarti
+Modified Makefile in order to have the libraries of RooFitTools included.
+Ready to test thw RooDataSets business.
+Other .cc files have minor changes: basicalyy porting from VubFitter to VirVubFitter.
+Now Makefile detects changes in icc files and recompile.
+
+Revision 1.1  2003/07/15 09:02:13  azzolini
+Added history file
+
+
+Azzolini : Created new package for Vub Fitting

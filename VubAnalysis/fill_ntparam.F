@@ -1,0 +1,60 @@
+      PROGRAM FILL_NTPARAM
+      IMPLICIT NONE
+#include "ntparam.inc"
+
+      INTEGER NPARTICLES
+      PARAMETER(NPARTICLES=4)
+
+      INTEGER PID_IN(NPARTICLES)
+      REAL    P_RECO(4,NPARTICLES)
+      INTEGER ILTYP,ISMEAR
+      REAL    CHI2T, PROBCHI ,P_TRUE(4,NPARTICLES)
+      INTEGER IERR, ISV, I
+
+      REAL MM2,MES
+      INTEGER VCB,VUB
+
+C HBOOK STUFF
+      INTEGER UNIT,ISTAT
+      INTEGER HMEMOR,HSIZE
+      PARAMETER (HSIZE=5000000)
+      COMMON/PAWC/HMEMOR(HSIZE)
+      INTEGER IQUEST
+      COMMON /QUEST/ IQUEST(100)
+      SAVE
+      CALL HLIMIT(HSIZE)
+C
+
+      PID_IN(1)=1               ! -> BRECO TAG
+      PID_IN(2)=2               ! -> LEPTON  TAG
+      PID_IN(3)=3               ! -> X  TAG
+      PID_IN(4)=4               ! -> NU  TAG
+
+
+      OPEN(UNIT=10,file='ntparam',status='old')
+      PRINT*,'FILE ntparam OPENED'
+
+ 10   READ(10,*,end=20,err=20) ILTYP,MM2,MES,VCB,VUB,
+     +P_RECO(1,1),P_RECO(2,1),P_RECO(3,1),P_RECO(4,1),
+     +P_RECO(1,2),P_RECO(2,2),P_RECO(3,2),P_RECO(4,2),
+     +P_RECO(1,3),P_RECO(2,3),P_RECO(3,3),P_RECO(4,3),
+     +P_RECO(1,4),P_RECO(2,4),P_RECO(3,4),P_RECO(4,4),
+     +P_TRUE(1,1),P_TRUE(2,1),P_TRUE(3,1),P_TRUE(4,1),
+     +P_TRUE(1,2),P_TRUE(2,2),P_TRUE(3,2),P_TRUE(4,2),
+     +P_TRUE(1,3),P_TRUE(2,3),P_TRUE(3,3),P_TRUE(4,3),
+     +P_TRUE(1,4),P_TRUE(2,4),P_TRUE(3,4),P_TRUE(4,4)
+
+C      PRINT *, ILTYP, '  ', MM2, '  ', MES
+
+      IF(MES.GT.5.27) THEN
+        PRINT *, ILTYP, ' ', MES, '  ', MM2 
+        CALL NTPARAM(0,NPARTICLES,P_TRUE,P_RECO,PID_IN,ILTYP,MM2)
+      ENDIF
+      GOTO 10
+
+ 20   CONTINUE
+      CALL NTPARAM(1,NPARTICLES,P_TRUE,P_RECO,PID_IN,ILTYP,MM2)
+
+      CLOSE(10)
+
+      END

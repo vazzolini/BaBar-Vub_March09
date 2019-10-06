@@ -1,0 +1,48 @@
+/*****************************************************************************
+ * Project: RooFit                                                           *
+ *                                                                           *
+ * Copyright (c) 2000-2005, Regents of the University of California          *
+ *                          and Stanford University. All rights reserved.    *
+ *                                                                           *
+ * Redistribution and use in source and binary forms,                        *
+ * with or without modification, are permitted according to the terms        *
+ * listed in LICENSE (http://roofit.sourceforge.net/license.txt)             *
+ *****************************************************************************/
+
+#ifndef ROOCCB_HH
+#define ROOCCB_HH
+
+#include "RooFitCore/RooAbsPdf.hh"
+#include "RooFitCore/RooRealProxy.hh"
+#include "RooFitCore/RooAbsReal.hh"
+#include "RooFitModels/RooCBShape.hh" 
+
+class RooCCB : public RooAbsPdf {
+public:
+  RooCCB(const char *name, const char *title,
+	      RooAbsReal& _x,
+	      RooAbsReal& _mean,
+	      RooAbsReal& _sigma,
+	      RooAbsReal& _alpha,
+	      RooAbsReal& _n,
+	      RooAbsReal& _endpoint);
+  RooCCB(const RooCCB& other, const char* name=0) ;
+  virtual TObject* clone(const char* newname) const { return new RooCCB(*this,newname); }
+  inline virtual ~RooCCB() { }
+
+protected:
+
+  RooRealProxy x ;
+  RooRealProxy mean ;
+  RooRealProxy sigma ;
+  RooRealProxy alpha ;
+  RooRealProxy n ;
+  RooRealProxy endpoint ;
+  Double_t evaluate() const ;
+
+private:
+
+  ClassDef(RooCCB,0) // Your description goes here...
+};
+ 
+#endif

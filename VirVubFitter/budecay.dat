@@ -1,0 +1,10 @@
+# the format of this file is the following
+# (all BRs are in 10^-4 units)
+#	.DEC	PGD	ERROR%	MODE
+	1.8	1.8	.3	pilnu
+	2.6	2.6	.3	rholnu
+	1.3	1.3	.3	omegalnu
+	0.3	0.3	1.	etalnu
+	0.6	0.6	1.	etaplnu
+	1.65    1.65    1.      a(0,1,..),blnu
+	0.41    0.41 	1.	f1(0,..)h1ln

@@ -1,0 +1,159 @@
+#! /usr/local/bin/perl
+
+# ./runVA -D a00 
+
+use Getopt::Std;
+getopts('o:sdD:q:');
+
+my $bfarch = $ENV{"BFARCH"}; 
+my $rootbase= "/u/ec/ursl/root";
+my $logbase = "/u/ec/ursl/d/log";
+
+if (!$opt_D) {
+    die "Give directory appendix!\n";
+} else {
+    $dir = $opt_D;
+}
+
+if (!$opt_q) {
+    $queue = "long"; 
+#    $resource = "-R rh62 || rh72"; 
+} else {
+    $queue = $opt_q;
+#    $resource = "-R \"rh62 || rh72\""; 
+}
+
+if ($bfarch =~ "SunOS") {$resource = "";}
+
+if (-d "$rootbase/anaQA-$dir") {
+    # do what?
+} else {
+    # create subdirectory
+    system("/bin/mkdir $rootbase/anaQA-$dir");
+}
+
+if (-d "$logbase/anaQA-$dir") {
+    # do what?
+} else {
+    # create subdirectory
+    system("/bin/mkdir $logbase/anaQA-$dir");
+}
+
+my $logdir = "$logbase/anaVA-$dir";
+my $cmd = "/usr/local/bin/bsub -J `/u/ec/ursl/perl/rline` -q $queue $resource";
+my $exe = "../bin/$bfarch/VubAnalysisStudy -C $dir -d 4 -D /u/ec/ursl/d/root/vaa-$dir "; 
+
+# my $mcFlags = "-mc -SN -pk -pe";
+# my $mcFlags = "-mc -SN -pk -pm";
+# my $mcFlags = "-mc -SN -pk ";
+# my $mcFlags = "-mc -pk ";
+# my $mcFlags = "-mc -SN ";
+
+##my $mcFlags = "-mc -pk -r 1234 $opt_o ";
+my $mcFlags = "-mc $opt_o ";
+
+print "========================================\n";
+print "cmd: $cmd\n";
+print "exe: $exe\n";
+print "MC:  $mcFlags\n"; 
+##print "==> WARNING: NO FIXED SEED RUNNING!\n";
+##print "==> WARNING: NO NEUTRALS SMEARING!\n";
+print "========================================\n";
+
+
+@data =     ("csx-data-2000", 
+	     "csx-data-2001a", "csx-data-2001b", "csx-data-2001c", "csx-data-2001d", 
+	     "csx-data-2002a", "csx-data-2002b"); 
+
+@signal  =   ("csx-vubmix-new2000", "csx-vubmix-new2001", "csx-vubmix-new2002",
+	      "csx-vubnre-new2000", "csx-vubnre-new2001", "csx-vubnre-new2002"
+	      );
+
+@cocktail = ("csx-b0cock-2000", "csx-b0cock-2001", "csx-b0cock-2002", 
+	     "csx-bpcock-2000", "csx-bpcock-2001", "csx-bpcock-2002");
+
+# -- new chains 03/28/03
+@genb =     ("csx-genbnu-new-2000a", "csx-genbnu-new-2000b", "csx-genbnu-new-2000c",
+	     
+ 	     "csx-genbnu-new-2001a", "csx-genbnu-new-2001b", "csx-genbnu-new-2001c", 
+ 	     "csx-genbnu-new-2001d", "csx-genbnu-new-2001e",
+	     
+ 	     "csx-genbnu-new-2002a", "csx-genbnu-new-2002b", "csx-genbnu-new-2002c",
+ 	     "csx-genbnu-new-2002d", "csx-genbnu-new-2002e",
+	     
+ 	     "csx-genbch-new-2000a", "csx-genbch-new-2000b", "csx-genbch-new-2000c",  
+	     
+ 	     "csx-genbch-new-2001a", "csx-genbch-new-2001b", "csx-genbch-new-2001c",
+ 	     "csx-genbch-new-2001d", "csx-genbch-new-2001e", "csx-genbch-new-2001f", 
+	     
+ 	     "csx-genbch-new-2002a", "csx-genbch-new-2002b", "csx-genbch-new-2002c"
+ 	     );
+
+@cont =     ("csx-olduds-2000", "csx-olduds-2001", 
+	     "csx-oldcc-2000", "csx-oldcc-2001"
+	     ); 
+
+#keep: @skim = ("csx-skim-newgen", "csx-skim-data"); 
+@skim = ("csx-b0cock-2002", "csx-bpcock-2002", @signal); 
+
+#@alljobs = (@data, @genb); 
+
+if ($opt_s) {
+    @alljobs = (@signal, @genb, @cocktail);         # default
+#    @alljobs = (@skim); 
+} else {
+    @alljobs = (@signal, @data, @genb, @cocktail);         # default
+#    @alljobs = (@signal, @data, @genb, @cocktail, @cont);  # all
+#     @alljobs = (@signal, @genb, @cocktail);                # MC for systematics
+#    @alljobs = (@data); 
+}
+
+
+@alljobs = ("csx-cocktail-new", "csx-brevubnre-old2001"); # for the studies with the full rate
+
+
+foreach $job (@alljobs) {
+    $logfile = "$logdir/$job.$dir.log"; 
+    if (-e "$logfile") {
+	$resubmit = 0; 
+	open(IN, "$logfile") || die "Cannot open $logfile\n";
+	while (<IN>) {
+	    if (/Exited/) {
+		print "$logfile exited, resubmitting ... \n";
+		$resubmit = 1; 
+		last; 
+	    }
+	    if (/Error in <TFile::TFile>/) {
+		print "$logfile server problems, resubmitting ... \n";
+		$resubmit = 1; 
+		last; 
+	    }
+	}
+    } else {
+	$resubmit = 1; 
+	print "$logfile not present, resubmitting ... \n";
+    }
+
+    if ($resubmit) {
+	if ($job =~ /data/) {
+	    if ($opt_d) {
+		print  "rm -f $logfile; $cmd -o $logfile $exe -c chains/$job \n";
+	    } else {
+		system("rm -f $logfile; $cmd -o $logfile $exe -c chains/$job ");
+	    }
+	} else {
+	    if ($opt_d) {
+		print  "rm -f $logfile; $cmd -o $logfile $exe $mcFlags -c chains/$job \n";
+	    } else {
+ 		system("rm -f $logfile; $cmd -o $logfile $exe $mcFlags -c chains/$job ");
+	    }
+	}
+    } else {
+	print "$logfile OK\n";
+    }
+
+}
+
+exit 0;
+
+

@@ -1,0 +1,73 @@
+#ifndef TMESCOR_HH
+#define TMESCOR_HH
+
+//--------------------------------------------------------------------------
+// File and Version Information:
+// 	$Id: TMesCor.rdl,v 1.1 2006/05/18 17:44:52 menges Exp $
+//
+// Description:
+//	Class TMesCor. Wrapper class for mes corrections.
+//
+// Environment:
+//      This software was developed for the BaBar collaboration.  If you
+//      use all or part of it, please give an appropriate acknowledgement.
+//
+// Author List:
+//      Wolfgang Menges
+//
+// Copyright Information:
+//      Copyright (C) 2006      Queen Mary, University of London
+//
+//------------------------------------------------------------------------
+
+#include <vector>
+#include <utility>
+
+#include "TObject.h"
+
+//		---------------------
+// 		-- Class Interface --
+//		---------------------
+
+
+class TMesCor {
+
+//--------------------
+// Instance Members --
+//--------------------
+
+public:
+
+  enum corType {corMes=0, corEndpoint, corWeight};
+
+  // Constructors
+  TMesCor(const Int_t runFlag = 0); 
+
+  // Destructor
+  virtual ~TMesCor();
+
+  // access methods
+  Int_t    mesPeriod(const Int_t runNumber);
+  size_t   mesPeriodMin() { return 0; }
+  size_t   mesPeriodMax() { return mesRunLimits.size(); }
+  size_t   mesPeriodBins() { return mesPeriodMax()-mesPeriodMin(); }
+
+  Double_t mesWeight(const Int_t runNumber);
+  Double_t mesCorrections(const Int_t runNumber);
+  Double_t mesEndpoint(const Int_t runNumber);
+
+protected:
+
+  // helper function
+  void initMesCorrections(const Int_t runFlag = 0);
+
+private:
+
+  // variables
+  std::vector< std::pair<Double_t, Double_t> > mesRunLimits;
+  std::vector< std::vector<Double_t> > mesCorTable;
+
+  ClassDef(TMesCor,0) // mes correction for data (R14)
+};
+
+#endif // TMESCOR_HH

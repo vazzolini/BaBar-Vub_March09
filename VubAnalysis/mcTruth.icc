@@ -1,0 +1,1188 @@
+// ----------------------------------------------------------------------
+void recoilNtp::mcTruth( int chbcand ) {
+
+  if (!fIsMC) return;
+  
+  Bool_t isSemilep(kFALSE);
+  Int_t ipB[] = {-1, -1};
+  Int_t typB[] = {7, 7};
+  Int_t cnt(-1);
+
+  static int counter(0); 
+
+  int countpi0dau(0);
+  TLorentzVector phot1pi0;
+  TLorentzVector phot2pi0;
+
+  int countrho0dau(0);
+  TLorentzVector pi1rho0;
+  TLorentzVector pi2rho0;
+
+  int countrhodau(0);
+  TLorentzVector pirho;
+  TLorentzVector pi0rho;
+
+  int countomedau(0);
+  TLorentzVector pi1ome;
+  TLorentzVector pi2ome;
+  TLorentzVector pi0ome;
+
+  Int_t Imc(-1), Jmc(-1), Kmc(-1); 
+  fB1Index = fB2Index = fBVxb = fBVcb = fBVub =  -99;
+  fBbchgen = 0;
+  // For the signal B in nonres MC
+  fBnrIndex = -99;
+
+  Int_t UpsIndex = -99;
+
+  Int_t trulep=0; //# of true leptons
+
+  // -- Find indices of B's
+  for (Int_t imc = 0; imc < nMc; ++imc) {
+    if ((TMath::Abs(idMc[imc]) == 511) || (TMath::Abs(idMc[imc]) == 521)) {
+      if(TMath::Abs(idMc[imc]) == 511) {
+	fBbchgen = 2; //B0s
+      } else if (TMath::Abs(idMc[imc]) == 521) {
+	fBbchgen = 1; //B+/-s
+      }
+      cnt++;
+      ipB[cnt] = imc;
+      if (fB1Index < 0) {
+	fB1Index = imc; 	
+      } else {
+	fB2Index = imc; 
+      }
+    }
+    if (cnt == 1) break;
+  }
+  // Find the index of Ups
+  for(int imc=0; imc<nMc; imc++){
+    if(idMc[imc]==70553){
+      UpsIndex = imc;
+      break;
+    }
+  }
+  // -- Determine event type
+  genLeptonCharge = 0;
+  Int_t ib, dCount(0);
+  float dLen(-1.);
+  fDpi = fDpiz = fDk = fDkmiss = fDks = fDlep = fDgam = 0;
+  fDnu = fDkspipi = fDkspiopio = fDkl = 0;
+  Bool_t isCharm(kFALSE);
+  
+  for (ib = 0; ib < 2; ++ib) { 
+    for (Int_t imc = 0; imc < nMc; ++imc) {
+      if ((mothMc[imc]-1) == ipB[ib]) {
+ 
+
+	//D systematics
+	if (isTruLepton(imc)) {
+	  //There's a lepton
+	  for (Int_t s = 0; s < nMc; ++s) {
+	    if ((TMath::Abs(idMc[s]) == 421) && isAncestor(ipB[ib],s) && (dCount == 0)) {
+	      //D0
+	      if (((TMath::Abs(idMc[mothMc[s]-1]) >= 400) && (TMath::Abs(idMc[mothMc[s]-1]) <= 499)) || ((TMath::Abs(idMc[mothMc[s]-1]) >= 10400) && (TMath::Abs(idMc[mothMc[s]-1]) <= 10499))) {
+		//Flag it as a D0 coming from dstar
+		fD0CfDs = 1;
+	      } else if ((TMath::Abs(idMc[mothMc[s]-1]) == 511) || (TMath::Abs(idMc[mothMc[s]-1]) == 521)) {
+		fD0CfDs = 2;
+	      } else {
+		cout<<"What the hell: "<< TMath::Abs(idMc[mothMc[s]-1]) <<endl;
+	      }
+	      dCount++;
+	      for (Int_t imcD = 0; imcD < nMc; ++imcD) { //Loop on direct D dau
+		if ((mothMc[imcD]-1) == s) {
+		  if (idMc[imcD] == 111) fDpiz++;   
+		  dLen = sqrt(pow((xMc[imcD]-xMc[s]),2)+pow((yMc[imcD]-yMc[s]),2)+pow((zMc[imcD]-zMc[s]),2));
+		  if( dLen > 0.05) {
+		    if (TMath::Abs(idMc[imcD]) == 211) fDpi++;   
+		    if (TMath::Abs(idMc[imcD]) == 22)  fDgam++;   
+		    if ((TMath::Abs(idMc[imcD]) == 12)||(TMath::Abs(idMc[imcD]) == 14)||(TMath::Abs(idMc[imcD]) == 16))  fDnu++;   
+		    if (TMath::Abs(idMc[imcD]) == 321) {
+		      fDk++;   
+		      //How to identify the missed K+?
+		      if(goodTrack[imcD] == 0) fDkmiss++;
+		    }
+		    if ((idMc[imcD] == 310) || (idMc[imcD] == 130)) fDks++;   
+		    if (idMc[imcD] == 130) fDkl++;   
+		    if (idMc[imcD] == 310) {
+		      for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+			if((mothMc[imcKd]-1) == imcD) {
+			  if(idMc[imcKd] == 211) {
+			    fDkspipi++;   
+			  } else if (idMc[imcKd] == 111) {
+			    fDkspiopio++;   
+			  }
+			}
+		      }
+		    }
+		    if (isTruLepton(imcD)) fDlep++;   
+		  } else if (dLen <= 0.05)   {
+		    for (Int_t imcDD = 0; imcDD < nMc; ++imcDD) {
+		      dLen = sqrt(pow((xMc[imcDD]-xMc[imcD]),2)+pow((yMc[imcDD]-yMc[imcD]),2)+pow((zMc[imcDD]-zMc[imcD]),2));
+		      if ((mothMc[imcDD]-1) == imcD) { 
+			if (idMc[imcDD] == 111) fDpiz++;   
+			if(dLen > 0.05) {
+			  if (TMath::Abs(idMc[imcDD]) == 211) fDpi++;   
+			  if (TMath::Abs(idMc[imcDD]) == 321) {
+			    fDk++;   
+			    //How to identify the missed K+?
+			    if(goodTrack[imcDD] == 0) fDkmiss++;
+			  }
+			  if ((idMc[imcDD] == 310) || (idMc[imcDD] == 130))fDks++;   
+			  if (idMc[imcDD] == 130) fDkl++;   
+			  if (idMc[imcDD] == 310) {
+			    for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+			      if((mothMc[imcKd]-1) == imcDD) {
+				if(idMc[imcKd] == 211) {
+				  fDkspipi++;   
+				} else if (idMc[imcKd] == 111) {
+				  fDkspiopio++;   
+				}
+			      }
+			    }
+			  }
+			  if (isTruLepton(imcDD)) fDlep++;   
+			} else if (dLen <= 0.05) {
+			  for (Int_t imcDDD = 0; imcDDD < nMc; ++imcDDD) {
+			    dLen = sqrt(pow((xMc[imcDDD]-xMc[imcDD]),2)+pow((yMc[imcDDD]-yMc[imcDD]),2)+pow((zMc[imcDDD]-zMc[imcDD]),2));
+			    if ((mothMc[imcDDD]-1) == imcDD) {
+			      if (idMc[imcDDD] == 111) fDpiz++;   
+			      if (dLen > 0.05) {
+				if (TMath::Abs(idMc[imcDDD]) == 211) fDpi++;   
+				if (TMath::Abs(idMc[imcDDD]) == 321) {
+				  fDk++;   
+				  //How to identify the missed K+?
+				  if(goodTrack[imcDDD] == 0) fDkmiss++;
+				}
+				if ((idMc[imcDDD] == 310) || (idMc[imcDDD] == 130)) fDks++;   
+				if (idMc[imcDDD] == 130) fDkl++;   
+				if (idMc[imcDDD] == 310) {
+				  for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+				    if((mothMc[imcKd]-1) == imcDDD) {
+				      if(idMc[imcKd] == 211) {
+					fDkspipi++;   
+				      } else if (idMc[imcKd] == 111) {
+					fDkspiopio++;   
+				      }
+				    }
+				  }
+				}
+				if (isTruLepton(imcDDD)) fDlep++;   
+			      }
+			    }
+			  }
+			}
+		      }
+		    }
+		  } 
+		}
+	      }
+	       
+	    } else if ((TMath::Abs(idMc[s]) == 411) && isAncestor(ipB[ib],s) && (dCount == 0)) {
+	      //D+
+	      if (((TMath::Abs(idMc[mothMc[s]-1]) >= 400) && (TMath::Abs(idMc[mothMc[s]-1]) <= 499)) || ((TMath::Abs(idMc[mothMc[s]-1]) >= 10400) && (TMath::Abs(idMc[mothMc[s]-1]) <= 10499))) {
+		//Flag it as a D0 coming from dstar
+		fDCfDs = 1;
+	      } else if ((TMath::Abs(idMc[mothMc[s]-1]) == 511) || (TMath::Abs(idMc[mothMc[s]-1]) == 521)) {
+		fDCfDs = 2;
+	      } else {
+		cout<<"What the hell: "<< TMath::Abs(idMc[mothMc[s]-1]) <<endl;
+	      }
+	      for (Int_t imcD = 0; imcD < nMc; ++imcD) {
+		if ((mothMc[imcD]-1) == s) {
+		  if (TMath::Abs(idMc[imcD]) == 111) fDpiz++;   
+		  dLen = sqrt(pow((xMc[imcD]-xMc[s]),2)+pow((yMc[imcD]-yMc[s]),2)+pow((zMc[imcD]-zMc[s]),2));
+		  if( dLen > 0.05) {
+		    if (TMath::Abs(idMc[imcD]) == 22)  fDgam++;   
+		    if (TMath::Abs(idMc[imcD]) == 211) fDpi++;   
+		    if ((TMath::Abs(idMc[imcD]) == 12)||(TMath::Abs(idMc[imcD]) == 14)||(TMath::Abs(idMc[imcD]) == 16))  fDnu++;   
+		    if (TMath::Abs(idMc[imcD]) == 321) {
+		      fDk++;   
+		      //How to identify the missed K+?
+		      if(goodTrack[imcD] == 0) fDkmiss++;
+		    }
+		    if ((TMath::Abs(idMc[imcD]) == 310) || (TMath::Abs(idMc[imcD]) == 130)) fDks++;   
+		    if (idMc[imcD] == 130) fDkl++;   
+		    if (idMc[imcD] == 310) {
+		      for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+			if((mothMc[imcKd]-1) == imcD) {
+			  if(idMc[imcKd] == 211) {
+			    fDkspipi++;   
+			  } else if (idMc[imcKd] == 111) {
+			    fDkspiopio++;   
+			  }
+			}
+		      }
+		    }
+		    if (isTruLepton(imcD)) fDlep++;   
+		  } else if (dLen <= 0.05)   {
+		    for (Int_t imcDD = 0; imcDD < nMc; ++imcDD) {
+		      dLen = sqrt(pow((xMc[imcDD]-xMc[imcD]),2)+pow((yMc[imcDD]-yMc[imcD]),2)+pow((zMc[imcDD]-zMc[imcD]),2));
+		      if ((mothMc[imcDD]-1) == imcD) { 
+			if (TMath::Abs(idMc[imcDD]) == 111) fDpiz++;   
+			if(dLen > 0.05) {
+			  if (TMath::Abs(idMc[imcDD]) == 211) fDpi++;   
+			  if (TMath::Abs(idMc[imcDD]) == 321) {
+			    fDk++;   
+			    //How to identify the missed K+?
+			    if(goodTrack[imcDD] == 0) fDkmiss++;
+			  }
+			  if ((TMath::Abs(idMc[imcDD]) == 310) || (TMath::Abs(idMc[imcDD]) == 130)) fDks++;   
+			  if (idMc[imcDD] == 130) fDkl++;   
+			  if (idMc[imcDD] == 310) {
+			    for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+			      if((mothMc[imcKd]-1) == imcDD) {
+				if(idMc[imcKd] == 211) {
+				  fDkspipi++;   
+				} else if (idMc[imcKd] == 111) {
+				  fDkspiopio++;   
+				} 
+			      }
+			    }
+			  }
+			  if (isTruLepton(imcDD)) fDlep++;   
+			} else if (dLen <= 0.05) {
+			  for (Int_t imcDDD = 0; imcDDD < nMc; ++imcDDD) {
+			    dLen = sqrt(pow((xMc[imcDDD]-xMc[imcDD]),2)+pow((yMc[imcDDD]-yMc[imcDD]),2)+pow((zMc[imcDDD]-zMc[imcDD]),2));
+			    if ((mothMc[imcDDD]-1) == imcDD) { 
+			      if (TMath::Abs(idMc[imcDDD]) == 111) fDpiz++;   
+			      if(dLen > 0.05) {
+				if (TMath::Abs(idMc[imcDDD]) == 211) fDpi++;   
+				if (TMath::Abs(idMc[imcDDD]) == 321) {
+				  fDk++;   
+				  //How to identify the missed K+?
+				  if(goodTrack[imcDDD] == 0) fDkmiss++;
+				}
+				if ((TMath::Abs(idMc[imcDDD]) == 310) || (TMath::Abs(idMc[imcDDD]) == 130)) fDks++;   
+				if (idMc[imcDDD] == 130) fDkl++;   
+				if (idMc[imcDDD] == 310) {
+				  for (Int_t imcKd = 0; imcKd < nMc; ++imcKd) {
+				    if((mothMc[imcKd]-1) == imcDDD) {
+				      if(idMc[imcKd] == 211) {
+					fDkspipi++;   
+				      } else if (idMc[imcKd] == 111) {
+					fDkspiopio++;   
+				      }
+				    }
+				  }
+				}
+				if (isTruLepton(imcDDD)) fDlep++;   
+			      }
+			    }
+			  }
+			}
+		      }
+		    }
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+	
+	// -- D*0
+	if (TMath::Abs(idMc[imc]) == 423) {
+	  isSemilep = kFALSE;
+	  for (Int_t s = 0; s < nMc; ++s) {
+	    if (((mothMc[s]) == (mothMc[imc])) && isTruLepton(s)) {
+	      isSemilep = kTRUE;
+	      break;
+	    }
+	  }
+	  if (!isSemilep) {
+	    //	    cout << "Found type = 5 had B decay with s = " << s << " -> " idMc[s] << endl;
+	    typB[ib] = 5;
+	  } else {
+	    //	    cout << "Found type = 5 sl B decay with s = " << s << " -> " idMc[s] << endl;
+	  }
+	} // D*0
+
+	// -- D0
+	if (TMath::Abs(idMc[imc]) == 421) {
+	  isSemilep = kFALSE;
+	  for (Int_t s = 0; s < nMc; ++s) {
+	    if ((mothMc[s] == mothMc[imc]) && isTruLepton(s)) {
+	      isSemilep = kTRUE;
+	      break;
+	    }
+	  }
+	  if (!isSemilep) {
+	    //	    cout << "Found type = 6 had B decay with s = " << s << " -> " idMc[s] << endl;
+	    typB[ib] = 6;
+	  } else {
+	    //	    cout << "Found type = 6 sl B decay with s = " << s << " -> " idMc[s] << endl;
+	  }
+	} // D0
+
+	// -- D*+
+	if (TMath::Abs(idMc[imc]) == 413) {
+	  isSemilep = kFALSE;
+	  for (Int_t s = 0; s < nMc; ++s) {
+  	    if ((mothMc[s] == mothMc[imc]) && isTruLepton(s)) {
+  	      isSemilep = kTRUE;
+	      break;
+  	    }
+	  }
+	  if (!isSemilep) {
+	    //	    cout << "Found type = 3 had B decay with s = " << s << " -> " idMc[s] << endl;
+	    typB[ib] = 3;
+	  } else {
+	    //	    cout << "Found type = 3 sl B decay with s = " << s << " -> " idMc[s] << endl;
+	  }
+	} // D*+
+
+	// -- D+
+	if (TMath::Abs(idMc[imc]) == 411) {
+	  isSemilep = kFALSE;
+	  for (Int_t s = 0; s < nMc; ++s) {
+	    if ((mothMc[s] == mothMc[imc]) && isTruLepton(s)) {
+	      isSemilep = kTRUE;
+	      break;
+	    }
+	  }
+	  if (!isSemilep) {
+	    //	    cout << "Found type = 4 had B decay with s = " << s << " -> " idMc[s] << endl;
+	    typB[ib] = 4;
+	  } else {
+	    //	    cout << "Found type = 4 sl B decay with s = " << s << " -> " idMc[s] << endl;
+	  }
+	} // D+
+	
+	// -- sl Decay: Vcb or Vub? 
+	if (isTruLepton(imc)) {
+	  Imc = imc;
+	  Int_t idmc(0);
+	  genLeptonCharge = -1*idMc[imc]/TMath::Abs(idMc[imc]);
+	  typB[ib] = 1;
+	  fBVxb = ipB[ib];
+	  for (Int_t s = 0; s < nMc; ++s) {
+	    idmc = TMath::Abs(idMc[s]);
+	    if (mothMc[s] == mothMc[imc]) {
+	      if (Jmc < 0)  Jmc = s;
+	      else if (Kmc < 0)  Kmc = s;
+	    }
+	    if ((mothMc[s] == mothMc[imc]) 
+		&& (((idmc >= 400) && (idmc < 500))
+		    || ((idmc >= 10400) && (idmc < 10500))
+		    || ((idmc >= 20400) && (idmc < 20500))
+		    || ((idmc >= 30400) && (idmc < 30500))
+		    )) {
+	      fBVcb = ipB[ib];
+	      typB[ib] = 2;
+	      isCharm = kTRUE;
+	      break;
+	    } else {
+	      fBVub = ipB[ib];
+	    }
+
+	  }
+	}
+
+      }
+    }
+  }
+
+
+  Int_t idmc(0);
+  fWithKKbar = kFALSE; 
+  for (Int_t s = 0; s < nMc; ++s) {
+    idmc = TMath::Abs(idMc[s]);
+    if (isAncestor(fBVub, s)  && ((idmc == 321) || (idmc == 311) || (idmc == 310) || (idmc == 130))) {
+      //        cout << " ======================================================================" << endl;
+      //        cout << "Found KKbar" << endl;
+      //        cout << counter++ << "/" << fReturnLog[0] 
+      //  	   << "  " << idmc << "  " << TMath::Abs(idMc[mothMc[s]-1]) << endl;
+      //        cout << " ----------------------------------------------------------------------" << endl;
+      //        dumpGeneratorBlock(); 
+      //        cout << " ----------------------------------------------------------------------" << endl;
+      fWithKKbar = kTRUE; 
+      break;
+    }
+  }
+
+
+
+
+  fHistFile->cd("mcTruth");
+  fBVSTyp = -1;
+  // -- Determine special modes of sl B decay : fBVxbTyp (Gvxbtyp in the tree) : 
+  //    1 D l nu (gamma)
+  //    2 D* l nu (gamma)
+  //    4 D2*l nu (gamma)
+  //    5 D1*lnu (gamma)
+  // the sign of fBVxbTyp tells if B0 (+) or B+/- (-)	
+
+  fBVxbTyp = -99; 
+  int nDaureq, nDauSt;
+  nDaureq = 3;
+  nDauSt = 0;
+  for (Int_t ss = 0; ss < nMc; ++ss) {
+    int idmc = TMath::Abs(idMc[ss]);
+    if (mothMc[ss]-1 == fBVcb) {
+      //      cout<<"I'd enetered at all: "<<fBVcb<<endl;
+      //      cout<<idmc<<endl;
+      if ((idmc == 411) || (idmc == 421)) {
+	//D decay
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl])) {
+	    if( idMc[ssl] == 22) {
+	      nDaureq++;
+	    } else {
+	      //Count whatever it is
+	      nDauSt++;
+	    }
+	  }
+	}
+	if(nDauMc[fBVcb] == nDaureq)	fBVxbTyp = 1; 
+	if(nDauSt >2) fBVxbTyp = 6; 
+	break;
+      }
+      else if ((idmc == 413) || (idmc == 423)) {
+	//D* decay
+	//	dumpGeneratorBlock(fB1Index,fB2Index);
+	//	cout<<"Event; daughters -> "<<nDauMc[fBVcb]<<endl;
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl])) {
+	    if(idMc[ssl] == 22) {
+	      nDaureq++;
+	    } else {
+	      nDauSt++;
+	    }
+	  }
+	}
+	if(nDauMc[fBVcb] == nDaureq) fBVxbTyp = 2; 
+	if(nDauSt >2)	fBVxbTyp = 6;
+	break;
+      }
+      else if ((idmc == 415) || (idmc == 425)) {
+	//D_2* decay
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl])) {
+	    if(idMc[ssl] == 22) {
+	      nDaureq++;
+	    } else {
+	      nDauSt++;
+	    }
+	  }
+	}
+	if(nDauMc[fBVcb] == nDaureq) fBVxbTyp = 4; 
+	if(nDauSt >2)	fBVxbTyp = 6; 
+	break;
+      }
+      else if ((idmc == 10413) || (idmc == 10423)  ) {
+	//D_1
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl])) {
+	    if(idMc[ssl] == 22) {
+	      nDaureq++;
+	    } else {
+	      nDauSt++;
+	    }
+	  }
+	}
+	if(nDauMc[fBVcb] == nDaureq) fBVxbTyp = 5; 
+	if(nDauSt >2)	fBVxbTyp = 6; 
+	break;
+      }
+      else if (((idmc >= 400) && (idmc <= 499)) || ((idmc >= 10400) && (idmc <= 10499)) || ((idmc >= 20400) && (idmc <= 20499)))  {
+	//Other D
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl])) {
+	    if(idMc[ssl] == 22) {
+	      nDaureq++;
+	    } else {
+	      nDauSt++;
+	    }
+	  }
+	}
+	if(nDauMc[fBVcb] == nDaureq) fBVxbTyp = 6; 
+	if(nDauSt >2)	fBVxbTyp = 6; 
+	break;
+      }
+      /*      else if ((idmc >= 200) && (idmc <= 300) || (idmc >= 10200) && (idmc <= 10300) || (idmc >= 20200) && (idmc <= 20300) ) {
+	//a_1, b_1, pi
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVcb] == nDaureq) fBVxbTyp = 8; 
+	break;
+	}*/
+//*******************
+ 
+    } else if (mothMc[ss]-1 == fBVub) {
+      //OTHER SPECIAL MODES OF SL B DECAYS (Vub modes)
+
+      //  b -> u l nu DECAYS splitted in exclusive channels:
+      // the flag  fBVxbTyp (Gvxbtyp in the tree) describes each channel with
+      // the convention:
+      /*
+
+      fBVxbTyp = 11       B -> pi l+ nu   
+      fBVxbTyp = 12       B -> eta l+ nu
+      fBVxbTyp = 13       B-> rho0 l+ nu
+      fBVxbTyp = 14       B-> omega l+ nu 
+      fBVxbTyp = 15       B -> eta_prime l+ nu
+      fBVxbTyp = 16       B -> a_10+-,a_20+-,h_1...l nu
+      fBVxbTyp = 17       B -> b_10+- l+ nu
+      fBVxbTyp = 18       B -> f_0, f'_0, f_2...l nu
+      fBVxbTyp = 19       B -> a_00+-...l nu
+      fBVxbTyp = 20       B ->f'_2, h'_1...l nu
+      fBVxbTyp = 21       B -> f_1 l+ nu 
+      fBVxbTyp = 22       B -> f'_1 l+ n
+
+
+      // the sign of fBVxbTyp tells if B0 (+) or B+/- (-)
+
+      */
+
+      // B -> pi0+/- l+ nu decay for charged or neutral B
+
+      if ( (TMath::Abs(idmc) == 211 )|| (idmc == 111))  {
+//	if (TMath::Abs(idMc[fBVub]) == 511)
+//   	cout << "B0"<<endl;
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) {
+	  fBVxbTyp = 11; 
+	  if(idmc != 111) continue;
+	  for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	    if(mothMc[ssl]-1 ==  ss) {
+	      if(TMath::Abs(idMc[ssl]) != 22 ) continue;
+	      countpi0dau ++;
+	      if(countpi0dau == 1) {
+		mk4Vector(phot1pi0, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); 
+		ftruemomlab1phpi0 = pMc[ssl];
+		ftrueth1phpi0 = thetaMc[ssl];
+	      }
+	      else {
+		mk4Vector(phot2pi0, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); 
+		ftruemomlab2phpi0 = pMc[ssl];
+		ftrueth2phpi0 = thetaMc[ssl];
+	      }
+	    }	    
+	  }
+	}
+	break;
+      }
+	 
+      // 2) B -> eta l+ nu decay for charged B 
+
+	  else if (idmc == 221)  {
+
+	    for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	 if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 12; 
+	break;
+      }
+      // B-> rho0+/- l+ nu decay for charged or neutral B
+
+	
+      else if ((TMath::Abs(idmc) == 213)  || (idmc == 113)) {
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 13; 
+	  if(idmc == 113){
+	    for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	      if(mothMc[ssl]-1 ==  ss) {
+		if(TMath::Abs(idMc[ssl]) != 211 ) continue;
+		countrho0dau ++;
+		if(countrho0dau == 1) {mk4Vector(pi1rho0, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); }
+		else {mk4Vector(pi2rho0, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); }
+	      }	    
+	    }
+	    if(countrho0dau==2){
+	      TLorentzVector rho02 = pi1rho0 + pi2rho0;
+	      ftrueMrho0 = rho02.Mag();
+	    }
+	  }
+	  if(idmc == 213){
+	    for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	      if(mothMc[ssl]-1 ==  ss) {
+		if(!(TMath::Abs(idMc[ssl]) == 211 || TMath::Abs(idMc[ssl])) == 111) continue;
+		countrhodau ++;
+		if(TMath::Abs(idMc[ssl]) == 211) {mk4Vector(pirho, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); }
+		else {mk4Vector(pi0rho, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); }
+	      }
+	    }
+	    if(countrhodau==2){
+	      TLorentzVector rho2 = pirho + pi0rho;
+	      ftrueMrho = rho2.Mag();
+	    }
+	  }
+	break;
+      }
+
+      // B-> omega l+ nu decay for charged B
+
+ 
+      else if (idmc == 223) {
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 14;
+	int counpi(0);
+	int counpi0(0);
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if(mothMc[ssl]-1 ==  ss) {
+	    if(!(TMath::Abs(idMc[ssl]) == 211 || TMath::Abs(idMc[ssl])) == 111) continue;	    
+	    if(TMath::Abs(idMc[ssl]) == 211) {
+	      if(counpi==0) {mk4Vector(pi1ome, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); counpi++;}
+	      else {mk4Vector(pi2ome, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); counpi++;}
+	    }
+	    if(TMath::Abs(idMc[ssl]) == 111) {mk4Vector(pi0ome, pMc[ssl], thetaMc[ssl], phiMc[ssl], massMc[ssl]); counpi0++;}
+	  }
+	}
+	if(counpi==2 && counpi0==1){
+	  TLorentzVector ome2 = pi1ome + pi2ome + pi0ome;
+	  ftrueMomega = ome2.Mag();
+	  countomedau=3;
+	}
+	break;
+      }
+  
+      //B -> eta_prime l+ nu decay for charged B
+
+      else if (idmc == 331) {
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 15; 
+	break;
+      }
+      
+      //Decays with final multiplicity rho pi (B -> a_10+-,a_20+-,h_1 etc)
+      //for neutral or charged B
+      
+
+
+      else if ((TMath::Abs(idmc) == 20213) || (TMath::Abs(idmc) == 215) || 
+	       (idmc == 10223) || (idmc == 20113) || (idmc == 115)) {
+	
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 16; 
+	break;
+      }
+ 
+      // B -> b_10+- l+ nu decay for charged or neutral B
+
+      else if ((TMath::Abs(idmc) == 10213) || (idmc == 10113)) {
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 17; 
+	break;
+      }
+
+      //Decays with final multiplicity pi pi (B -> a_10+-,a_20+-,h_1 etc)
+      //for charged B
+      
+ 
+      // B -> f_0, f'_0, f_2 etc
+
+	 else if ((idmc == 10221) || (idmc == 10331) || (idmc == 225)){
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 18; 
+	break;
+      }
+
+      //Decays with final multiplicity eta pi (B -> a_10+-,a_20+-,h_1 etc)
+      //for neutral or charged B
+      
+      //B -> a_00+- etc
+
+	 else if ((TMath::Abs(idmc) == 10211) || (idmc == 10111)){ 
+
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 19; 
+	break;
+      }
+
+      //Decays with final multiplicity k k (B -> a_10+-,a_20+-,h_1 etc)
+      //for charged B
+      
+      //B ->f'_2, h'_1 etc
+      
+      else if ((TMath::Abs(idmc) == 335) || (TMath::Abs(idmc) == 10333)){
+	
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 20; 
+	break;
+      }
+
+
+      // B -> f_1 l+ nu decay for charged B
+      
+      
+      else if (TMath::Abs(idmc) == 20223){
+	
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 21; 
+	break;
+      }
+      
+
+      // B -> f'_1 l+ n decay for charged B
+      
+      else if (TMath::Abs(idmc) == 20333){
+	
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 22; 
+	break;
+      }
+      
+      
+      
+      //inclusive
+      
+      else if ((idmc == 41)||(idmc == 42)) {
+	//Xu neutral
+	for (Int_t ssl = 0; ssl < nMc; ++ssl) {
+	  if((ssl != ss) && (mothMc[ss] == mothMc[ssl]) && idMc[ssl] == 22) nDaureq++;
+	}
+	if(nDauMc[fBVub] == nDaureq) fBVxbTyp = 7; 
+        fBnrIndex = fBVub; 
+	break;
+      }	
+      else if (isCharm) {
+	if(fVerbose && (idmc != 10413) && (idmc != 20413) && (idmc != 415) && (idmc != 10411))	cout<<idmc<<" This is the mother ID :: charm"<<endl;
+	fBVxbTyp = 3; 
+      } else {
+	if (fVerbose) cout<<idmc<<" This is the mother ID :: unass"<<endl;
+      }
+      //      else {
+      //	if((idmc<10 || idmc>20) && (idmc != 42 && idmc != 211 )) cout<<idmc<< " " << nDauMc[fBVxb]<<endl;
+      //}
+    }
+  }
+
+// give a sign to fBVxbTyp depending on the id of the B meson (+ if B0(~), - if B+(-))
+  
+  
+  if (fBVxb > -1 && fBVxbTyp>0) {
+	if(TMath::Abs(idMc[fBVxb]) == 511){
+	} else if(TMath::Abs(idMc[fBVxb]) == 521) {
+	   fBVxbTyp = -fBVxbTyp; 
+	} else {
+	   cout <<"?!? wrong B moth? " << idMc[fBVxb] << endl;
+	}	
+    }
+  
+  Int_t nfullyrecoDstar0(0), nfullyrecoDstar(0), nfullyrecoDc(0), nfullyrecoD0(0);
+  fVub = fVcb = fOther = 0; 
+  for (Int_t j = 0; j < 2; ++j) {
+    if (typB[j] == 5) {
+      nfullyrecoDstar0++;
+    } else if (typB[j] == 6) {
+      nfullyrecoD0++;
+    } else if (typB[j] == 3) {
+      nfullyrecoDstar++;
+    } else if (typB[j] == 4) {
+      nfullyrecoDc++;
+    } else if (typB[j] == 2) {
+      //      cout << "idMc[Imc] = " << idMc[Imc] << " mom = " << idMc[mothMc[Imc]-1] 
+      //           << " sisters " << idMc[Jmc] << "  " <<idMc[Kmc] << endl;
+      fVcb++;
+    } else if (typB[j] == 1) {
+      //      cout << "vub idMc[Imc] = " << idMc[Imc]<<" mom = "<<idMc[mothMc[Imc]-1]
+      //           <<" sisters " << idMc[Jmc] << " " <<idMc[Kmc] << endl;
+      //        if (idMc[Jmc] == 41) {
+      //  	dumpGeneratorBlock(); 
+      //        }
+      fVub++;
+    } else {
+      fOther++;
+    }
+  }
+
+  ((TH1D*)gDirectory->Get("h100"))->Fill(fVub, 1.);
+  ((TH1D*)gDirectory->Get("h101"))->Fill(fVcb, 1.);
+  ((TH1D*)gDirectory->Get("h102"))->Fill(nfullyrecoDstar, 1.);
+  ((TH1D*)gDirectory->Get("h103"))->Fill(nfullyrecoDc, 1.);
+  ((TH1D*)gDirectory->Get("h104"))->Fill(nfullyrecoDstar0, 1.);
+  ((TH1D*)gDirectory->Get("h105"))->Fill(nfullyrecoD0, 1.);
+  ((TH1D*)gDirectory->Get("h106"))->Fill(fOther, 1.);
+  ((TH1D*)gDirectory->Get("h107"))->Fill(fBVxbTyp, 1.);
+  ((TH2D*)gDirectory->Get("h9009"))->Fill(typB[0], typB[1]);
+  
+
+  // -- BRECO, recoiling B, Y(4S)
+  int seedMode(1);
+  TLorentzVector p4Null(0., 0., 0., 0.);
+  TLorentzVector pMcBreco(p4Null), pMcRecoil(p4Null), pMcUpsilon(p4Null);
+  TLorentzVector p(p4Null); 
+  Int_t nElectron(0), nMuon(0), nTau(0); 
+  Int_t icountmc(0);
+
+  fNLeptonMC = 0;
+  p4LeptonGen = p4Null;
+  p4LeptonGenwPh = p4Null;
+  p4MissGen.SetXYZM(0., 0., 0., 0.);
+  p4XhadGen.SetXYZM(0., 0., 0., 0.);
+  p4XhadGenwoPh.SetXYZM(0.,0.,0.,0.);
+  p4RecoilGen.SetXYZM(0., 0., 0., 0.);
+
+  for (int imc = 0; imc < nMc; ++imc) {
+    if (idMc[imc] == 70553) {
+      mk4Vector(pMcUpsilon, pMc[imc], thetaMc[imc], phiMc[imc], massMc[imc]);
+      break;
+    }
+  }	
+  double massBmeson = 5.2792;
+  for (ib = 0; ib < 2; ++ib) {
+    // -- Breco
+    if (typB[ib] >= seedMode+2) {
+      int ibk = ipB[ib];
+      massBmeson = massMc[ibk];
+      mk4Vector(pMcBreco, pMc[ibk], thetaMc[ibk], phiMc[ibk], massMc[ibk]);
+    }    
+    // -- recoil
+    if ((typB[ib] == 1) || (typB[ib] == 2)) {
+      int ibk = ipB[ib];
+      mk4Vector(pMcRecoil, pMc[ibk], thetaMc[ibk], phiMc[ibk], massMc[ibk]);
+    }
+  }
+
+  // check whether two semileptonic B decays are present. If vub=vcb=1, analyze 
+  // the vub one, if vub=2 || vcb=2 the first one.
+
+  int indexjump[2] = {0,0};
+  if(typB[0] == 1 && typB[1] == 2) indexjump[1] = 1; 
+  if(typB[1] == 1 && typB[0] == 2) indexjump[0] = 1; 
+  if(typB[0] == 1 && typB[1] == 1) indexjump[1] = 1; 
+  if(typB[0] == 2 && typB[1] == 2) indexjump[1] = 1; 
+
+  // In case of nr MC make sure the nr is taken as signal if vub==2.
+  if(typB[0] == 1 && typB[1] == 1 && fIsNR){
+    if(fBnrIndex==ipB[1]){
+      indexjump[0] = 1;
+      indexjump[1] = 0;
+    }
+  }
+  
+  
+  // -- Recoil
+  double ctv(-1000);	/// D helicity angle for D*lnu FF reweighting
+  double ctl(-1000);	/// lepton helicity angle for D*lnu FF reweighting
+  double chi(-1000);    // planarity for  D*lnu FF reweighting
+  int idst(-1);
+  TVector3 dstN(0,0,0);
+  TLorentzVector dst(p4Null);
+  for (ib = 0; ib < 2; ++ib) {
+    if (typB[ib] > 2 || indexjump[ib]) continue;
+    for (int imc = 0; imc < nMc; ++imc) {
+      mk4Vector(p, pMc[imc], thetaMc[imc], phiMc[imc], massMc[imc]);      
+      if (mothMc[imc]-1 == ipB[ib]) {
+	
+	
+	if (isTruLepton(imc)) {
+          trulep++;
+	  fNLeptonMC++;
+	  p4LeptonGen = p;
+          p4LeptonGenwPh = p;
+	}
+	if (isTruEl(imc)) nElectron++;
+	if (isTruMu(imc)) nMuon++;
+	if (isTruTau(imc)) nTau++;
+	
+	int idmc = TMath::Abs(idMc[imc]);
+	
+        if(idmc==22){
+          TVector3 p3lep(p4LeptonGen.X(), p4LeptonGen.Y(), p4LeptonGen.Z());
+          if(p.Angle(p3lep)<1.5708){ //pi/2
+	    p4LeptonGenwPh += p; // Bremsstrahlung, KT
+	    p4XhadGenwoPh -= p;
+          }
+        }
+	
+	if ((idmc < 11) || (idmc > 16)) {   // if not a lepton nor a neutrino
+          if(fIsNR && TMath::Abs(idmc)!=41 && TMath::Abs(idmc)!=42 && idmc!=22)
+            cout << "Wrong signal selected " << idmc << endl;
+	  ((TH1D*)gDirectory->Get("h700"))->Fill(idMc[imc], 1.);
+	  p4XhadGen += p;
+	  icountmc++;
+          p4XhadGenwoPh += p;
+          // Info for multiplicity categories
+          GetCat(imc, UpsIndex, 3.);
+	}
+	if ((idmc != 12) && (idmc != 14) && (idmc != 16)) p4RecoilGen += p;
+ 	if ((idmc == 12) || (idmc == 14) || (idmc == 16))  p4MissGen += p;
+      } else 	if(TMath::Abs(idMc[imc]) == 421) {
+	idst=mothMc[imc]-1;
+	if(TMath::Abs(idMc[idst])==413){
+	  
+	  if(mothMc[idst]-1== ipB[ib]){
+	    
+	    mk4Vector(dst, pMc[idst], thetaMc[idst], phiMc[idst], massMc[idst]);
+	    TVector3 boo(-dst.Vect()); 
+	    boo.SetMag(boo.Mag()/dst.E());
+	    TLorentzVector b(pMcRecoil);b.Boost(boo);
+	    TLorentzVector d(p);d.Boost(boo);	    
+	    ctv=cos(b.Vect().Angle(d.Vect()));
+	    dstN=b.Vect().Cross(d.Vect());
+	  }
+	}
+	
+	//Energy of true Klongs
+	double TrueKlEnergy;
+	if(TMath::Abs(idMc[imc]) == 130) {
+	  TrueKlEnergy = p.E();
+	  ((TH1D*)gDirectory->Get("TrueKlEn"))->Fill(TrueKlEnergy, 1.);
+	  if(TrueKlEnergy>0) ((TH1D*)gDirectory->Get("TrueKlEnNz"))->Fill(TrueKlEnergy, 1.);
+	  //	cout<<TrueKlEnergy<<" :: Energy od true KL"<<endl;
+	}
+      }
+    }	
+  }
+  
+  fchgDau++; 			//Do not forget the signal lepton...
+  
+  fKplus   				= kPlus();
+  //Correction of 2factor missing
+  fQ2Gen   				= 2.*p4MissGen*p4LeptonGen;
+  fQ2GenwPh 				= 2.*p4MissGen*p4LeptonGenwPh;
+    
+  TVector3 		boostVector(-pMcRecoil.Vect());  
+  
+  if (fVub + fVcb > 0) {
+    boostVector.SetMag(boostVector.Mag()/pMcRecoil.E());
+  }
+  TLorentzVector 	lcms 		= p4LeptonGen;
+  lcms.Boost(boostVector); 
+  TLorentzVector 	lcmswPh 	= p4LeptonGenwPh;
+  lcmswPh.Boost(boostVector);
+  // D* lnu calculations
+  if (idst>=0){
+    TVector3 		bootln(-p4MissGen.Vect()-p4LeptonGenwPh.Vect());
+    bootln.SetMag(bootln.Mag()/(p4MissGen.E()+p4LeptonGenwPh.E()));
+    TLorentzVector 	dstl(p4LeptonGenwPh);dstl.Boost(bootln);
+    dst.Boost(bootln);
+    ctl				= cos(dstl.Vect().Angle(dst.Vect()));
+    chi				= dstl.Vect().Cross(dst.Vect()).Angle(dstN);
+  }
+  
+  
+    fctvGen 				= ctv;
+    fctlGen 				= ctl;
+    fchiGen				= chi;
+    //  cout <<" helicity angle "<<ctv<<endl;
+    if(p4MissGen.Mag()>0.01)cout <<" large missing mass !!! "<<p4MissGen.Mag()<<endl;
+    
+    fPcmsGen 				= lcms.Vect().Mag();
+    fTcmsGen 				= lcms.Theta();
+    fFcmsGen 				= lcms.Phi();
+    fEcmsGen 				= lcms.E();
+    
+    fPcmsGenwPh 			= lcmswPh.Vect().Mag();
+    fTcmsGenwPh 			= lcmswPh.Theta();
+    fFcmsGenwPh 			= lcmswPh.Phi();
+    fEcmsGenwPh 			= lcmswPh.E();
+    
+    fPxhadGen 				= p4XhadGen.Vect().Mag();
+    fTxhadGen 				= p4XhadGen.Theta();
+    fFxhadGen 				= p4XhadGen.Phi();
+    fExhadGen 				= p4XhadGen.E();
+    fMxhadGen 				= p4XhadGen.Mag();
+    ftLepG 				= p4LeptonGen.E();
+    
+    fMxhadGenwoPh 			= p4XhadGenwoPh.Mag();
+    fPxhadGenwoPh 			= p4XhadGenwoPh.Vect().Mag();
+    fTxhadGenwoPh 			= p4XhadGenwoPh.Theta();
+    fFxhadGenwoPh 			= p4XhadGenwoPh.Phi();
+    fExhadGenwoPh 			= p4XhadGenwoPh.E();
+    /*
+      Added variables to study pW+EW
+    */
+    TLorentzVector 	dovG(0., 0., 0., 0.);
+    TLorentzVector 	lepdovG 	= p4LeptonGen;
+    TLorentzVector 	nudovG 		= p4MissGen;
+    lepdovG.Boost(boostVector); 
+    nudovG.Boost(boostVector);
+    dovG 				= lepdovG + nudovG;
+    fEwPwG 				= dovG.E() + dovG.P(); 
+    /*
+      Finished adding new variables
+    */
+    
+    if (countpi0dau == 2) {
+      phot1pi0.Boost(boostVector);
+      ftruemom1phpi0 			= phot1pi0.Vect().Mag();
+      phot2pi0.Boost(boostVector);
+      ftruemom2phpi0 			= phot2pi0.Vect().Mag();
+      if(ftruemom2phpi0>ftruemom1phpi0) {
+	double 		tmpmom 		= ftruemom1phpi0;
+	ftruemom1phpi0 			= ftruemom2phpi0;
+	ftruemom2phpi0 			= tmpmom;
+      }	    	    
+    }
+    
+    if (countrho0dau == 2) {
+      pi1rho0.Boost(boostVector);
+      ftruemom1pirho0 			= pi1rho0.Vect().Mag();
+      pi2rho0.Boost(boostVector);
+      ftruemom2pirho0 			= pi2rho0.Vect().Mag();
+      if(ftruemom2pirho0>ftruemom1pirho0) {
+	double 		tmpmom 		= ftruemom1pirho0;
+	ftruemom1pirho0 		= ftruemom2pirho0;
+	ftruemom2pirho0 		= tmpmom;
+      }	    	    
+    }
+    
+    if (countrhodau == 2) {
+      pirho.Boost(boostVector);
+      ftruemompirho 			= pirho.Vect().Mag();
+      pi0rho.Boost(boostVector);
+      ftruemompi0rho 			= pi0rho.Vect().Mag();
+    }
+    
+    if (countomedau == 3) {
+      TLorentzVector 	dalipi1pi2 	= pi1ome + pi2ome;
+      TLorentzVector 	dalipi1pi0 	= pi1ome + pi0ome;
+      TLorentzVector 	omega 		= pi1ome + pi2ome + pi0ome;
+      ftruedalitzpi1pi2ome 		= pow(dalipi1pi2.Mag(),2);  
+      ftruedalitzpi1pi0ome 		= pow(dalipi1pi0.Mag(),2);  
+      
+      // cos theta hel    
+      TVector3  	omeBoost 	= omega.Vect();
+      omeBoost.SetMag(omeBoost.Mag()/omega.E());
+      dalipi1pi2.Boost(-omeBoost);
+      TLorentzVector 	pi1omeboost 	= pi1ome;
+      pi1omeboost.Boost(-omeBoost);
+      TLorentzVector 	pi2omeboost 	= pi2ome;
+      pi2omeboost.Boost(-omeBoost);
+      TLorentzVector 	pi0omeboost 	= pi0ome;
+      pi0omeboost.Boost(-omeBoost);
+      TVector3 		verpi1pi2 	= dalipi1pi2.Vect();
+      TVector3 		verpi1 		= pi1omeboost.Vect();
+      TVector3 		verpi2 		= pi2omeboost.Vect();
+      TVector3 		verpi0 		= pi0omeboost.Vect();    
+      TVector3 		orthog 		= verpi1.Cross(verpi2);
+      
+      TVector3 		dalipi1pi2Boost = dalipi1pi2.Vect();
+      dalipi1pi2Boost.SetMag(dalipi1pi2Boost.Mag()/dalipi1pi2.E());
+      TLorentzVector 	pi1daliboost 	= pi1omeboost;
+      pi1daliboost.Boost(-dalipi1pi2Boost);
+      TLorentzVector 	pi2daliboost 	= pi2omeboost;
+      pi2daliboost.Boost(-dalipi1pi2Boost);
+      TVector3 		verpi1dali 	= pi1daliboost.Vect();
+      TVector3 		verpi2dali 	= pi2daliboost.Vect();
+      
+      verpi1pi2.SetMag(1); 
+      verpi0.SetMag(1);
+      verpi1dali.SetMag(1);
+      verpi2dali.SetMag(1);
+      omeBoost.SetMag(1);
+      orthog.SetMag(1);
+      
+      double 		costh 		= verpi1dali*verpi0;
+      ftruecosthome 			= TMath::Abs(costh);
+      
+      pi1ome.Boost(boostVector);
+      ftruemom1piome 			= pi1ome.Vect().Mag();
+      pi2ome.Boost(boostVector);
+      ftruemom2piome 			= pi2ome.Vect().Mag();
+      if(ftruemom2piome>ftruemom1piome) {
+	double 		tmpmom 		= ftruemom1piome;
+	ftruemom1piome 			= ftruemom2piome;
+	ftruemom2piome 			= tmpmom;
+      }	    	    
+      pi0ome.Boost(boostVector);
+      ftruemompi0ome 			= pi0ome.Vect().Mag();    
+    }
+    
+    //  fQ2Gen    			= 2.*p4Neutrino*p4LeptonLab;
+    
+    fGwCiuc				= 2*(fExhadGen/massBmeson);
+    fGxCiuc				= 2*(ftLepG/massBmeson);
+    double 		tmpCiuc;
+    tmpCiuc 				= pow((1-pow((fMxhadGen/fExhadGen),2)),0.5);
+    fGcsiCiuc				= 2*tmpCiuc/(1+tmpCiuc); 
+    
+    if (fVub + fVcb > 0) {
+      ((TH1D*)gDirectory->Get("h77000"))->Fill(fNLeptonMC, 1.);
+      if (fNLeptonMC == 1) {
+	((TH1D*)gDirectory->Get("h121000"))->Fill(fPcmsGen, 1.);
+	((TH1D*)gDirectory->Get("h123000"))->Fill(fMxhadGen, 1.);
+	
+	if (fVcb == 1) {
+	  ((TH1D*)gDirectory->Get("h121005"))->Fill(fPcmsGen, 1.);
+	  ((TH1D*)gDirectory->Get("h123005"))->Fill(fMxhadGen, 1.);
+	  ((TH1D*)gDirectory->Get("h124005"))->Fill(icountmc, 1.);
+	}      
+	
+	if (fVub == 1) {
+	  ((TH1D*)gDirectory->Get("h121006"))->Fill(p4LeptonGen.Vect().Mag(), 1.);
+	  ((TH1D*)gDirectory->Get("h123006"))->Fill(fMxhadGen, 1.);
+	  ((TH1D*)gDirectory->Get("h124006"))->Fill(icountmc, 1.);
+	}      
+      }
+    }
+  }
+
+  
+Int_t recoilNtp::isKs2Pi0Dau(Int_t iGam){
+  if(IndexGam[iGam]<=0)return -1;
+  Int_t Imoth(mothMc[IndexGam[iGam]-1]-1);
+  if(Imoth<0)return -1;
+  if(idMc[Imoth]!=111)return -1;
+  Int_t Igrand(mothMc[Imoth]-1);
+  if(Igrand<0)return -1;
+  if(idMc[Igrand]!=310)return -1;
+  return Igrand;
+}
+
+int recoilNtp::GetChg(int lundid){
+  if((lundid==211)||(lundid==2212)||(lundid==321)||(lundid==11)||(lundid==13)||(lundid==15)) return 1;
+  else
+    if((lundid==111)||(lundid==130)||(lundid==311)||(lundid==2112)||(lundid==22)) return 0;
+    else{
+      cout << "Unknown last daughter id " << lundid << endl;
+      return -99;
+    }
+}
+
+void recoilNtp::GetCat(int p, int VIndex, double dist){
+  if(((nDauMc[p]==0)||(sqrt(pow(xMc[p]-xMc[VIndex],2)+pow(yMc[p]-yMc[VIndex],2)+pow(zMc[p]-zMc[VIndex],2))>dist))&&(idMc[p]!=310)&&(TMath::Abs(idMc[p])!=3122)&&(TMath::Abs(idMc[p])!=3222)&&(TMath::Abs(idMc[p])!=3112)){
+    if((dist==3.)||(TMath::Abs(idMc[p])==211)||(TMath::Abs(idMc[p])==111)||(TMath::Abs(idMc[p])==321)||(TMath::Abs(idMc[p])==311)){
+      fchgDau += GetChg(TMath::Abs(idMc[p]));
+      fneuDau += (1 - GetChg(TMath::Abs(idMc[p])));
+    }
+  }
+  else{
+    if(nDauMc[p]>0){
+      for(int pmc1=0; pmc1<nMc; pmc1++){
+        if(((mothMc[pmc1]-1)==p) && (TMath::Abs(idMc[pmc1])!=12 && TMath::Abs(idMc[pmc1])!=14 && TMath::Abs(idMc[pmc1])!=16))
+          if((idMc[p]==310)||(TMath::Abs(idMc[p])==3122)||(TMath::Abs(idMc[p])==3222)||(TMath::Abs(idMc[p])==3112)){
+            GetCat(pmc1,p,2.);
+            if((TMath::Abs(idMc[p])==3122)||(TMath::Abs(idMc[p])==3222)||(TMath::Abs(idMc[p])==3112)){
+              cout << "Mother of one of these " << idMc[mothMc[p]-1] << endl;
+              cout << "Decay type " << fBVxbTyp << endl;
+            }
+          }
+          else
+            GetCat(pmc1, VIndex,3.);
+        }
+      }
+  }
+  return;
+}

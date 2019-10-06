@@ -1,0 +1,26 @@
+# Various settings #
+
+#rootfile = /nfs/farm/babar/AWG82/petrella/ex_nfs2/thecomp/2008/dataMCall3_R16.root
+rootfile = /afs/slac.stanford.edu/u/br/petrella/scra/allR16.root
+outdir = /afs/slac.stanford.edu/u/br/petrella/scra/puppa/
+dataname = DATA
+mcname  = PStar
+bch = 2
+isdata = 1
+# Histos settings #
+##Var name #   min#  #max#   #bin#    #Variable description#
+#				                      
+#mx              0.      4.     20       M_\{X\} \(GeV/c^\{2\}\)
+#mm2	       -5.	15.    40    	m_\{#nu\}^\{2\} \(GeV^\{2\}/c^\{4\}\)	
+#pcms	       	0.	3.     15    	p_\{lep\} \(GeV/c\)	
+#nchg	        0.	10.    10    	N. charged tracks		
+#nkp	        0.	5.	5    	N. K^\{#pm\}		
+#nks	        0.	5.	5    	N. K_\{s\}		
+#nneu	        0.	15.	15   	N neutral clusters
+qtot	       -4.	4.	9    	Total charge		
+#q2	       -1.	19.	20   	q^2 \(GeV^\{2\}/c^\{4\}\)		
+#pplus	        0.	5.	20   	P_\{+\} \(GeV/c\)
+#wdeltam       -20.	10.	30   	wdeltam		
+#wdeltampiz    -20.      10.     30      m_\{#nu\}^\{2\} veto
+#emiss           0.      5.      20      E_\{miss\} GeV
+#pmiss           0.      3.      15      p_\{miss\} GeV/c

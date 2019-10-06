@@ -1,0 +1,590 @@
+//clone by VirUtil.icc v1.127
+//************************************************
+
+#include <ext/numeric>
+
+#include "TStopwatch.h"
+
+#include "RooFitCore/RooDataHist.hh"
+#include "RooFitCore/RooHist.hh"
+
+#include "RooFitCore/RooChi2Var.hh"
+#include "RooFitCore/RooMinuit.hh"
+#include "RooFitCore/RooFitResult.hh"
+#include "RooFitCore/RooNLLVar.hh"
+#include "RooFitCore/RooBinning.hh"
+
+#include "RooFitCore/RooAbsPdf.hh"
+#include "RooFitCore/RooAddPdf.hh"
+#include "RooFitCore/RooExtendPdf.hh"
+
+#include "RooFitModels/RooCBShape.hh"
+#include "RooFitModels/RooArgusBG.hh"
+#include "RooFitModels/RooGaussian.hh"
+#include "RooFitModels/RooBifurGauss.hh"
+
+//#include "VirVubFitter/RooSumArgusBG.hh"
+//#include "VirVubFitter/RooCCB.hh"
+//#include "VirVubFitter/RooSumCCB.hh"
+
+#include "RooFitCore/RooFormulaVar.hh"
+
+#include "TDecompChol.h"
+#include "TMatrixD.h"
+#include "TVectorD.h"
+
+using namespace RooFit;
+
+mesData* exclfitNtp::exclVubMesUnb(RooDataSet *data, RooRealVar *x, double &resmean, double &ressigma, double &resalpha, double &resn, double &resargpar, int print, int func, double mean, double sigma, double alpha, double n, double argus, double nSIG, double nBKG, char *simply) {
+
+
+  //Mes in a reduced range for yielding
+  RooRealVar mes(*x);
+
+  RooRealVar Rm("mean","mean of gaussian 1",5.28,5.275,5.285) ;
+  RooRealVar Rs("sigma","width of gaussians",.003,.002,.004) ;
+  RooRealVar Ra("alpha","alpha parameter",1.3,0.,10.) ;
+  RooRealVar Rn("n","n parameter",3.46,1., 7.) ;
+  RooCBShape cb("cb","Crystal Ball",mes,Rm,Rs,Ra,Rn) ;  
+
+  // Gaussian for signal component
+  RooGaussian g("g","Gaussian",mes,Rm,Rs);
+  
+  // Build Argus background PDF
+  RooRealVar argpar("ar","argus shape parameter",-60.,-95.,-10.) ;
+  RooRealVar cutoff("cutoff","argus cutoff",5.29) ;
+  RooArgusBG a("a","Argus PDF",mes,cutoff,argpar) ;
+
+  //Signal and Background events
+  RooRealVar nsig("S","number of sig events",100.,0.,1500000.);
+  RooRealVar nbkg("B","number of bkg events",1.,0.,500000.);
+
+  // Add the components for the extended likelihood fit
+
+  mes.setRange("mesint",5.27,5.29);
+	
+  RooExtendPdf cbe("cbe","cbe",cb,nsig,"mesint");
+  RooExtendPdf ae("ae","ae",a,nbkg,"mesint");
+  RooAddPdf model("model","a+cb",RooArgList(cbe,ae)) ;
+	
+
+  // For the Gaussian
+  RooExtendPdf ge("ge","ge",g,nsig,"mesint");
+  RooAddPdf gmodel("gmodel","a+g",RooArgList(ge,ae));
+
+  //definition
+
+  double x2 = 0.12;
+  double p0, p1, Dp0, Dp1;
+  char line[200];
+
+  if (func == 0) {
+   // Ra.setVal(alpha);
+    Ra.setVal(100); Ra.setConstant();	
+    Rm.setVal(mean); Rs.setVal(sigma);  
+    // argpar.setVal(argus);
+    //    argpar.setVal(-39.9);  argpar.setConstant(); 
+    //Rn.setVal(3.46); 
+    Rn.setVal(n);    Rn.setConstant();
+  } else if(func == 1) {
+    if (mean > 0.)    {Rm.setVal(mean);  Rm.setConstant();}
+    if (sigma > 0.)   {Rs.setVal(sigma); Rs.setConstant();} 
+    if (n > 0.)       {Rn.setVal(n);     Rn.setConstant();}
+    if (alpha > 0.)   {Ra.setVal(alpha); Ra.setConstant();} 
+    if (argus > -55.) {argpar.setVal(argus);}
+    //CB we fit the argus shape with USECB=1 argpar.setConstant(); 
+  }
+  
+  RooDataSet *datared = dynamic_cast<RooDataSet*>(data->reduce(simply));
+  
+  char mescut[100];
+
+  sprintf(mescut,"%s%s",simply,"&&mes>5.27");  
+  RooDataSet *dataredforfitov = dynamic_cast<RooDataSet*>(data->reduce(mescut));  
+  double integralov = dataredforfitov->sumEntries(); 
+
+  sprintf(mescut,"%s%s",simply,"&&mes<5.26");   
+  RooDataSet *dataredforfitun = dynamic_cast<RooDataSet*>(data->reduce(mescut));   
+  double integralun = dataredforfitun->sumEntries();  
+
+  if (nSIG > 0.) { 
+    nsig.setVal(nSIG); 
+  }else{ 
+    nsig.setVal(integralov);
+  } 
+
+  if (nBKG > 0.) {
+    nbkg.setVal(nBKG); 
+  }else{
+    nbkg.setVal(integralov);
+  } 
+  int dontfit = 0;
+  if(integralun==0) {
+     nbkg.setVal(0.);
+     nsig.setVal(integralov);
+     dontfit = 1;
+  } 
+  if(integralov==0) { 
+     nbkg.setVal(0.); 
+     nsig.setVal(0.); 
+     dontfit = 1; 
+  }  
+  if(integralov<4){
+//     argpar.setFitRange(-50.,-10.) ;
+     nsig.setRange(-2.,10.) ; 
+     nbkg.setRange(-2.,10.) ;  
+  } 
+  if(integralov==1){ 
+//     argpar.setFitRange(-50.,-10.) ; 
+     nsig.setRange(0,10.) ;  
+     nbkg.setRange(0,10.) ;   
+  }  
+
+	
+  cout<< "Parameters before fitting:: "<<Rm.getVal()<<" "<<Rs.getVal()<<" "<<Ra.getVal()<<" "<<Rn.getVal()<<" "<<argpar.getVal()<<" "<<nsig.getVal()<<" "<<nbkg.getVal()<<endl; 
+  
+
+  if(GAUSSFIT){
+    cout << "Fitting Gaussian instead of Crystal Ball" << endl;
+    if(!dontfit) { RooFitResult* r = gmodel.fitTo(*datared,"rmhe"); r->Print("v"); }   
+
+    xframe = mes.frame() ;
+    datared->plotOn(xframe) ;
+  //  gmodel.plotOn(xframe,Components(RooArgSet(ge,ae))) ;		
+    gmodel.plotOn(xframe,RooFit::Components(RooArgSet("ge")),RooFit::LineWidth(1),RooFit::LineColor(kRed)) ;
+    gmodel.plotOn(xframe,RooFit::Components(RooArgSet("ae")),RooFit::LineWidth(1),RooFit::LineColor(kGreen)) 
+;
+    if(!dontfit)    gmodel.plotOn(xframe,RooFit::Components(RooArgSet("ge,ae"))) ;
+    gmodel.paramOn(xframe,datared,"Fit Results",1,"ne",0.15,0.55,0.8);
+  }
+  else{
+    if(!dontfit) { RooFitResult* r = model.fitTo(*datared,"rmhe"); r->Print("v"); }
+
+    xframe = mes.frame() ;
+    datared->plotOn(xframe) ;
+    if(!dontfit) 
+model.plotOn(xframe,RooFit::Components("cbe"),RooFit::LineWidth(1),RooFit::LineColor(kBlue)) ;
+model.plotOn(xframe,RooFit::Components(RooArgSet("ae")),RooFit::LineWidth(1),RooFit::LineColor(kRed)) ;
+    model.paramOn(xframe,datared,"Fit Results",1,"ne",0.15,0.55,0.8);
+//    model.paramOn(xframe,Format("NEU"),Layout(0.15,0.55,0.8));
+  }
+
+  p0 = nsig.getVal();   Dp0 = nsig.getError();
+  p1 = nbkg.getVal();   Dp1 = nbkg.getError();
+  
+  if (!datared->sumEntries()) {
+    p0 = 0.;   Dp0 = 0.;
+    p1 = 0.;   Dp1 = 0.;
+}	
+  if(dontfit) {
+    p0 = nsig.getVal();   Dp0 = sqrt(nsig.getVal()); 
+    p1 = 0;   Dp1 = 0; 
+  }
+ 
+  
+  resmean  = Rm.getVal();  ressigma = Rs.getVal();
+  resalpha = Ra.getVal();  resn     = Rn.getVal();
+  resargpar= argpar.getVal();
+
+  if(data==datadata){
+    resmean = Rm.getVal() + Rm.getError();
+    ressigma = Rs.getVal() + Rs.getError();
+    resalpha = Ra.getVal() + Ra.getError();
+    resargpar = argpar.getVal() + argpar.getError();
+  //  if(ME==5) resmean = Rm.getVal() - Rm.getError();
+  //  if(ME==6) ressigma = Rs.getVal() - Rs.getError();
+  //  if(ME==7) resalpha = Ra.getVal() - Ra.getError();
+  //  if(ME==8) resargpar = argpar.getVal() - argpar.getError();
+  }
+
+  xframe->Draw() ;
+  
+  mesData *pD = new mesData(datared->GetName(),p0,Dp0,p1,Dp1,p0/(p0+p1),dBinomial(p0, p0+p1));
+
+  return pD;
+
+}
+
+
+//-----------------------------------------------------------
+
+// ----------------------------------------------------------------------
+double exclfitNtp::dBinomial(double n, double N) {
+  if ((N <= 0) || (n < 0.)) return 0.;
+  double w = n/N;
+  return TMath::Sqrt(TMath::Abs(w*(1-w)/N));
+}
+
+//----------------------------------------------------
+
+TVector2 exclfitNtp::exclsighistounb(RooDataSet *Adata, RooRealVar *Ax, double &Aresmean, double &Aressigma, double &Aresalpha, double &Aresn, double &Aresargpar, double Amean, double Asigma, double Aalpha,  double An, double Aargus, double AnSIG, double AnBKG, char * Asimply, int fixpar){
+   	
+cout << "exclsighistounb: Amean " << Amean << " Asigma " << Asigma << " Aalpha " << Aalpha << " An " << An << " Aargus " << Aargus << " AnSIG " << AnSIG << " AnBKG " << AnBKG << endl;
+
+  mesData themes(*(exclVubMesUnb(Adata,Ax,Aresmean, Aressigma, Aresalpha, Aresn, Aresargpar, 1, fixpar, Amean, Asigma, Aalpha, An, Aargus, AnSIG, AnBKG, Asimply)));
+	
+  TVector2 temp(themes.theSig(),themes.theErrSig());
+  return temp;	
+	
+}
+
+
+//************************************************************
+//-------------------------------------------------------------------
+
+TVector2 exclfitNtp::mixCorr(RooDataSet *data, char* cuts, double* mespar, bool iseps, char *nameeps){
+  
+  char name[100],finalcuts[100];
+  double resmean, ressigma, resalpha, resn, resargpar;
+
+  // mixing factor
+  double chid = 0.186;
+
+  sprintf(name, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),nameeps,".eps");  
+  c1 = new TCanvas("c1"," ",200,10,800,800); 
+  if(iseps) openEpsFile(name);
+  c1->Clear();
+  c1->Divide(2, 2);
+  TVector2 signalsig;
+
+  cout << "mespar : " << mespar[0] << " " << mespar[1]<< " " <<  mespar[2]<< " " <<  mespar[3] << " " <<  mespar[4] << endl;
+
+  c1->cd(1);
+  sprintf(finalcuts,"%s%s",cuts,"&&flavB==3");  
+  signalsig = exclsighistounb(data, varMes, resmean, ressigma, resalpha, resn, resargpar, mespar[0],mespar[1],mespar[2],mespar[3],mespar[4],   -2500, -200., finalcuts, USECB);
+  double tempbinchb = signalsig.X();
+  double temperrchb = signalsig.Y();
+  c1->cd(2);
+  sprintf(finalcuts,"%s%s",cuts,"&&flavB==4");  
+  signalsig = exclsighistounb(data, varMes, resmean, ressigma, resalpha, resn, resargpar, mespar[0],mespar[1],mespar[2],mespar[3],mespar[4],   -2500, -200., finalcuts, USECB);
+  double tempbinb0os = signalsig.X();
+  double temperrb0os = signalsig.Y();
+
+  c1->cd(3);
+  sprintf(finalcuts,"%s%s",cuts,"&&flavB==5");  
+  signalsig = exclsighistounb(data, varMes, resmean, ressigma, resalpha, resn, resargpar, mespar[0],mespar[1],mespar[2],mespar[3],mespar[4],   -2500, -200., finalcuts, USECB);
+  double tempbinb0ss = signalsig.X();
+  double temperrb0ss = signalsig.Y();
+  
+  double tempbin = tempbinchb + ((1-chid)/(1-2*chid)) * tempbinb0os - (chid/(1-2*chid)) * tempbinb0ss;
+  double temperr = sqrt(temperrchb*temperrchb + ((1-chid)/(1-2*chid)) * ((1-chid)/(1-2*chid)) * temperrb0os * temperrb0os + (chid/(1-2*chid)) * (chid/(1-2*chid)) * temperrb0ss * temperrb0ss);
+
+  if(iseps) closeEpsFile();
+
+  delete c1;
+
+  TVector2 temp(tempbin,temperr); 
+  return temp; 
+
+}
+
+TVector2 exclfitNtp::nomixCorr(RooDataSet *data, char* cuts, double* mespar, bool iseps, char *nameeps){
+
+  char name[100],finalcuts[100];
+  double resmean, ressigma, resalpha, resn, resargpar;
+  sprintf(finalcuts,"%s%s",cuts,"==1&&mes>5.27"); 
+  RooDataSet *datac=dynamic_cast<RooDataSet*>(data->reduce(finalcuts));
+  cout<<"xxx Cut at 5.27: "<<datac->numEntries()<<endl;
+
+  sprintf(name, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),nameeps,".eps");  
+  c1 = new TCanvas("c1"," ",200,10,800,800); 
+  if(iseps) openEpsFile(name);
+  c1->Clear();
+  TVector2 signalsig;
+
+  cout << mespar[0] << " " << mespar[1]<< " " <<  mespar[2]<< " " <<  mespar[3] << " " <<  mespar[4] << endl;
+
+  sprintf(finalcuts,"%s%s",cuts,"==1");  
+  signalsig = exclsighistounb(data, varMes, resmean, ressigma, resalpha, resn, resargpar, mespar[0],mespar[1],mespar[2],mespar[3],mespar[4],   -2500, -200., finalcuts, USECB);
+  double tempbinb0os = signalsig.X();
+  double temperrb0os = signalsig.Y();
+  cout<<"xxx fit: "<<tempbinb0os<<" +- "<<temperrb0os<<endl;
+  if(iseps) closeEpsFile();
+
+ delete c1;
+
+  double tempbin = tempbinb0os;
+  double temperr = temperrb0os;
+
+
+  TVector2 temp(tempbin,temperr); 
+  return temp; 
+
+}
+
+
+void exclfitNtp::makesubplot(RooDataSet *data, char* var, char* cuts, double* mespar, int nbins, double xmin, double xmax, char* outputplot, bool iseps, char *nameeps){
+  
+  char finalcuts[100];
+  double resmean(0), ressigma(0), resalpha(0), resn(0), resargpar(0);
+  
+  // fit the total sample to get the signal paramenters
+  
+
+  TVector2 signalsig;
+  sprintf(finalcuts,"%s%s%s%s%f%s%s%s%f",cuts,"&&",var,">",xmin,"&&",var,"<",xmax);  
+
+  signalsig = exclsighistounb(data, varMes, resmean, ressigma, resalpha, resn, resargpar, mespar[0],mespar[1],mespar[2],mespar[3],mespar[4],  -2500, -200., finalcuts, USECB);
+  
+  double bwidth = (xmax - xmin)/nbins;
+  double mesparresult[5] = {resmean, ressigma, resalpha, resn,-100000.};
+
+  for(int i=0;i<nbins;i++){
+  
+    double tempxmin = xmin + bwidth*i;
+    double tempxmax = xmin + bwidth*(i+1);
+    
+    sprintf(finalcuts,"%s%s%s%s%f%s%s%s%f",cuts,"&&",var,">",tempxmin,"&&",var,"<",tempxmax);  
+    TVector2 tempresult;
+    tempresult = mixCorr(data, finalcuts, mesparresult, 0);
+    fHistFile->cd();
+    ((TH1D*)gDirectory->Get(outputplot))->SetBinContent(i+1,tempresult.X());
+    ((TH1D*)gDirectory->Get(outputplot))->SetBinError(i+1,tempresult.Y());
+  }  
+}
+
+void exclfitNtp::makefinalplots(char *var, int nbins){
+  
+  char name[100], name2[100];
+  double scale;
+  // add up different components with the right scaling factors
+  for(int y=1;y<nbins+1;y++){
+
+    double tempbin, totbkgerr(0);
+
+    sprintf(name, "%s%s",var,"scalevcbexcl");
+    sprintf(name2, "%s%s",var,"vcbexcl");   
+    scale = (nsl/nslmc) * scalefact;
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y) * scale);
+    totbkgerr = sqrt( pow(totbkgerr,2) + pow(((TH1D*)gDirectory->Get(name2))->GetBinError(y) * scale,2));
+
+    sprintf(name, "%s%s",var,"scaleothexcl");
+    sprintf(name2, "%s%s",var,"othexcl");
+    scale = (nsl/nslmc) * scalefact;
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y) * scale);
+    totbkgerr = sqrt( pow(totbkgerr,2) + pow(((TH1D*)gDirectory->Get(name2))->GetBinError(y) * scale,2));
+
+    sprintf(name, "%s%s",var,"scalevubexcl");
+    sprintf(name2, "%s%s",var,"vubexcl");
+    scale = (nsl/nslvub * fact * RATIOBR)* scalefact; 
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y) * scale);
+    totbkgerr = sqrt( pow(totbkgerr,2) + pow(((TH1D*)gDirectory->Get(name2))->GetBinError(y) * scale,2));
+
+    sprintf(name, "%s%s",var,"scalesigexcl");
+    sprintf(name2, "%s%s",var,"sigexcl");
+    scale = (nsigdata/nsig);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,((TH1D*)gDirectory->Get(name2))->GetBinContent(y) * scale);
+   
+    sprintf(name, "%s%s",var,"nonvubexcl");
+    sprintf(name2, "%s%s",var,"scalevcbexcl");
+    tempbin = ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    sprintf(name2, "%s%s",var,"scaleothexcl");
+    tempbin += ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,tempbin);
+
+    sprintf(name, "%s%s",var,"allbkgexcl");
+    sprintf(name2, "%s%s",var,"nonvubexcl");
+    tempbin = ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    sprintf(name2, "%s%s",var,"scalevubexcl");
+    tempbin += ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,tempbin);
+   
+    sprintf(name, "%s%s",var,"allmcexcl");
+    sprintf(name2, "%s%s",var,"allbkgexcl");
+    tempbin = ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    sprintf(name2, "%s%s",var,"scalesigexcl");
+    tempbin += ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,tempbin);
+
+    sprintf(name, "%s%s",var,"allbkgexclerr");
+    sprintf(name2, "%s%s",var,"allbkgexcl");
+    tempbin = ((TH1D*)gDirectory->Get(name2))->GetBinContent(y);
+    ((TH1D*)gDirectory->Get(name))->SetBinContent(y,tempbin);
+    ((TH1D*)gDirectory->Get(name))->SetBinError(y,totbkgerr);
+   
+  }
+    
+
+  // draw the result
+  c1 = new TCanvas("c1"," ",200,10,800,800);   
+  c1->Clear();
+  
+  char namevar[100],namepar[100],nameuni[100],nameaxis[100];
+  if (!strcmp(var, "mass")) {
+    sprintf(namevar, "m");
+    sprintf(nameuni, "[GeV/c^{2}]");
+  }else if(!strcmp(var, "mm2")){
+    sprintf(namevar, "m_{miss}^{2}");
+    sprintf(nameuni, "[GeV^{2}/c^{4}]");
+  }else if(!strcmp(var, "pcms")){
+    sprintf(namevar, "p^{*}");
+    sprintf(nameuni, "[GeV/c]");
+  }else if(!strcmp(var, "q2")){
+    sprintf(namevar, "q^{2}");
+    sprintf(nameuni, "[GeV^{2}/c^{4}]");
+  }else{
+    cout << "NO SUCH VARIABLE FOR AXIS NAME!!!" << endl;
+  }
+
+  if(FITCATEGORY == 11) sprintf(namepar, "%s%s",namevar,"(#pi^{+})");
+  if(FITCATEGORY == -11) sprintf(namepar, "%s%s",namevar,"(#pi^{0})");
+  if(FITCATEGORY == 13) sprintf(namepar, "%s%s",namevar,"(#rho^{+})");
+  if(FITCATEGORY == -13) sprintf(namepar, "%s%s",namevar,"(#rho^{0})");
+  if(FITCATEGORY == -14) sprintf(namepar, "%s%s",namevar,"(#omega)");
+  if(FITCATEGORY == -12) sprintf(namepar, "%s%s",namevar,"(#eta)");
+  if(FITCATEGORY == -15) sprintf(namepar, "%s%s",namevar,"(#eta')");
+  if(FITCATEGORY == -19) sprintf(namepar, "%s%s",namevar,"(a_{0}^{0})");
+  if(FITCATEGORY == 19) sprintf(namepar, "%s%s",namevar,"(a_{0}^{+})");
+
+  sprintf(nameaxis, "%s%s",namepar,nameuni);
+  
+  sprintf(name, "%s%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),var,"finalplot.eps");
+  openEpsFile(name);   
+  
+  sprintf(name, "%s%s",var,"dataexcl");
+  double themax = ((TH1D*)gDirectory->Get(name))->GetMaximum() * 1.4; 
+  ((TH1D*)gDirectory->Get(name))->SetMarkerStyle(8);	
+  ((TH1D*)gDirectory->Get(name))->SetMarkerSize(1.);	
+  ((TH1D*)gDirectory->Get(name))->SetMarkerColor(kBlack);	
+  ((TH1D*)gDirectory->Get(name))->SetXTitle(nameaxis);
+  if(!(strcmp(var,"mm2"))) {
+    ((TH1D*)gDirectory->Get(name))->SetLabelSize(0.04,"y");
+    ((TH1D*)gDirectory->Get(name))->SetLabelOffset(0.005,"y");
+    ((TH1D*)gDirectory->Get(name))->SetTitleSize(0.04,"y");
+    ((TH1D*)gDirectory->Get(name))->SetTitleOffset(1.2,"y");
+    ((TH1D*)gDirectory->Get(name))->SetYTitle("Events/(0.25 GeV^{2}/c^{4})");
+  }
+  if(!(strcmp(var,"mass"))) { 
+    ((TH1D*)gDirectory->Get(name))->SetLabelSize(0.04,"y"); 
+    ((TH1D*)gDirectory->Get(name))->SetLabelOffset(0.005,"y"); 
+    ((TH1D*)gDirectory->Get(name))->SetTitleSize(0.04,"y"); 
+    ((TH1D*)gDirectory->Get(name))->SetTitleOffset(1.2,"y"); 
+    ((TH1D*)gDirectory->Get(name))->SetYTitle("Events/(225 MeV/c^{2})"); 
+  } 
+  ((TH1D*)gDirectory->Get(name))->SetMaximum(themax); 
+  ((TH1D*)gDirectory->Get(name))->SetMinimum(0.); 
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetTitle(0);
+//BUG
+((TH1D*)gDirectory->Get(name))->SetDirectory(0);		
+//end BUG
+  ((TH1D*)gDirectory->Get(name))->Draw();
+  sprintf(name, "%s%s",var,"allmcexcl");
+  ((TH1D*)gDirectory->Get(name))->SetLineWidth(3.);
+  ((TH1D*)gDirectory->Get(name))->SetLineColor(kBlack);
+  ((TH1D*)gDirectory->Get(name))->SetFillColor(kWhite);
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetTitle(0);
+  ((TH1D*)gDirectory->Get(name))->DrawCopy("same");  
+  sprintf(name, "%s%s",var,"allbkgexcl");
+  ((TH1D*)gDirectory->Get(name))->SetFillColor(38);
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetTitle(0);
+  ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+  sprintf(name, "%s%s",var,"nonvubexcl");
+  ((TH1D*)gDirectory->Get(name))->SetFillColor(kYellow);
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetTitle(0);
+  ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+  sprintf(name, "%s%s",var,"scaleothexcl");
+  ((TH1D*)gDirectory->Get(name))->SetFillColor(13);
+  ((TH1D*)gDirectory->Get(name))->SetStats(0);
+  ((TH1D*)gDirectory->Get(name))->SetTitle(0);
+  ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+  sprintf(name, "%s%s",var,"dataexcl");
+  ((TH1D*)gDirectory->Get(name))->DrawCopy("same");
+  TLegendEntry *legge; 
+  TLegend *leg;
+  leg = new TLegend(0.13,0.45,0.35,0.85);
+  leg->SetFillStyle(0); leg->SetBorderSize(0.); leg->SetTextSize(0.035); 
+  leg->SetFillColor(0); 
+  sprintf(name, "%s%s",var,"allmcexcl");  
+  legge = leg->AddEntry(((TH1D*)gDirectory->Get(name)), "signal", "f"); 
+  sprintf(name, "%s%s",var,"allbkgexcl");  
+  legge = leg->AddEntry(((TH1D*)gDirectory->Get(name)), "other b #rightarrow ul#nu", "f"); 
+  sprintf(name, "%s%s",var,"nonvubexcl");  
+  legge = leg->AddEntry(((TH1D*)gDirectory->Get(name)), "b #rightarrow cl#nu", "f"); 
+  sprintf(name, "%s%s",var,"scaleothexcl");  
+  legge = leg->AddEntry(((TH1D*)gDirectory->Get(name)), "other", "f"); 
+  sprintf(name, "%s%s",var,"dataexcl");  
+  legge = leg->AddEntry(((TH1D*)gDirectory->Get(name)), "data", "p"); 
+  leg->Draw();
+  closeEpsFile();
+  
+}
+
+
+// ----------------------------------------------------------------------
+void exclfitNtp::readmesParam(TString filename, int dump) {
+  char  buffer[200];
+  fmesFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char mesfitName[100];
+  float sigma;
+  float mean;
+  float cb1;
+  float cb2;
+  float arg;
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    //     if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %f %f %f %f %f", mesfitName, &mean, &sigma, &cb1, &cb2, &arg);
+    
+    // -- 
+    if (!strcmp(mesfitName, "Nsl")) { mesNsl[0] = mean; mesNsl[1] = sigma; mesNsl[2] = cb1; mesNsl[3] = cb2; mesNsl[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "datacuts")) { mesdatacuts[0] = mean; mesdatacuts[1] = sigma; mesdatacuts[2] = cb1; mesdatacuts[3] = cb2; mesdatacuts[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "vubcuts")) { mesvubcuts[0] = mean; mesvubcuts[1] = sigma; mesvubcuts[2] = cb1; mesvubcuts[3] = cb2; mesvubcuts[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "vcbcuts")) { mesvcbcuts[0] = mean; mesvcbcuts[1] = sigma; mesvcbcuts[2] = cb1; mesvcbcuts[3] = cb2; mesvcbcuts[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "othcuts")) { mesothcuts[0] = mean;  mesothcuts[1] = sigma; mesothcuts[2] = cb1; mesothcuts[3] = cb2; mesothcuts[4] = arg; ok = 1;}	
+    if (!strcmp(mesfitName, "NslMC")) { mesNslMC[0] = mean; mesNslMC[1] = sigma; mesNslMC[2] = cb1; mesNslMC[3] = cb2; mesNslMC[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "sigcuts")) { messigcuts[0] = mean; messigcuts[1] = sigma; messigcuts[2] = cb1; messigcuts[3] = cb2; messigcuts[4] = arg; ok = 1;}
+    if (!strcmp(mesfitName, "sigleptcuts")) { messigleptcuts[0] = mean; messigleptcuts[1] = sigma; messigleptcuts[2] = cb1; messigleptcuts[3] = cb2; messigleptcuts[4] = arg; ok = 1;}
+    if (ok == 0)  cout << "==> fitNtp::readmesParam() Error: Don't know about variable " << mesfitName << endl;
+  }
+  
+  if (dump == 1) dumpmesParam();
+  
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::dumpmesParam() {
+  cout << "====================================" << endl;
+  cout << " Mes fit parameters file " << fmesFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " Nsl parameters         :  mean = "<<  mesNsl[0]  << ";   sigma = "<<  mesNsl[1]  << ";   cb1 = "<<  mesNsl[2]  << ";   cb2 = "<<  mesNsl[3]  <<  ";   arg = "<<  mesNsl[4]  <<  endl; 
+  cout << " datacuts parameters    :  mean = "<<  mesdatacuts[0]  << ";   sigma = "<< mesdatacuts[1] << ";   cb1 = "<< mesdatacuts[2]  << ";   cb2 = "<<  mesdatacuts[3] << ";   arg = "<<  mesdatacuts[4] <<  endl;  
+  cout << " vubcuts parameters     :  mean = "<<  mesvubcuts[0]  << ";   sigma = "<< mesvubcuts[1] << ";   cb1 = "<< mesvubcuts[2]  << ";   cb2 = "<<  mesvubcuts[3] << ";   arg = "<<  mesvubcuts[4] <<  endl;  
+  cout << " vcbcuts parameters     :  mean = "<<  mesvcbcuts[0]  << ";   sigma = "<< mesvcbcuts[1] << ";   cb1 = "<< mesvcbcuts[2]  << ";   cb2 = "<<  mesvcbcuts[3] << ";   arg = "<<  mesvcbcuts[4] <<  endl;  
+  cout << " othcuts parameters     :  mean = "<<  mesothcuts[0]  << ";   sigma = "<<  mesothcuts[1] << ";   cb1 = "<< mesothcuts[2]  << ";   cb2 = "<<  mesothcuts[3]  << ";   arg = "<<  mesothcuts[4] <<  endl;  	
+  cout << " NslMC parameters       :  mean = "<<  mesNslMC[0]  << ";   sigma = "<< mesNslMC[1] << ";   cb1 = "<< mesNslMC[2]  << ";   cb2 = "<<  mesNslMC[3]  << ";   arg = "<<  mesNslMC[4] <<  endl;  
+  cout << " sigcuts parameters     :  mean = "<<  messigcuts[0]  << ";   sigma = "<< messigcuts[1] << ";   cb1 = "<< messigcuts[2]  << ";   cb2 = "<<  messigcuts[3] << ";   arg = "<<  messigcuts[4] <<  endl;  
+  cout << " sigleptcuts parameters :  mean = "<<  messigleptcuts[0]  << ";   sigma = "<< messigleptcuts[1] << ";   cb1 = "<< messigleptcuts[2]  << ";   cb2 = "<<  messigleptcuts[3] << ";   arg = "<<  messigleptcuts[4] <<  endl;  
+  cout << "====================================" << endl;
+}
+
+// ----------------------------------------------------------------------
+double exclfitNtp::getTrueMxWeight(double thetrumx, int index) {
+  //  cout<<"Entered function: "<<thetrumx<<endl;
+  int thebin = TrueHist(thetrumx);
+  if(index < 0) thebin = thebin + 21;
+  return TrueMxWeight[thebin];
+}
+
+int exclfitNtp::TrueHist(double mxt){
+  double truehistbins[21] = {0.0, 1.2, 1.264, 1.341, 1.414, 1.483, 1.549, 1.612, 1.673, 1.732, 1.788, 1.843, 1.897, 1.949, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0};
+  if(mxt<=truehistbins[0]) return 0;
+  for(int ih =0; ih<20; ih++) {
+    if(mxt>truehistbins[ih] && mxt<=truehistbins[ih+1]) return ih+1;
+  }
+  if(mxt>truehistbins[20]) {
+    return 21;
+  }
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::doTheo() {
+  DOTHEO = 1;
+}

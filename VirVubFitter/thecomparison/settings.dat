@@ -1,0 +1,28 @@
+# Various settings #
+
+file1 = /nfs/farm/babar/AWGsemilep01/menges/summer06/store.2/Vubrec-def/chains/datChainRun1
+file2 = /nfs/farm/babar/AWGsemilep01/menges/summer06/store.2/Vubrec-def/chains/genChainRun1
+tree1 = ntp1
+tree2 = ntp1
+outdir = /afs/slac.stanford.edu/u/br/petrella/scra/thecomp/Run1
+isbch = 2
+cat = 7
+sys = 1
+
+# Histos settings #
+##Var name ##                  #min#  #max#   #bin#   #shift# #smear#
+
+#mxhadfit	mxhadfit	0.	4.	20	0.	0.
+#q2fit		q2fit		-1.	19.	20	0.	0.
+mm2		mm2		-5.	15.	40	0.	0.
+mxhad           mxhad           0.      4.      20      0.      0.
+pcms		pcms		0.	3.	15	0.	0.
+nchg		nchg		0.	10.	10	0.	0.
+nkp		nkp		0.	5.	5	0.	0.
+nks		nks		0.	5.	5	0.	0.
+nneu		nneu		0.	15.	15	0.	0.
+qtot		qtot		-4.	4.	9	0.	0.
+q2		q2		-1.	19.	20	0.	0.
+pplus		pplus		0.	5.	20	0.	0.			
+wdeltam		wdeltam		-20.	10.	30	0.	0.
+ksele		nks+nkp		0.	10.	10	0.	0.	

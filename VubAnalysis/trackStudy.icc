@@ -1,0 +1,672 @@
+
+// ----------------------------------------------------------------------
+void recoilNtp::cleanGoodTracks(int what) {
+
+  static int doHist(0);
+
+  int osLooper  = 1;
+  int ssLooper  = 1; 
+  int ssParallel= 1; 
+  int print(0); 
+
+  // -- ca. 5 sigma
+  const double phiSSmatch = 0.220; 
+  const double phiOSmatch = 0.190; 
+  const double thetaSSmatch = 0.215;  // from central part fit
+  const double thetaOSmatch = 0.300; 
+  const double ptmatch = 0.1; 
+
+  const double paraphimatch = 0.1; 
+  const double parathetamatch = 0.1; 
+  const double paraptmatch = 0.05; 
+
+  static Bool_t first(kTRUE);
+  int osmult[100], ssfmult[100], sssmult[100];
+  for (int i= 0; i < 100; ++i) {
+    osmult[i] = ssfmult[i] = sssmult[i]  = 0; 
+  }
+
+
+  TH1D *h1; 
+  TH2D *h2; 
+  if (doHist && (first == kTRUE)) {
+    first = kFALSE;
+    fHistFile->cd();
+    fHistFile->mkdir("tracks");
+    fHistFile->cd("tracks"); 
+
+    h1 = new TH1D("g0",   "Nevent", 10, 0., 10.);
+    h1 = new TH1D("g1",   "Ntrk", 30, 0., 30.);
+    h1 = new TH1D("g10",  "opposite sign multiplicity", 6, 0., 6.);
+    h1 = new TH1D("g11",  "slow same sign multiplicity", 6, 0., 6.);
+    h1 = new TH1D("g12",  "fast same sign multiplicity", 6, 0., 6.);
+
+    h1 = new TH1D("g100", "all tracks, pt < 0.18", 100, 0., 3.15);
+    h1 = new TH1D("g101", "goodTracks, pt < 0.18", 100, 0., 3.15);
+    h1 = new TH1D("g102", "goodTracks after removal, pt < 0.18", 100, 0., 3.15);
+    h2 = new TH2D("g103", "goodTracks after removal, pt < 0.18", 100, 0., 3.15, 100, -3.15, 3.15);
+    h2 = new TH2D("g104", "goodTracks after removal, pt < 0.18", 100, 0., 3.15, 100, 0., 0.2);
+
+    h1 = new TH1D("g110", "all good tracks", 100, 0., 3.15);
+    h1 = new TH1D("g111", "all good tracks", 100, 0., 1.0);
+    h2 = new TH2D("g112", "all good tracks", 100, 0., 3.15, 100, 0., 1.0);
+
+    h1 = new TH1D("g120", "osLooper", 100, 0., 3.15);
+    h1 = new TH1D("g121", "osLooper", 100, 0., 1.0);
+    h2 = new TH2D("g122", "osLooper", 100, 0., 3.15, 100, 0., 1.0);
+
+    h1 = new TH1D("g130", "ssLooper slow", 100, 0., 3.15);
+    h1 = new TH1D("g131", "ssLooper slow", 100, 0., 1.0);
+    h2 = new TH2D("g132", "ssLooper slow", 100, 0., 3.15, 100, 0., 3.15);
+
+    h1 = new TH1D("g140", "ss parallel", 100, 0., 3.15);
+    h1 = new TH1D("g141", "ss Parallel", 100, 0., 1.0);
+    h2 = new TH2D("g142", "ss Parallel", 100, 0., 3.15, 100, 0., 1.0);
+
+
+    // --  os loopers
+    h1 = new TH1D("h100", "os delta phi,    pt < 0.18", 500, -6.50, 6.50);     
+    h1 = new TH1D("k100", "os delta phi,    pt < 0.18", 500, -6.50, 6.50);     
+    h2 = new TH2D("H100", "os delta phi vs. pt", 50, 0., 0.2, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h101", "os delta theta,  pt < 0.18", 500, -2.00, 2.00);     
+    h1 = new TH1D("k101", "os delta theta,  pt < 0.18", 500, -2.00, 2.00);     
+    h2 = new TH2D("H101", "os delta theta vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h102", "os delta pt,    pt < 0.18", 500, -.50, .50);     
+    h1 = new TH1D("k102", "os delta pt,    pt < 0.18", 500, -.50, .50);     
+    h2 = new TH2D("H102", "os delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+
+    h1 = new TH1D("h103", "os delta tan(dip),  pt < 0.18", 500, -2.00, 2.00);     
+    h1 = new TH1D("k103", "os delta tan(dip),  pt < 0.18", 500, -2.00, 2.00);     
+    h2 = new TH2D("H103", "os delta tan(dip) vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    // --  ss loopers
+    h1 = new TH1D("h200", "ss delta phi,    pt < 0.18", 500, -6.50, 6.50);     
+    h1 = new TH1D("k200", "ss delta phi,    pt < 0.18", 500, -6.50, 6.50);     
+    h2 = new TH2D("H200", "ss delta phi vs. pt", 50, 0., 0.2, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h201", "ss delta theta,  pt < 0.18", 500, -2.00, 2.00);     
+    h1 = new TH1D("k201", "ss delta theta,  pt < 0.18", 500, -2.00, 2.00);     
+    h2 = new TH2D("H201", "ss delta theta vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h202", "ss delta pt,    pt < 0.18", 500, -.50, .50);     
+    h1 = new TH1D("k202", "ss delta pt,    pt < 0.18", 500, -.50, .50);     
+    h2 = new TH2D("H202", "ss delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+
+    h1 = new TH1D("h203", "os delta tan(dip),  pt < 0.18", 500, -2.00, 2.00);     
+    h1 = new TH1D("k203", "os delta tan(dip),  pt < 0.18", 500, -2.00, 2.00);     
+    h2 = new TH2D("H203", "os delta tan(dip) vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    // --  ss parallel tracks
+    h1 = new TH1D("h300", "ssPara delta phi", 500, -6.50, 6.50);     
+    h1 = new TH1D("k300", "ssPara delta phi", 500, -6.50, 6.50);     
+    h2 = new TH2D("H300", "ssPara delta phi vs. pt", 50, 0., 2.0, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h301", "ssPara delta theta", 500, -2.00, 2.00);     
+    h1 = new TH1D("k301", "ssPara delta theta", 500, -2.00, 2.00);     
+    h2 = new TH2D("H301", "ssPara delta theta vs. pt", 100, 0., 2.0, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h302", "ssPara delta pt", 500, -1.50, 1.50);     
+    h1 = new TH1D("k302", "ssPara delta pt", 500, -1.50, 1.50);     
+    h2 = new TH2D("H302", "ssPara delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+
+    fHistFile->cd(); 
+  }
+
+  if (doHist) fHistFile->cd("tracks"); 
+
+  double pt(-99.), ndch(-99.), nsvt(-99.), charge(-99.), dca(-99.), dcaz(-99.), dz(-99.);
+  double phi(-99.), theta(-99.); 
+  int kill(0); 
+
+  Bool_t histSSPhi, histOSPhi, histSSTheta, histOSTheta, histPt; 
+
+  double pi = TMath::Pi(); 
+
+  if (doHist) {
+    ((TH1D*)gDirectory->Get("g0"))->Fill(0.5); 
+    ((TH1D*)gDirectory->Get("g1"))->Fill(nTrk); 
+  }
+
+
+  for (int i = 0; i < nTrk; ++i) {
+    pt     = momentumTrk[i]*sin(thetaTrk[i]);
+    nsvt   = nsvtTrk[i]; 
+    ndch   = ndchTrk[i]; 
+    charge = chargeTrk[i]; 
+    phi    = phiTrk[i]; 
+    theta  = thetaTrk[i];
+    
+    dz   = zPocaTrk[i] - primVtxZ;
+    dcaz = zPocaTrk[i] - beamSZ;
+    dca  = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+
+    if (doHist) if (pt < 0.18) ((TH1D*)gDirectory->Get("g100"))->Fill(theta); 
+    if (goodTrack[i] == 0) continue; 
+
+    if (doHist) {
+      if (pt < 0.18) ((TH1D*)gDirectory->Get("g101"))->Fill(theta); 
+      if (pt < 0.18) ((TH1D*)gDirectory->Get("g110"))->Fill(theta); 
+      ((TH1D*)gDirectory->Get("g111"))->Fill(pt); 
+      ((TH2D*)gDirectory->Get("g112"))->Fill(theta, pt); 
+    }
+
+    for (int j = 0; j < nTrk; ++j) {
+      if (j == i) continue; 
+      if (goodTrack[j] == 0) continue; 
+      kill = j; 
+
+      histSSPhi   = (TMath::Abs(phi - phiTrk[j]) < phiSSmatch); 
+      histOSPhi   = (TMath::Abs(TMath::Abs(phi - phiTrk[j]) - pi) < phiOSmatch); 
+      histSSTheta = (TMath::Abs(theta - thetaTrk[j]) < thetaSSmatch); 
+      histOSTheta = (TMath::Abs(theta - thetaTrk[j]) < thetaOSmatch); 
+      histPt      = (TMath::Abs(pt - momentumTrk[j]*sin(thetaTrk[j])) < ptmatch); 
+
+      // -- in central theta: opposite sign loopers at opposite phi
+      if ((charge*chargeTrk[j] < 0.)
+	  && (theta > 1.4) && (theta < 1.7) 
+	  && (pt < 0.18)
+	  ) {
+
+	// -- histograms
+	if (doHist) {
+	  if (histOSTheta && histPt) {
+	    ((TH1D*)gDirectory->Get("h100"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H100"))->Fill(pt, phi - phiTrk[j]); 
+	  }
+	  if (histOSPhi && histPt) {
+	    ((TH1D*)gDirectory->Get("h101"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H101"))->Fill(pt, theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("h103"))->Fill(tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	    ((TH2D*)gDirectory->Get("H103"))->Fill(pt, tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	  }
+	  if (histOSPhi && histOSTheta) {
+	    ((TH1D*)gDirectory->Get("h102"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	    ((TH2D*)gDirectory->Get("H102"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+	}
+
+	// -- killing decision
+	if ((charge*chargeTrk[j] < 0.) && (pt < 0.18)
+	    && (TMath::Abs(TMath::Abs(phi - phiTrk[j]) - pi) < phiOSmatch)
+	    && (TMath::Abs(theta - thetaTrk[j]) < thetaOSmatch)
+	    && (TMath::Abs(pt - momentumTrk[j]*sin(thetaTrk[j])) < 0.1)
+	    ) {
+	  
+	  if (doHist) {
+	    ((TH1D*)gDirectory->Get("k100"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k101"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k102"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+
+	  if (TMath::Abs(zPocaTrk[j] - primVtxZ) < TMath::Abs(dz)) {
+	    kill = i; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g120"))->Fill(theta); 
+	      ((TH1D*)gDirectory->Get("g121"))->Fill(pt); 
+	      ((TH2D*)gDirectory->Get("g122"))->Fill(theta, pt); 
+	    }
+	    osmult[j] += 1;
+	  } else {
+	    kill = j; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g120"))->Fill(thetaTrk[j]); 
+	      ((TH1D*)gDirectory->Get("g121"))->Fill(momentumTrk[j]*sin(thetaTrk[j])); 
+	      ((TH2D*)gDirectory->Get("g122"))->Fill(thetaTrk[j], momentumTrk[j]*sin(thetaTrk[j])); 
+	    }
+	    osmult[i] += 1;
+	  }
+	  print += 1; 
+	  //	  cout << i << " is osLooper with  " << j << " killing " << kill << endl;
+	  if (osLooper) {
+	    goodTrack[kill] = 0; 
+	    loopTrack[kill] = 1;
+	    continue; 
+	  }
+	}
+      }
+
+
+      // -- in central theta:  same sign loopers at the same phi
+      if ((charge*chargeTrk[j] > 0.)
+	  &&(theta < 1.7) && (theta > 1.4)
+	  && (pt < 0.18)  
+	  ) {
+	// -- histograms
+	if (doHist) {
+	  if (histSSTheta && histPt) {
+	    ((TH1D*)gDirectory->Get("h200"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H200"))->Fill(pt, phi - phiTrk[j]); 
+	  }
+	  if (histSSPhi && histPt) {
+	    ((TH1D*)gDirectory->Get("h201"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H201"))->Fill(pt, theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("h203"))->Fill(tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	    ((TH2D*)gDirectory->Get("H203"))->Fill(pt, tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	  }
+	  if (histSSPhi && histSSTheta) {
+	    ((TH1D*)gDirectory->Get("h202"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	    ((TH2D*)gDirectory->Get("H202"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+	}
+
+	// -- killing decision
+	if ((charge*chargeTrk[j] > 0.)  && (pt < 0.18)
+	    && (TMath::Abs(phi - phiTrk[j]) < phiSSmatch)
+	    && (TMath::Abs(theta - thetaTrk[j]) < thetaSSmatch)
+	    && (TMath::Abs(pt - momentumTrk[j]*sin(thetaTrk[j])) < 0.1)
+	    ) {
+	  if (doHist) {
+	    ((TH1D*)gDirectory->Get("k200"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k201"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k202"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+	  
+	  if (TMath::Abs(zPocaTrk[j] - primVtxZ) < TMath::Abs(dz)) {
+	    kill = i; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g130"))->Fill(theta); 
+	      ((TH1D*)gDirectory->Get("g131"))->Fill(pt); 
+	      ((TH2D*)gDirectory->Get("g132"))->Fill(theta, pt); 
+	    }
+	    sssmult[j] += 1;
+	  } else {
+	    kill = j; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g130"))->Fill(thetaTrk[j]); 
+	      ((TH1D*)gDirectory->Get("g131"))->Fill(momentumTrk[j]*sin(thetaTrk[j])); 
+	      ((TH2D*)gDirectory->Get("g132"))->Fill(thetaTrk[j], momentumTrk[j]*sin(thetaTrk[j])); 
+	    }
+	    sssmult[i] += 1;
+	  }
+	  print += 2; 
+	  //	  cout << i << " is slow ssLooper with  " << j << " killing " << kill << endl;
+	  if (ssLooper) {
+	    goodTrack[kill] = 0; 
+	    loopTrack[kill] = 2;
+	    continue; 
+	  }
+	}
+      }
+
+
+      // -- parallel tracks
+      if ((charge*chargeTrk[j] > 0.)
+	  && (pt > 0.)	 && (pt < 0.35)	  
+	  ) {
+	// -- histograms
+	if (doHist) {
+	  if (histSSTheta && histPt) {
+	    ((TH1D*)gDirectory->Get("h300"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H300"))->Fill(pt, phi - phiTrk[j]); 
+	  }
+	  if (histSSPhi && histPt) {
+	    ((TH1D*)gDirectory->Get("h301"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("H301"))->Fill(pt, theta - thetaTrk[j]); 
+	  }
+	  if (histSSPhi && histSSTheta) {
+	    ((TH1D*)gDirectory->Get("h302"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	    ((TH2D*)gDirectory->Get("H302"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+	}
+
+	if ((charge*chargeTrk[j] > 0.) && (pt > 0.) && (pt < 0.35)
+	    && (TMath::Abs(theta - thetaTrk[j]) < parathetamatch)
+	    && (TMath::Abs(phi - phiTrk[j]) < paraphimatch)
+	    && (TMath::Abs(pt - momentumTrk[j]*sin(thetaTrk[j])) < paraptmatch)
+	    ) {
+
+	  if (doHist) {
+	    ((TH1D*)gDirectory->Get("k300"))->Fill(phi - phiTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k301"))->Fill(theta - thetaTrk[j]); 
+	    ((TH1D*)gDirectory->Get("k302"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  }
+
+	  // -- killing decision
+	  if (ndch < ndchTrk[j]) {
+	    kill = i; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g140"))->Fill(theta); 
+	      ((TH1D*)gDirectory->Get("g141"))->Fill(pt); 
+	      ((TH2D*)gDirectory->Get("g142"))->Fill(theta, pt); 
+	    }
+	    ssfmult[j] += 1;
+	  } else {
+	    kill = j; 
+	    if (doHist) {
+	      ((TH1D*)gDirectory->Get("g140"))->Fill(thetaTrk[j]); 
+	      ((TH1D*)gDirectory->Get("g141"))->Fill(momentumTrk[j]*sin(thetaTrk[j])); 
+	      ((TH2D*)gDirectory->Get("g142"))->Fill(thetaTrk[j], momentumTrk[j]*sin(thetaTrk[j])); 
+	    }
+	    ssfmult[i] += 1;
+	  }
+	  print += 4; 
+	  //	  cout << i << " is ssParallel with  " << j << " killing " << kill << endl;
+	  if (ssParallel) {
+	    goodTrack[kill] = 0; 
+	    loopTrack[kill] = 3;
+	  }
+	}
+      }
+
+    }
+
+  }
+
+  if (doHist) {
+    for (int j = 0; j < nTrk; ++j) {
+      if (momentumTrk[j]*sin(thetaTrk[j]) >  0.18) continue; 
+      if (goodTrack[j] == 1) {
+	((TH1D*)gDirectory->Get("g102"))->Fill(thetaTrk[j]); 
+      }
+      
+      if (osmult[j] > 0)  ((TH1D*)gDirectory->Get("g10"))->Fill(osmult[j]); 
+      if (sssmult[j] > 0)  ((TH1D*)gDirectory->Get("g11"))->Fill(sssmult[j]); 
+      if (ssfmult[j] > 0)  ((TH1D*)gDirectory->Get("g12"))->Fill(ssfmult[j]); 
+    }
+  }
+
+  if (0) { // print == 7) {
+    for (int j = 0; j < nTrk; ++j) {
+      cout << "  " << Form("%2d", j)
+	   << Form("  pt:%+4.3f",chargeTrk[j]*momentumTrk[j]*sin(thetaTrk[j]))
+	   << Form("  t: %4.3f", thetaTrk[j]) 
+	   << Form("  f: %+4.3f", phiTrk[j]) 
+	   << Form("  d: %3.0f", double(ndchTrk[j])) 
+	   << Form("  s: %3.0f", double(nsvtTrk[j]))
+	   << Form("  z: %+8.3f", zPocaTrk[j] - primVtxZ)
+	   << Form("  z: %+8.3f", zPocaTrk[j] - beamSZ)
+	   << Form("  d: %8.4f", TMath::Sqrt((xPocaTrk[j]-beamSX)*(xPocaTrk[j]-beamSX) + (yPocaTrk[j]-beamSY)*(yPocaTrk[j]-beamSY)))
+	   << Form("  l: %5.4f", tLenTrk[j])
+	   << endl;
+    }
+    
+    cout << "event: " << fEvent << " in run " << fRunnumber << Form(":  %x/%x", fUpper, fLower) << endl;
+    cout << "----------------------------------------------------------------------" << endl;
+    
+}
+
+}
+
+
+// ----------------------------------------------------------------------
+void recoilNtp::trackStudy() {
+
+
+  // -- 5 sigma
+  const double phiSSmatch = 0.220; 
+  const double phiOSmatch = 0.190; 
+  const double thetaSSmatch = 0.215; 
+  const double thetaOSmatch = 0.300; 
+  const double ptmatch = 0.055; 
+
+  const double paraphimatch = 0.1; 
+  const double parathetamatch = 0.1; 
+  const double paraptmatch = 0.04; 
+
+  static Bool_t first(kTRUE);
+  int osmult[100], ssfmult[100], sssmult[100];
+  for (int i= 0; i < 100; ++i) {
+    osmult[i] = ssfmult[i] = sssmult[i] = 0; 
+  }
+
+
+  TH1D *h1; 
+  TH2D *h2; 
+  if (first == kTRUE) {
+    first = kFALSE;
+    fHistFile->cd();
+    fHistFile->mkdir("Tracks");
+    fHistFile->cd("Tracks"); 
+
+    h1 = new TH1D("g0",   "Nevent", 10, 0., 10.);
+    h1 = new TH1D("g1",   "Ntrk", 30, 0., 30.);
+    h1 = new TH1D("g10",  "opposite sign multiplicity", 6, 0., 6.);
+    h1 = new TH1D("g11",  "slow same sign multiplicity", 6, 0., 6.);
+    h1 = new TH1D("g12",  "fast same sign multiplicity", 6, 0., 6.);
+
+    h1 = new TH1D("g100", "all tracks, pt < 0.2", 100, 0., 3.15);
+    h1 = new TH1D("g101", "goodTracks, pt < 0.2", 100, 0., 3.15);
+    h1 = new TH1D("g102", "goodTracks after removal, pt < 0.2", 100, 0., 3.15);
+    h2 = new TH2D("g103", "goodTracks after removal, pt < 0.2", 100, 0., 3.15, 100, -3.15, 3.15);
+    h2 = new TH2D("g104", "goodTracks after removal, pt < 0.2", 100, 0., 3.15, 100, 0., 0.2);
+
+    h1 = new TH1D("g110", "all good tracks", 100, 0., 3.15);
+    h1 = new TH1D("g111", "all good tracks", 100, 0., 1.0);
+    h2 = new TH2D("g112", "all good tracks", 100, 0., 3.15, 100, 0., 1.0);
+    h2 = new TH2D("g113", "central part, all good tracks", 50, -3.15, 3.15, 50, 0., 1.0);
+
+    h1 = new TH1D("g120", "osLooper", 100, 0., 3.15);
+    h1 = new TH1D("g121", "osLooper", 100, 0., 1.0);
+    h2 = new TH2D("g122", "osLooper", 100, 0., 3.15, 100, 0., 1.0);
+
+    h1 = new TH1D("g130", "ssLooper slow", 100, 0., 3.15);
+    h1 = new TH1D("g131", "ssLooper slow", 100, 0., 1.0);
+    h2 = new TH2D("g132", "ssLooper slow", 100, 0., 3.15, 100, 0., 3.15);
+
+    h1 = new TH1D("g140", "ss parallel", 100, 0., 3.15);
+    h1 = new TH1D("g141", "ss Parallel", 100, 0., 1.0);
+    h2 = new TH2D("g142", "ss Parallel", 100, 0., 3.15, 100, 0., 1.0);
+
+
+    // --  os loopers
+    h1 = new TH1D("h100", "os delta phi,    pt < 0.2", 500, -6.50, 6.50);     
+    h2 = new TH2D("H100", "os delta phi vs. pt", 50, 0., 0.2, 50, -6.50, 6.50);     
+    h2 = new TH2D("K100", "os delta phi vs. theta", 50, 0., 3.15, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h101", "os delta theta,  pt < 0.2", 500, -2.00, 2.00);     
+    h2 = new TH2D("H101", "os delta theta vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+    h2 = new TH2D("K101", "os delta theta vs. theta", 50, 0., 3.15, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h102", "os delta pt,    pt < 0.2", 500, -.50, .50);     
+    h2 = new TH2D("H102", "os delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+    h2 = new TH2D("K102", "os delta pt vs. pt", 50, 0., 3.15, 50, -0.5, 0.5);     
+
+    h1 = new TH1D("h103", "os delta tan(dip),  pt < 0.2", 500, -2.00, 2.00);     
+    h2 = new TH2D("H103", "os delta tan(dip) vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    // --  ss loopers
+    h1 = new TH1D("h200", "ss delta phi,    pt < 0.2", 500, -6.50, 6.50);     
+    h2 = new TH2D("H200", "ss delta phi vs. pt", 50, 0., 0.2, 50, -6.50, 6.50);     
+    h2 = new TH2D("K200", "ss delta phi vs. theta", 50, 0., 3.15, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h201", "ss delta theta,  pt < 0.2", 500, -2.00, 2.00);     
+    h2 = new TH2D("H201", "ss delta theta vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+    h2 = new TH2D("K201", "ss delta theta vs. theta", 50, 0., 3.15, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h202", "ss delta pt,    pt < 0.2", 500, -.50, .50);     
+    h2 = new TH2D("H202", "ss delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+    h2 = new TH2D("K202", "ss delta pt vs. theta", 50, 0., 3.15, 50, -0.5, 0.5);     
+
+    h1 = new TH1D("h203", "os delta tan(dip),  pt < 0.2", 500, -2.00, 2.00);     
+    h2 = new TH2D("H203", "os delta tan(dip) vs. pt", 50, 0., 0.2, 50, -2.0, 2.0);     
+
+    // --  ss parallel tracks
+    h1 = new TH1D("h300", "ssPara delta phi", 500, -6.50, 6.50);     
+    h2 = new TH2D("H300", "ssPara delta phi vs. pt", 50, 0., 2.0, 50, -6.50, 6.50);     
+    h2 = new TH2D("K300", "ssPara delta phi vs. theta", 50, 0., 3.15, 50, -6.50, 6.50);     
+
+    h1 = new TH1D("h301", "ssPara delta theta", 500, -2.00, 2.00);     
+    h2 = new TH2D("H301", "ssPara delta theta vs. pt", 100, 0., 2.0, 50, -2.0, 2.0);     
+    h2 = new TH2D("K301", "sspara delta theta vs. theta", 50, 0., 3.15, 50, -2.0, 2.0);     
+
+    h1 = new TH1D("h302", "ssPara delta pt", 500, -1.50, 1.50);     
+    h2 = new TH2D("H302", "ssPara delta pt vs. pt", 50, 0., 0.2, 50, -0.5, 0.5);     
+    h2 = new TH2D("K302", "ss delta pt vs. theta", 50, 0., 3.15, 50, -0.5, 0.5);     
+
+    h1 = new TH1D("l100", "phi", 100, -3.15, 3.15); 
+    h1 = new TH1D("l101", "theta", 50, 0., 3.15); 
+    h1 = new TH1D("l102", "pt", 50, 0., 0.5); 
+    h1 = new TH1D("l103", "ndch", 50, 0., 50.); 
+    h1 = new TH1D("l104", "nsvt", 20, 0., 20.); 
+    h1 = new TH1D("l105", "charge", 50, -2., 2.); 
+
+    h1 = new TH1D("l200", "phi", 100, -3.15, 3.15); 
+    h1 = new TH1D("l201", "theta", 50, 0., 3.15); 
+    h1 = new TH1D("l202", "pt", 50, 0., 0.5); 
+    h1 = new TH1D("l203", "ndch", 50, 0., 50.); 
+    h1 = new TH1D("l204", "nsvt", 20, 0., 20.); 
+    h1 = new TH1D("l205", "charge", 50, -2., 2.); 
+
+    h1 = new TH1D("l300", "phi", 100, -3.15, 3.15); 
+    h1 = new TH1D("l301", "theta", 50, 0., 3.15); 
+    h1 = new TH1D("l302", "pt", 50, 0., 0.5); 
+    h1 = new TH1D("l303", "ndch", 50, 0., 50.); 
+    h1 = new TH1D("l304", "nsvt", 20, 0., 20.); 
+    h1 = new TH1D("l305", "charge", 50, -2., 2.); 
+
+    fHistFile->cd(); 
+  }
+
+  fHistFile->cd("Tracks"); 
+
+  double pt(-99.), ndch(-99.), nsvt(-99.), charge(-99.), dca(-99.), dcaz(-99.), dz(-99.);
+  double phi(-99.), theta(-99.); 
+
+  Bool_t histSSPhi, histOSPhi, histSSTheta, histOSTheta, histPt; 
+
+  double pi = TMath::Pi(); 
+
+  ((TH1D*)gDirectory->Get("g0"))->Fill(0.5); 
+  ((TH1D*)gDirectory->Get("g1"))->Fill(nTrk); 
+
+  for (int i = 0; i < nTrk; ++i) {
+    pt     = momentumTrk[i]*sin(thetaTrk[i]);
+    nsvt   = nsvtTrk[i]; 
+    ndch   = ndchTrk[i]; 
+    charge = chargeTrk[i]; 
+    phi    = phiTrk[i]; 
+    theta  = thetaTrk[i];
+
+
+    if (loopTrack[i] == 1) {
+      ((TH1D*)gDirectory->Get("l100"))->Fill(phi); 
+      ((TH1D*)gDirectory->Get("l101"))->Fill(theta); 
+      ((TH1D*)gDirectory->Get("l102"))->Fill(pt); 
+      ((TH1D*)gDirectory->Get("l103"))->Fill(ndch); 
+      ((TH1D*)gDirectory->Get("l104"))->Fill(nsvt); 
+      ((TH1D*)gDirectory->Get("l105"))->Fill(charge); 
+    }
+
+    if (loopTrack[i] == 2) {
+      ((TH1D*)gDirectory->Get("l200"))->Fill(phi); 
+      ((TH1D*)gDirectory->Get("l201"))->Fill(theta); 
+      ((TH1D*)gDirectory->Get("l202"))->Fill(pt); 
+      ((TH1D*)gDirectory->Get("l203"))->Fill(ndch); 
+      ((TH1D*)gDirectory->Get("l204"))->Fill(nsvt); 
+      ((TH1D*)gDirectory->Get("l205"))->Fill(charge); 
+    }
+
+    if (loopTrack[i] == 3) {
+      ((TH1D*)gDirectory->Get("l300"))->Fill(phi); 
+      ((TH1D*)gDirectory->Get("l301"))->Fill(theta); 
+      ((TH1D*)gDirectory->Get("l302"))->Fill(pt); 
+      ((TH1D*)gDirectory->Get("l303"))->Fill(ndch); 
+      ((TH1D*)gDirectory->Get("l304"))->Fill(nsvt); 
+      ((TH1D*)gDirectory->Get("l305"))->Fill(charge); 
+    }
+    
+    if (pt < 0.18) ((TH1D*)gDirectory->Get("g100"))->Fill(theta); 
+    if (goodTrack[i] == 0) continue; 
+    dz   = zPocaTrk[i] - primVtxZ;
+    dcaz = zPocaTrk[i] - beamSZ;
+    dca  = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+
+    if (pt < 0.18) ((TH1D*)gDirectory->Get("g101"))->Fill(theta); 
+
+    if (pt < 0.18) ((TH1D*)gDirectory->Get("g110"))->Fill(theta); 
+    ((TH1D*)gDirectory->Get("g111"))->Fill(pt); 
+    ((TH2D*)gDirectory->Get("g112"))->Fill(theta, pt); 
+    if ((theta > 1.4) && (theta < 1.7)) {
+      ((TH2D*)gDirectory->Get("g113"))->Fill(phi, pt); 
+    }
+
+    for (int j = 0; j < nTrk; ++j) {
+      if (j == i) continue; 
+      if (goodTrack[j] == 0) continue; 
+
+      histSSPhi   = (TMath::Abs(phi - phiTrk[j]) < phiSSmatch); 
+      histOSPhi   = (TMath::Abs(TMath::Abs(phi - phiTrk[j]) - pi) < phiOSmatch); 
+      histSSTheta = (TMath::Abs(theta - thetaTrk[j]) < thetaSSmatch); 
+      histOSTheta = (TMath::Abs(theta - thetaTrk[j]) < thetaOSmatch); 
+      histPt      = (TMath::Abs(pt - momentumTrk[j]*sin(thetaTrk[j])) < ptmatch); 
+
+      // -- opposite sign loopers at opposite phi
+      if ((charge*chargeTrk[j] < 0.)
+	  && (theta > 1.4) && (theta < 1.7) 
+	  && (pt < 0.18)
+	  ) {
+	if (histOSTheta && histPt) {
+	  ((TH1D*)gDirectory->Get("h100"))->Fill(phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H100"))->Fill(pt, phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K100"))->Fill(theta, phi - phiTrk[j]); 
+	}
+	if (histOSPhi && histPt) {
+	  ((TH1D*)gDirectory->Get("h101"))->Fill(theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H101"))->Fill(pt, theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K101"))->Fill(theta, theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("h103"))->Fill(tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("H103"))->Fill(pt, tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	}
+	if (histOSPhi && histOSTheta) {
+	  ((TH1D*)gDirectory->Get("h102"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("H102"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("K102"))->Fill(theta, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	}
+
+      }
+
+
+      // -- same sign loopers at the same phi
+      if ((charge*chargeTrk[j] > 0.)
+	  && (theta > 1.4) && (theta < 1.7) 
+	  && (pt < 0.18)  
+	  ) {
+	if (histSSTheta && histPt) {
+	  ((TH1D*)gDirectory->Get("h200"))->Fill(phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H200"))->Fill(pt, phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K200"))->Fill(theta, phi - phiTrk[j]); 
+	}
+	if (histSSPhi && histPt) {
+	  ((TH1D*)gDirectory->Get("h201"))->Fill(theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H201"))->Fill(pt, theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K201"))->Fill(theta, theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("h203"))->Fill(tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("H203"))->Fill(pt, tan(0.5*pi-theta) - tan(0.5*pi - thetaTrk[j])); 
+	}
+	if (histSSPhi && histSSTheta) {
+	  ((TH1D*)gDirectory->Get("h202"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("H202"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("K202"))->Fill(theta, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	}
+      }
+
+      // -- parallel tracks
+      if ((charge*chargeTrk[j] > 0.)
+	  && (pt > 0.)	 && (pt < 0.35)	  
+	  ) {
+	if (histSSTheta && histPt) {
+	  ((TH1D*)gDirectory->Get("h300"))->Fill(phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H300"))->Fill(pt, phi - phiTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K300"))->Fill(theta, phi - phiTrk[j]); 
+	}
+	if (histSSPhi && histPt) {
+	  ((TH1D*)gDirectory->Get("h301"))->Fill(theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("H301"))->Fill(pt, theta - thetaTrk[j]); 
+	  ((TH1D*)gDirectory->Get("K301"))->Fill(theta, theta - thetaTrk[j]); 
+	}
+	if (histSSPhi && histSSTheta) {
+	  ((TH1D*)gDirectory->Get("h302"))->Fill(pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("H302"))->Fill(pt, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	  ((TH2D*)gDirectory->Get("K302"))->Fill(theta, pt - momentumTrk[j]*sin(thetaTrk[j])); 
+	}
+
+      }
+
+    }
+
+  }
+
+}      
+    

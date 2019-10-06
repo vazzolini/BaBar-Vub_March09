@@ -1,0 +1,8 @@
+mkdir $MYDIR
+cp *_params.txt $MYDIR/
+cp bkg_depl* $MYDIR/
+cp bkg_enr* $MYDIR/
+cp data_enr* $MYDIR/
+cp data_depl* $MYDIR/
+cp sig_depl* $MYDIR/
+cp sig_enr* $MYDIR/

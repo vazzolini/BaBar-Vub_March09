@@ -1,0 +1,81 @@
+#!/bin/tcsh -m
+#
+# official options for the fit on data
+#-----------------------
+pstarfact           1.0
+q2Cut               0    # cut on q2; >0 for the reconstructed q2, <= for the fitted one
+useCB               1
+fixMeanValue        1
+fixSigma            1
+fixArgus1           0
+fixArgus2           0
+fixCB1              1
+fixCB2              1
+leptonPCut          1.
+electronPCut        0.5
+muonPCut            0.8   
+prmm2Cut           -3
+mnuSqLow            -1000.
+mnuSqHigh           0.5
+chLow               -.5
+chHigh              .5
+Btype               1      # 0 only B0, 1 only Bch, 2 all
+lepttype            2       # 0 electron, 1 muon, 2 all
+blinding            0
+blindsize           .4
+randomseed          990717  # OFFICIAL BLINDING!!!!!
+########
+#
+# reweighting
+#
+########
+doBdecreweight      1
+doDdecreweight      1
+#####################
+ratioBR            0.00659 # 0.00659 for generic SP8, 0.0068 for generic SP6
+SPtype              8 # SP version (SP6 or SP8)
+minpur              0.065 
+mnuSqLow            -.5
+mnuSqHigh           .5
+mxCutLowExcl .93
+mxCutHighExcl .98
+mxCutLowExcl1 .93
+mxCutHighExcl1 .98
+mxCutLowExcl2 .94
+mxCutHighExcl2 .97
+mxCutLowExcl3 .935
+mxCutHighExcl3 .975
+mxCutLowExcl4 .91
+mxCutHighExcl4 1.00
+mom1min -10000.
+mom2min -10000.
+nchgLowExcl 2
+nchgHighExcl 4
+ncombLowExcl 0
+ncombHighExcl 10000
+npi0LowExcl -10000.
+npi0HighExcl 10000.
+deltam 0.
+ksele  0
+nlep   1
+dalitzcut 0.0005
+dorightnchg    1
+daugammamom  0.35
+dauetamass   0.04
+dauetamass2   0.04
+dauetamass3   0.015
+dauetamass4   0.035
+daurhomass   0.18
+fitcategory -15
+binsmm2      24 
+minmm2       -2. 
+maxmm2       4.  
+binsmass     9
+minmass      .86
+maxmass      1.06
+binsq2       10
+minq2        0.
+maxq2        25.
+binspcms     10
+minpcms      0.5
+maxpcms      3.5

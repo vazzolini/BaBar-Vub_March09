@@ -1,0 +1,151 @@
+#####################################################
+#						    #
+#            26 -July- 2006 			    #
+#						    #
+#   latest update: 04 -Oct- 2006                    #
+#                                                   #
+#####################################################
+
+	0 - INFORMATIONS = 
+==========================
+
+
+This macro works with ROOT 4.01/02 and RooFit 1.91
+i.e. standard tools used in VVF under Analysis-24
+Can work also with RooFit 2.05.
+
+Files describing pdfs are:
+
+1 - gaux.cxx, gaux.h -> Needs to be compiled with aclic
+2 - thosig.cxx, thosig.h -> Needs to be compiled with aclic
+3 - ccb.cxx, ccb.h -> Needs to be compiled with aclic
+
+	1 - INSTALLATION =
+==========================
+
+To be used properly, the macro needs shared libraries for the class with
+the pdf implementation.
+
+To compile the libraries, launch a root session then execute the createSO.C macro:
+
+shell> bbrroot
+root> .x createSO.C
+root> .q 
+
+If needed, modify the path for RooFit stuff in createSO.C
+
+	2 - USAGE = 
+====================
+
+Once the shared objects are created, one can run the fittest in two ways:
+
+- use root command line
+- use submit.pl script 
+
+---- HOWTO WITH ROOT COMMAND LINE
+
+Launch a ROOT session
+
+shell> bbrrot
+
+Load the fittest.C macro
+
+root> .L fittest.C
+
+instantiate the class
+
+root> fittest t
+
+Run the fit test
+
+root> t.Test(....)
+
+Parameters for fittest::Test function are (in order)
+
+bool  isData  		(0 for MC, 1 for DATA);
+int   pdf components 	(O=bkg+sig, 1=sig only, 2=bkg only)
+bool  isAllCuts 	(0 for Lepton Cut, 1 for allcuts)
+bool  isdepleted 	(0 for enriched sample, 1 for depleted sample)
+bool  dumpparameter 	(set this to 1 if you want the macro to dump a .txt file with fitted parmeters)
+char* parameter file 	(file with fit parameters)
+float intpurity		Cut on integrate purity (default 0)
+int   bch		charge of B (0= neutrals; 1=charged) default charged+neutrals. 
+float mxlow		low boundary of mx bin
+float mxhigh		high boundary of mx bin
+float q2low		low boundary of q2 bin
+float q2high		high boundary of q2 bin
+float ppluslow 		low boundary of pplus bin
+float pplushigh		high boundary of pplus bin
+
+---- HOWTO WITH submit.pl Script
+
+submit.pl provides an interface between the user and ROOT, and is useful for kinematic bin scan.
+
+just run ./submit.pl with proper flags:
+  -help    :       print help message.
+  -data    :       fit on data.
+  -MC      :       fit on MC.
+  -bkg     :       fit only bkg pdfs (ARGUS and CCB).
+  -sig     :       fit only signal pdf (Thorsten).
+  -all     :       fit signal+background.
+  -allcut  :       Apply AllCuts to dataset.
+  -lepcut  :       Apply Lepton Cut to dataset.
+  -enr     :       fit on enriched sample.
+  -depl    :       fit on depleted sample.
+  -dumppar :       Dump the fitted parameters.
+  -parfile <file>: Use <file> as input parameters configuration file (default: parameters.txt).
+  -intpur  :       integrated purity cut (default inptur=0).
+  -chb     :       2=charged+neutrals; 1=charged only; 0=neutral only. (default: 2)
+  -mxl     :       mX low boundary.
+  -mxh     :       mX high boundary.
+  -q2l     :       q2 low  boundary.
+  -q2h     :       q2 high boundary.
+  -scanmx  :       do a 1D mx scan.
+  -scanmxq2:       do a 2D mx,q2 scan.
+  -scanpplus:      do a 1D pplus scan.
+
+E.G.   ./submit.pl -data -sig -allcut -depl -dumppar -parfile myparams.txt -mxl 1.55 -mxh 2
+
+	3 - PARAMETERS FILE =
+=============================
+The parameters file has 7 rows:
+
+name
+starting point (it will be the fitted point if the dump parameter file is written)
+minimum value
+maximum value
+fix the variable  (0 not-fixed, 1 fixed)
+value to fix the variable to.
+
+
+	4 - ROOTFILE =
+======================
+
+The macro needs a Rootfile with a RooDataSet named "old" in it and 
+a RooRealVar with mes distribution named "mes". 
+This kind of file can be produced by the method fittest::WriteDataSet(int sel).
+
+This method implemented in fittest.C uses the fittest::Loop() function.
+The chain files from which the rootfile are created are specified in fittest.h 
+file.
+
+To write the dataset, after having selected the correct chains do:
+
+shell> bbrrot
+root> .x setenvironment.C
+root> .L fittest.C
+root> fittest t
+root> t.WriteDataSet(0)   0 is for MC and 1 is for DATA
+
+	5 - OUTPUT FILES =
+==========================
+
+- By default the script will write an eps file (for scans it will draw plots for each bin).
+The name of eps file contains the characteristics of the fit (Data or MC, enriched or depleted, SL o AC (lepton cut or all cut)
+and the edges of the bin).
+
+- It will also write a txt file with several rows:
+
+#binlow  #binhigh  #ccbYields +- error  #argusYields +- error  #signalYields +- error  #S/P +- error  #chi^2 #argus shape parameter
+
+- If the fit is run with the flag -dumppar there will be a dump of the fitted parameters on the file with _params.txt extension. 

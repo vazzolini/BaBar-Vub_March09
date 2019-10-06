@@ -1,0 +1,80 @@
+#! /usr/local/bin/perl
+
+# -c    'crashed'    redoes only the problematic merges (after a few more jobs have been run, presumably)
+# -f    'force'      redoes everything
+# -s    'systematic' only generic, cocktail and signal
+
+use Getopt::Std;
+getopts('cfs');
+
+use lib '/u/ec/ursl/perl/modules';
+use Tie::IxHash;
+
+# -- The hash shall not change the order of its elements
+tie %merger, "Tie::IxHash";
+
+# -- chains as of 01/28/03
+#%merger = (
+#	   "csx-vubmix.root"        => "csx-vubmix-new2000.root csx-vubmix-new2001.root csx-vubmix-new2002.root  ", 
+#	   "csx-vubnre.root"        => "csx-vubnre-new2000.root csx-vubnre-new2001.root csx-vubnre-new2002.root  ", 
+#	   
+#	   "csx-cocktail-new.root"  => "csx-b0cock-2002.root  csx-bpcock-2002.root",
+#	   
+#	   "csx-genbch-new.root"    => "csx-genbch-new-2000a.root csx-genbch-new-2000b.root csx-genbch-new-2001a.root csx-genbch-new-2001b.root csx-genbch-new-2001c.root csx-genbch-new-2001d.root csx-genbch-new-2002a.root csx-genbch-new-2002b.root",
+#	   
+#	   "csx-genbnu-new.root"    => "csx-genbnu-new-2000a.root csx-genbnu-new-2000b.root csx-genbnu-new-2001a.root csx-genbnu-new-2001b.root csx-genbnu-new-2001c.root csx-genbnu-new-2001d.root csx-genbnu-new-2002a.root csx-genbnu-new-2002b.root csx-genbnu-new-2002c.root",
+#	   
+#	   "csx-genb-new.root"      => "csx-genbnu-new.root csx-genbch-new.root",
+#	   
+#	   "csx-data.root"          => "csx-data-2000.root csx-data-2001a.root csx-data-2001b.root csx-data-2001c.root csx-data-2001d.root csx-data-2002a.root csx-data-2002b.root "
+#	       
+#	   );
+
+# -- chains as of 03/28/03
+%merger = (
+	   "csx-vubmix.root"        => "csx-vubmix-new2000.root csx-vubmix-new2001.root csx-vubmix-new2002.root  ", 
+	   "csx-vubnre.root"        => "csx-vubnre-new2000.root csx-vubnre-new2001.root csx-vubnre-new2002.root  ", 
+	   
+	   "csx-cocktail-new.root"  => "csx-b0cock-2002.root  csx-bpcock-2002.root",
+	   
+	   "csx-genbch-new.root"    => "csx-genbch-new-2000a.root csx-genbch-new-2000b.root csx-genbch-new-2000c.root csx-genbch-new-2001a.root csx-genbch-new-2001b.root csx-genbch-new-2001c.root csx-genbch-new-2001d.root csx-genbch-new-2001e.root csx-genbch-new-2001f.root csx-genbch-new-2002a.root csx-genbch-new-2002b.root csx-genbch-new-2002c.root",
+	   
+	   "csx-genbnu-new.root"    => "csx-genbnu-new-2000a.root csx-genbnu-new-2000b.root csx-genbnu-new-2000c.root csx-genbnu-new-2001a.root csx-genbnu-new-2001b.root csx-genbnu-new-2001c.root csx-genbnu-new-2001d.root csx-genbnu-new-2001e.root csx-genbnu-new-2002a.root csx-genbnu-new-2002b.root csx-genbnu-new-2002c.root csx-genbnu-new-2002d.root csx-genbnu-new-2002e.root",
+	   
+	   "csx-genb-new.root"      => "csx-genbnu-new.root csx-genbch-new.root",
+	   
+	   "csx-data.root"          => "csx-data-2000.root csx-data-2001a.root csx-data-2001b.root csx-data-2001c.root csx-data-2001d.root csx-data-2002a.root csx-data-2002b.root "
+	   
+	   );
+
+
+foreach $key (keys %merger) {
+
+  if ($opt_s) {
+      if ($key =~ /data/) {
+	  print " -- not doing data merging\n";
+	  next;
+      }
+  }
+
+  if (-e "$key") {
+      print "$key already exists "; 
+      if ($opt_f) {
+	  print " -- removing\n";  
+	  system("/bin/rm $key"); 
+      }
+      if ($opt_c) {
+	  print " -- not redoing \n"; 
+	  next;
+      }
+  }
+
+  print "/u/ec/ursl/macros/bin/hmerge-030207 $key $merger{$key}\n";
+  system("/u/ec/ursl/macros/bin/hmerge-030207 $key $merger{$key}");
+
+  print "/u/ec/ursl/macros/bin/merge-030207 events $key $merger{$key}\n";
+  system("/u/ec/ursl/macros/bin/merge-030207 events $key $merger{$key}");
+
+}
+
+print "data not done as this is systematics\n";

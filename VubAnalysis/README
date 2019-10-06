@@ -1,0 +1,100 @@
+==========================================================================
+
+         VubAnalysis -- Root Code for the Vub analysis 
+		     	(recoil of fully B reco)
+
+--------------------------------------------------------------------------
+      Package Coordinators:  Urs Langenegger <ursl@slac.stanford.edu>
+               Daniele del Re <daniele@slac.stanford.edu>
+==========================================================================
+
+
+=====>  PUT ALL THE INFO ABOUT NEW CODE HERE AND IN THE HISTORY FILE
+
+
+
+	Name 			Description			Obsolete?
+---------------------------------------------------------------------------
+
+Analysis Code:                      
+
+	|recoilNtp|		
+	|PIDTable|   
+	|PIDTable|   
+	|TRKTable|
+	|TRKData|
+	|bookHist|
+	|anaRecoil|
+	|mcTruth|
+	|init|
+	|gamStudy|
+	|util|
+	|splitOff|
+	|fillHist|
+	|p_energy_loss_corrected|
+	|main|
+	|abcfit_aibi_evol|
+	|abcfit_bmatrix|
+	|abcfit_interface_vub|
+	|abcfit_smear|
+
+
+Analysis tables:
+
+	|PIDmaps.txt|
+	|PIDmaps.txt.complete|
+	|PIDmaps-2001.txt|
+	|PIDmaps-2000.txt|
+	|aibi_evol_20000_001|
+	|aibi_evol_d0_20_001|
+	|aibi_evol_200050_002|
+	|aibi_evol_200050_001|
+	|aibi_evol_200030_002|
+	|aibi_evol_200030_001|
+	|aibi_evol_200021_002|
+	|aibi_evol_200021_001|
+	|aibi_evol_200020_002|
+	|aibi_evol_200020_001|
+	|aibi_evol_20000_00x|
+	|aibi_evol_20000_002|
+	|aibi_evol_mmiss_20000_002|
+	|aibi_evol_mmiss_20000_001|
+	|aibi_evol_flat_20000_002|
+	|aibi_evol_flat_20000_001|
+	|aibi_evol_dstar_20_001|
+	|aibi_evol_dstar0_20_001|
+	|aibi_evol_dc_20_001|                                               	||
+
+
+Fit code:
+
+	|fitNtp.cc|		redo selection and fit
+	|VubFit.cc|		main class for the fit
+
+
+Fit tables
+
+	|inputfiles.dat|	root files for the fit 
+	|mesparsetting.dat|	fix the mes parameters 
+	|settingfit.dat|	cuts to perform the fit
+	|tables|		tables to reweight (mm2, breco,..)
+
+
+Miscellanea:
+
+	|recoilAnalysis.cc|	
+	|recoilDSys.cc|		MC-PDG reweighting
+	|ddecay.table|		table with BR weights
+	|dIdecay.table|		table with BR weights
+	|mesData.cc|		mes fit output class 
+	|semiexcl.C|		mes fits for semiexcl check
+	|countevents.csh|	script to calculate number of events and lumi 
+	|history.C|		root macro that books and fills history plots
+	|history.csh|		script for history plots (normalized)	
+	|lumi.C|		root macro for luminosity and duplicated events
+	|histocomp.cc|		root code to perform comparison (hist based)
+	|comp_hist_html| 	script to prepare web page with comparisons result
+	|thecomparison,comp|    root code to perform comparison (tree based)
+	|thejob,lastcomp,...|	scropts to perform comparison (tree based)
+	|comp_html|	 	script to prepare web page with comparisons result
+	|function|	 	function models needed in comparison code

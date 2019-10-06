@@ -1,0 +1,2323 @@
+// --jump the events (reco Bch) with wrong B-D flavor correlation)
+int recoilNtp::skipBadBreco() {
+  int result(0);
+  if(bestB0 == 0 && !(modeChB[indexbestB]-14000>299 && modeChB[indexbestB]-14000<399) && !(modeChB[indexbestB]-15000>299 && modeChB[indexbestB]-15000<399) && !(modeChB[indexbestB]-11000>299 && modeChB[indexbestB]-11000<399)){
+    int fBrecoChargetmp= 0;
+    if(d2ChBLund[indexbestB]!=0&&d2ChBLund[indexbestB]!=111&&d2ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d2ChBLund[indexbestB])/d2ChBLund[indexbestB]);}
+    if(d3ChBLund[indexbestB]!=0&&d3ChBLund[indexbestB]!=111&&d3ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d3ChBLund[indexbestB])/d3ChBLund[indexbestB]);}
+    if(d4ChBLund[indexbestB]!=0&&d4ChBLund[indexbestB]!=111&&d4ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d4ChBLund[indexbestB])/d4ChBLund[indexbestB]);}
+    if(d5ChBLund[indexbestB]!=0&&d5ChBLund[indexbestB]!=111&&d5ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d5ChBLund[indexbestB])/d5ChBLund[indexbestB]);}
+    if(d6ChBLund[indexbestB]!=0&&d6ChBLund[indexbestB]!=111&&d6ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d6ChBLund[indexbestB])/d6ChBLund[indexbestB]);}
+    if(d7ChBLund[indexbestB]!=0&&d7ChBLund[indexbestB]!=111&&d7ChBLund[indexbestB]!=310){ fBrecoChargetmp=fBrecoChargetmp+(TMath::Abs(d7ChBLund[indexbestB])/d7ChBLund[indexbestB]);}  
+    if(-1*(TMath::Abs(d1ChBLund[indexbestB])/d1ChBLund[indexbestB]) != fBrecoChargetmp) {
+      result = 1;
+    }
+  }
+  return result; 
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::maskConversions(int modes)  {
+  Int_t i(0),ip1,ip2;
+  Double_t mass;
+  
+  for (i = 0; i < 100; ++i) {
+    goodConv[i] = 0;
+    convLockTrk[i] = 0;
+  }
+  
+  for (i = 0; i < nGConv; ++i) {
+    mass = massGConv[i];
+    ip1 = d1GConvIndex[i]-1; 
+    ip2 = d2GConvIndex[i]-1; 
+    if ((isRecEl(ip1) || isRecEl(ip2)) && (mass<0.010)) {
+      goodConv[i] = 1;
+      convLockTrk[ip1] = 1;
+      convLockTrk[ip2] = 1;
+      if (momentumTrk[ip1] > 1.0 || momentumTrk[ip2] > 1.0) {
+	if (fVerbose) cout << " -> Masking conversion with daugher track lab momenta: p1 = " 
+		      << momentumTrk[ip1] << " and p2 = " << momentumTrk[ip2] << endl;
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::maskKshorts(int modes) {
+  static Bool_t first(kTRUE);
+  if (first) {
+    first = kFALSE;
+    fHistFile->cd();
+    fHistFile->mkdir("kshorts", "kshorts");
+    fHistFile->cd("kshorts");
+    TH1D *h;
+    TH2D *h2;
+    char name[100], title[100];
+    sprintf(name, "mcTruth");  sprintf(title, "mass all Kshorts MC Truth");  h = new TH1D(name, title, 4, 0., 4.); 
+    sprintf(name, "mcTotal");  sprintf(title, "mass all Kshorts MC Total");  h = new TH1D(name, title, 4, 0., 4.); 
+    sprintf(name, "mcBreco");  sprintf(title, "mass all Kshorts MC BRECO");  h = new TH1D(name, title, 4, 0., 4.); 
+    sprintf(name, "mcRecoil");  sprintf(title, "mass all Kshorts MC Recoil");  h = new TH1D(name, title, 4, 0., 4.); 
+    // KS->pi+pi-
+    sprintf(name, "e100");  sprintf(title, "Kshort mass with electrons");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "m100");  sprintf(title, "Kshort mass with muons");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "k100");  sprintf(title, "Kshort mass with kaons");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "r100");  sprintf(title, "Kshort mass with r < x cm");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h100");  sprintf(title, "mass all Kshorts");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h101");  sprintf(title, "mass Kshorts with one BRECO overlap");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h102");  sprintf(title, "mass Kshorts with two BRECO overlaps");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h103");  sprintf(title, "mass Kshorts with no  BRECO overlaps");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h104");  sprintf(title, "mass of selected Kshorts");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h105");  sprintf(title, "mass of Kshorts (signalBox)");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "h106");  sprintf(title, "mass of selected Kshorts (MCT matched)");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+
+    sprintf(name, "nkcharged");  sprintf(title, "KS -> pi+pi-");  h = new TH1D(name, title, 20, 0., 20.); 
+    sprintf(name, "nkneutral");  sprintf(title, "KS -> pi0pi0");  h = new TH1D(name, title, 20, 0., 20.); 
+
+    // KS->pi0pi0
+    sprintf(name, "mcpi0egamma");  sprintf(title, "gamma energy for pi0");  h = new TH1D(name, title, 50, 0.0, 1.0); 
+    sprintf(name, "mcpi0m100");  sprintf(title, "pi0 mass");  h = new TH1D(name, title, 70, 0.100, 0.170); 
+    sprintf(name, "mcgaE_pi0M");  sprintf(title, " ");  h2 = new TH2D(name, title, 50, 0.0, 1.0, 70, 0.100, 0.170); 
+    sprintf(name, "mcpi0p0");     sprintf(title, "pi0 momentum");  h = new TH1D(name, title, 50, 0.0, 1.0); 
+    sprintf(name, "mcksp0");  sprintf(title, "Ks momentum");  h = new TH1D(name, title, 50, 0., 2.5); 
+
+    sprintf(name, "secmom");  sprintf(title, "secmom for pi0");  h = new TH1D(name, title, 50, 0.0, 0.02); 
+    sprintf(name, "lmom");  sprintf(title, "LAT for pi0");  h = new TH1D(name, title, 50, 0.0, 1.0); 
+    sprintf(name, "ncry");  sprintf(title, "NCRY for pi0");  h = new TH1D(name, title, 20, 0.0, 20.0); 
+    sprintf(name, "nbump");  sprintf(title, "NBUMP for pi0");  h = new TH1D(name, title, 20, 0.0, 20.0); 
+
+    sprintf(name, "gaE_pi0M");  sprintf(title, " ");  h2 = new TH2D(name, title, 50, 0.0, 1.0, 70, 0.100, 0.170); 
+    sprintf(name, "pi0egamma");  sprintf(title, "gamma energy for pi0");  h = new TH1D(name, title, 50, 0.0, 1.0); 
+    sprintf(name, "pi0m100");  sprintf(title, "pi0 mass");  h = new TH1D(name, title, 70, 0.100, 0.170); 
+    sprintf(name, "pi0p0");     sprintf(title, "pi0 momentum");  h = new TH1D(name, title, 50, 0.0, 1.0); 
+    sprintf(name, "ksp0");    sprintf(title, "Ks momentum");  h = new TH1D(name, title, 50, 0., 2.5); 
+
+    sprintf(name, "i100");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "mci100");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+
+    sprintf(name, "i101");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "mci101");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+
+    sprintf(name, "i102");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "mci102");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+
+    sprintf(name, "i103");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+    sprintf(name, "mci103");  sprintf(title, "Kshort ->pi0pi0 mass");  h = new TH1D(name, title, 100, 0.46, 0.54); 
+  }
+  fHistFile->cd("kshorts");
+
+  Int_t i(0), j(0), goodKcharged(0), goodKneutral(0);
+  Int_t partOfKs[100];
+  Int_t Brectrktmp, bmctmp; 
+
+  // -- MCT kshort counter
+  if (fIsMC) {
+    int Brectrktmp(0); 
+    for (Int_t imc = 0; imc < nMc; ++imc) {
+      if (TMath::Abs(idMc[imc]) == 310) {
+	bmctmp = MCB0[indexbestB];  if(fBrecoCharge != 0) bmctmp = MCChB[indexbestB];
+	if (bmctmp-1 >=0) {
+	  if (isAncestor(bmctmp-1, imc)) {
+	    ((TH1D*)gDirectory->Get("mcTruth"))->Fill(1.);
+	  } else {
+	    ((TH1D*)gDirectory->Get("mcTruth"))->Fill(2.);
+	  }
+	} else {
+	    ((TH1D*)gDirectory->Get("mcTruth"))->Fill(0.);
+	}
+	int cntTot(0), cntBreco(0), cntRecoil(0);
+	for (int itrk = 0 ; itrk < nTrk; ++itrk) {
+	  if (mothMc[IndexTrk[itrk]-1]-1 == imc) {
+	    ++cntTot;
+	    Brectrktmp = B0RecTrk[itrk]; if(fBrecoCharge != 0) Brectrktmp = chBRecTrk[itrk];
+	    if ((Brectrktmp&brecoOverlap))  ++cntBreco;
+	    if (!(Brectrktmp&brecoOverlap))  ++cntRecoil;
+	  }
+	  ((TH1D*)gDirectory->Get("mcTotal"))->Fill(cntTot);
+	  ((TH1D*)gDirectory->Get("mcBreco"))->Fill(cntBreco);
+	  ((TH1D*)gDirectory->Get("mcRecoil"))->Fill(cntRecoil);
+	}
+      }
+    }
+  }
+  for (i = 0; i < 100; ++i) { 
+    kshortLockTrk[i] = 0; 
+    kshortLockGam[i] = 0; 
+    partOfKs[i] = 0; 
+    goodKshort[i] = 0;
+    goodWe[i] = 0;
+    goodWk[i] = 0;
+    goodNr[i] = 0;
+  }
+  if (fVerbose) cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+  for (i = 0; i < nKs; ++i) {
+    if (TMath::Abs(d1KsLund[i]) != 211) continue;
+    if (TMath::Abs(d2KsLund[i]) != 211) continue;
+    if (fVerbose) cout << "Ks[" << i << "] -> (" << d1KsIndex[i]-1 << "," << d2KsIndex[i]-1 << ") " 
+		  << "with daughters " << d1KsLund[i] << " " << d2KsLund[i]
+		  << " and mass = " << massKs[i] << endl;
+    if ((d1KsIndex[i]-1 > nTrk) || (d2KsIndex[i]-1 > nTrk)) { 
+      cout << "Daughter indices messed up: d1KsIndex = " << d1KsIndex[i]-1 << " d2KsIndex = " << d2KsIndex[i]-1 
+	   << "  for nTrk = " << nTrk << endl;
+      continue;
+    }
+    partOfKs[d1KsIndex[i]-1] += 1; 
+    partOfKs[d2KsIndex[i]-1] += 1; 
+  }
+  
+  // =============
+  // -- KS->pi+pi-
+  // =============
+  // -- Two passes over KS block: (1) Reject trivial cases: Ks with kaons and electron, overlaps with BRECO
+  for (i = 0; i < nKs; ++i) {
+    if (TMath::Abs(d1KsLund[i]) != 211) {
+      goodKshort[i] = 0;
+      continue;
+    }
+    if (TMath::Abs(d2KsLund[i]) != 211) {
+      goodKshort[i] = 0;
+      continue;
+    }
+    int pi1 = d1KsIndex[i]-1;
+    int pi2 = d2KsIndex[i]-1; 
+    double mass = massKs[i];
+    int mc = MCKs[i]-1; 
+    int matched(0);
+    if ((mc > -1) && (mc < nMc)) {
+      if (TMath::Abs(idMc[mc]) == 310) matched = 1;
+    }
+
+    if (isRecMu(pi1) || isRecMu(pi2)) ((TH1D*)gDirectory->Get("m100"))->Fill(mass);	
+    // -- Veto KS candidates with electrons or kaons (note: KS candidates with muons peak at m(KS))
+    if (isRecEl(pi1)) {
+      if (fVerbose) cout << "Rejecting Ks[" << i <<"] due to identified electron " << pi1 << endl;
+      //      if (matched == 1) cout << "Rejecting matched KS with el1 cut" << endl;
+      goodKshort[i] = 0;
+      goodWe[i] += 1;
+      ((TH1D*)gDirectory->Get("e100"))->Fill(mass);	
+      continue;
+    }
+    if (isRecEl(pi2)) {
+      if (fVerbose) cout << "Rejecting Ks[" << i <<"] due to identified electron " << pi2 << endl;
+      //      if (matched == 1) cout << "Rejecting matched KS with el2 cut" << endl;
+      goodKshort[i] = 0;
+      goodWe[i] += 1;
+      ((TH1D*)gDirectory->Get("e100"))->Fill(mass);	
+      continue;
+    }
+    if (isRecKaon(pi1)) {
+      if (fVerbose) cout << "Rejecting Ks[" << i <<"] due to identified kaon " << pi1 << endl;
+      //      if (matched == 1) cout << "Rejecting matched KS with ka1 cut" << endl;
+      goodKshort[i] = 0;
+      goodWk[i] += 1;
+      ((TH1D*)gDirectory->Get("k100"))->Fill(mass);	
+      continue;
+    }
+    if (isRecKaon(pi2)) {
+      if (fVerbose) cout << "Rejecting Ks[" << i <<"] due to identified kaon " << pi2 << endl;
+      //      if (matched == 1) cout << "Rejecting matched KS with ka2 cut" << endl;
+      goodKshort[i] = 0;
+      goodWk[i] += 1;
+      ((TH1D*)gDirectory->Get("k100"))->Fill(mass);	
+      continue;
+    }
+    // -- Check against overlap with BRECO candidate
+    int overlap(0);
+    Brectrktmp = B0RecTrk[pi1];
+    if(fBrecoCharge != 0) Brectrktmp = chBRecTrk[pi1];
+    if ((Brectrktmp&brecoOverlap)) {
+      if(fVerbose) cout << "Rejecting Ks[" << i << "] due to pi1 at " << pi1 << " overlaps with BRECO " << endl;
+      overlap++;
+    }
+    Brectrktmp = B0RecTrk[pi2];
+    if(fBrecoCharge != 0) Brectrktmp = chBRecTrk[pi2];
+    if ((Brectrktmp&brecoOverlap)) {
+      if(fVerbose) cout << "Rejecting Ks[" << i << "] due to pi2 at " << pi2 << " overlaps with BRECO " << endl;
+      overlap++;
+    }
+    if (overlap > 0) {
+      goodKshort[i] = 0;
+      goodNr[i] = overlap;
+      //      if (overlap == 1 && matched == 1) cout << "Rejecting matched KS with 1 pi breco-overlap cut" << endl;
+      if (overlap == 1) ((TH1D*)gDirectory->Get("h101"))->Fill(mass);
+      if (overlap == 2) ((TH1D*)gDirectory->Get("h102"))->Fill(mass);
+      continue;
+    } else {
+      ((TH1D*)gDirectory->Get("h103"))->Fill(mass);
+    }
+    // -- Check for vertex separation from origin
+    double rks = TMath::Sqrt( (xKs[i]-beamSX)*(xKs[i]-beamSX) + (yKs[i]-beamSY)*(yKs[i]-beamSY) );
+    if (rks < KSPIPRLO) {
+      goodKshort[i] = 0;
+      ((TH1D*)gDirectory->Get("r100"))->Fill(mass);	
+      continue;
+    }
+
+    ((TH1D*)gDirectory->Get("h100"))->Fill(mass);
+    if ((mass < KSPIPLO) || (mass > KSPIPHI)) {
+      //      if (matched == 1) cout << "Rejecting matched KS with mass cut: mass = " << mass << endl;
+      goodKshort[i] = 2;
+      continue;
+    }
+      
+    goodKshort[i] = 1;
+    kshortLockTrk[pi1] = 1;
+    kshortLockTrk[pi2] = 1;      
+
+  } // first pass over KS block
+
+  // -- Second Pass: Reject Ks whose daughters are part of a 'better' KS
+  //    for (i = 0; i < nKs; ++i) {
+  //      if (goodKshort[i] == 0) continue;
+  //      if (TMath::Abs(d1KsLund[i]) != 211) continue;
+  //      if (TMath::Abs(d2KsLund[i]) != 211) continue;
+  //      int takeThis(1); 
+  //      int pi1 = d1KsIndex[i]-1;
+  //      int pi2 = d2KsIndex[i]-1; 
+  //      double mass = massKs[i];
+  //      double residual = TMath::Abs(KAZMASS - mass); 
+  //      int mc = MCKs[i]-1; 
+  //      int matched(0);
+  //      if ((mc > -1) && (mc < nMc)) {
+  //        if (TMath::Abs(idMc[mc]) == 310) matched = 1;
+  //      }
+  //      if (partOfKs[pi1] > 1) {
+  //        for (j = 0; j < nKs; ++j) {
+  //  	if (i == j) continue;
+  //  	if (goodKshort[j] == 0) continue;
+  //  	// -- Compare residuals
+  //  	if ((d1KsIndex[j]-1 == pi1) || (d2KsIndex[j]-1 == pi1)) {
+  //  	  if (TMath::Abs(KAZMASS - massKs[j]) < residual) {
+  //  	    if (matched == 1) cout << "Rejecting matched KS with best-selection cut" << endl;
+  //  	    if (fVerbose) cout << "Rejecting KS[" << i << "] -> (" << pi1 << "," << pi2 << ")"
+  //  			  << " with mass = " << mass 
+  //  			  << ", since KS[" << j << "] -> (" << d1KsIndex[j]-1 << "," << d2KsIndex[j]-1 << ")"
+  //  			  << " has better mass: " << massKs[j] << endl;
+  //  	    takeThis = 0; 
+  //  	    goodKshort[i] = 0;
+  //  	    break;
+  //  	  }
+  //  	}
+  //        }
+  //      }
+  //      if (partOfKs[pi2] > 1) {
+  //        for (j = 0; j < nKs; ++j) {
+  //  	if (i == j) continue;
+  //  	// -- do not compare against KS overlapping with BRECO
+  //  	if (goodKshort[j] == 0) continue;
+  //  	// -- Compare residuals
+  //  	if ((d1KsIndex[j]-1 == pi2) || (d2KsIndex[j]-1 == pi2)) {
+  //  	  if (TMath::Abs(KAZMASS - massKs[j]) < residual) {
+  //  	    if (fVerbose) cout << "Rejecting KS[" << i << "] -> (" << pi1 << "," << pi2 << ")"
+  //  			  << " mass = " << mass 
+  //  			  << ", since KS[" << j << "] -> (" << d1KsIndex[j]-1 << "," << d2KsIndex[j]-1 << ")"
+  //  			  << " has better mass: " << massKs[j] << endl;
+  //  	    takeThis = 0; 
+  //  	    goodKshort[i] = 0;
+  //  	    break;
+  //  	  }
+  //  	}
+  //        }
+  //      }
+  //      if (takeThis == 1) {
+  //        ((TH1D*)gDirectory->Get("h104"))->Fill(mass);
+  //        if (signalBox) ((TH1D*)gDirectory->Get("h105"))->Fill(mass);
+  //        goodKshort[i] = 1;
+  //        kshortLockTrk[pi1] = 1;
+  //        kshortLockTrk[pi2] = 1;      
+  //        if (fIsMC && (TMath::Abs(idMc[MCKs[i]-1])==310)) ((TH1D*)gDirectory->Get("h106"))->Fill(mass);
+  //        if(fVerbose) cout << "Locking KS[" << i << "] -> ("  << pi1 << "," << pi2 << ") mass = " << mass << endl;
+  //        ++goodKcharged;
+  //      }
+  //    } // second pass over KS block
+
+
+  return;
+
+  // =============
+  // -- KS->pi0pi0
+  // =============
+  for (i = 0; i < nKs; ++i) {
+    if (TMath::Abs(d1KsLund[i]) != 111) continue;
+    if (TMath::Abs(d2KsLund[i]) != 111) continue;
+
+    goodKshort[i] = 0;
+
+    int pi1 = d1KsIndex[i]-1;
+    int pi2 = d2KsIndex[i]-1; 
+    double pi0m1 = m0Pi0[pi1];
+    double pi0m2 = m0Pi0[pi2];  
+    ((TH1D*)gDirectory->Get("pi0m100"))->Fill(pi0m1);
+    ((TH1D*)gDirectory->Get("pi0m100"))->Fill(pi0m2);
+    ((TH1D*)gDirectory->Get("pi0p0"))->Fill(pPi0[pi1]);
+    ((TH1D*)gDirectory->Get("pi0p0"))->Fill(pPi0[pi2]);
+
+    int g[4] = {d1Pi0Index[pi1]-1, d2Pi0Index[pi1]-1, d1Pi0Index[pi2]-1, g[3] = d2Pi0Index[pi2]-1};
+    int goodGammas(1);
+    for (int ig = 0; ig < 4; ++ig) {
+      ((TH1D*)gDirectory->Get("pi0egamma"))->Fill(energyGam[g[ig]]);
+      ((TH1D*)gDirectory->Get("secmom"))->Fill(secMomGam[g[ig]]);
+      ((TH1D*)gDirectory->Get("lmom"))->Fill(lMomGam[g[ig]]);
+      ((TH1D*)gDirectory->Get("ncry"))->Fill(nCryGam[g[ig]]);
+      ((TH1D*)gDirectory->Get("nbump"))->Fill(nBumpGam[g[ig]]);
+      if (energyGam[g[ig]] < 0.010) goodGammas = 0;
+      if (nCryGam[g[ig]] < 3) goodGammas = 0;
+      if (nBumpGam[g[ig]] < 1) goodGammas = 0;
+    }    
+
+    if (goodGammas == 0) continue;
+
+    ((TH2D*)gDirectory->Get("gaE_pi0M"))->Fill(energyGam[g[0]], pi0m1);
+    ((TH2D*)gDirectory->Get("gaE_pi0M"))->Fill(energyGam[g[1]], pi0m1);
+    ((TH2D*)gDirectory->Get("gaE_pi0M"))->Fill(energyGam[g[2]], pi0m2);
+    ((TH2D*)gDirectory->Get("gaE_pi0M"))->Fill(energyGam[g[3]], pi0m2);
+
+    // -- Check for MC truth matched pi0
+    int mcpi1 = MCPi0[pi1]-1;
+    int mcpi2 = MCPi0[pi2]-1;
+    if (mcpi1 > nMc) {
+      cout << " corrupt index" << endl;
+      continue;
+    }
+    if (mcpi2 > nMc) {
+      cout << " corrupt index" << endl;
+      continue;
+    }
+
+    if (mcpi1 > -1 && idMc[mcpi1] == 111) {
+      ((TH1D*)gDirectory->Get("mcpi0egamma"))->Fill(energyGam[g[0]]);
+      ((TH1D*)gDirectory->Get("mcpi0egamma"))->Fill(energyGam[g[1]]);
+      ((TH1D*)gDirectory->Get("mcpi0m100"))->Fill(pi0m1);
+
+      ((TH2D*)gDirectory->Get("mcgaE_pi0M"))->Fill(energyGam[g[0]], pi0m1);
+      ((TH2D*)gDirectory->Get("mcgaE_pi0M"))->Fill(energyGam[g[1]], pi0m1);
+    }
+
+    if (mcpi2 > -1 && idMc[mcpi2] == 111) {
+      ((TH1D*)gDirectory->Get("mcpi0egamma"))->Fill(energyGam[g[2]]);
+      ((TH1D*)gDirectory->Get("mcpi0egamma"))->Fill(energyGam[g[3]]);
+      ((TH1D*)gDirectory->Get("mcpi0m100"))->Fill(pi0m2);
+
+      ((TH2D*)gDirectory->Get("mcgaE_pi0M"))->Fill(energyGam[g[2]], pi0m2);
+      ((TH2D*)gDirectory->Get("mcgaE_pi0M"))->Fill(energyGam[g[3]], pi0m2);
+    }
+
+    double mass = massKs[i];
+    ((TH1D*)gDirectory->Get("i100"))->Fill(mass);
+    ((TH1D*)gDirectory->Get("ksp0"))->Fill(pKs[i]);
+    int mcTruthMatched(0);
+    if (mcpi1 > -1 && idMc[mcpi1] == 111 && mcpi2 > -1 && idMc[mcpi2] == 111) mcTruthMatched = 1;
+    if (mcTruthMatched) { 
+      ((TH1D*)gDirectory->Get("mci100"))->Fill(mass);
+      ((TH1D*)gDirectory->Get("mcpi0p0"))->Fill(pPi0[pi1]);
+      ((TH1D*)gDirectory->Get("mcpi0p0"))->Fill(pPi0[pi2]);
+      ((TH1D*)gDirectory->Get("mcksp0"))->Fill(pKs[i]);
+    }
+
+    if (energyGam[g[0]] > 0.1 && energyGam[g[1]] > 0.1 && energyGam[g[2]] > 0.1 && energyGam[g[3]] > 0.1) {
+      ((TH1D*)gDirectory->Get("i101"))->Fill(mass);
+      if (mcTruthMatched == 1) {
+	((TH1D*)gDirectory->Get("mci101"))->Fill(mass);
+      }
+
+      if (pPi0[pi1] > 0.1 && pPi0[pi2] > 0.1) {
+	((TH1D*)gDirectory->Get("i102"))->Fill(mass);
+	if (mcTruthMatched == 1) {
+	  ((TH1D*)gDirectory->Get("mci102"))->Fill(mass);
+	}
+
+	if (pi0m1 > 0.124 && pi0m1 < 0.144 && pi0m2 > 0.124 && pi0m2 < 0.144) {
+	  ((TH1D*)gDirectory->Get("i103"))->Fill(mass);
+	  if (mcTruthMatched == 1) {
+	    ((TH1D*)gDirectory->Get("mci103"))->Fill(mass);
+	  }
+	}
+      }
+    }
+    
+    ++goodKneutral;
+  }
+
+  ((TH1D*)gDirectory->Get("nkcharged"))->Fill(goodKcharged);
+  ((TH1D*)gDirectory->Get("nkneutral"))->Fill(goodKneutral);
+  
+
+}
+
+
+
+
+// ----------------------------------------------------------------------
+void  recoilNtp::mxCategory() {
+
+//    char name[100], title[100];
+//    TH1D *h;
+//    TH2D *h2;
+ 
+//    if (ini == 1) {
+//      fHistFile->cd();
+//      fHistFile->mkdir(dir, dir);
+//      fHistFile->cd(dir);
+
+//      sprintf(name, "u100");  sprintf(title, "categories, Vub enh. ");  h = new TH1D(name, title, 20, 0., 20.); 
+//      sprintf(name, "c100");  sprintf(title, "categories, Vub depl.");  h = new TH1D(name, title, 20, 0., 20.); 
+
+//      sprintf(name, "u1000");  sprintf(title, "Mx - MxGen, Vub enh. ");  h2 = new TH2D(name, title, 20, 0., 20., 100, -2., 2.); 
+//      sprintf(name, "c1000");  sprintf(title, "Mx - MxGen, Vub depl.");  h2 = new TH2D(name, title, 20, 0., 20., 100, -2., 2.); 
+
+//      sprintf(name, "u1001");  sprintf(title, "Mxfit - MxGen, Vub enh. ");  h2 = new TH2D(name, title, 20, 0., 20., 100, -2., 2.); 
+//      sprintf(name, "c1001");  sprintf(title, "Mxfit - MxGen, Vub depl.");  h2 = new TH2D(name, title, 20, 0., 20., 100, -2., 2.); 
+
+//      sprintf(name, "u101");  sprintf(title, "KL momentum, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c101");  sprintf(title, "KL momentum, Vub depl. ");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u102");  sprintf(title, "n momentum, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c102");  sprintf(title, "n momentum, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u103");  sprintf(title, "lost reco momentum, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c103");  sprintf(title, "lost reco momentum, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u104");  sprintf(title, "casc momentum, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c104");  sprintf(title, "casc momentum, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u105");  sprintf(title, "K+ momentum, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c105");  sprintf(title, "K+ momentum, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+
+
+//      sprintf(name, "u201");  sprintf(title, "KL mass, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c201");  sprintf(title, "KL mass, Vub depl. ");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u202");  sprintf(title, "n mass, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c202");  sprintf(title, "n mass, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u203");  sprintf(title, "lost reco mass, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c203");  sprintf(title, "lost reco mass, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u204");  sprintf(title, "casc mass, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c204");  sprintf(title, "casc mass, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//      sprintf(name, "u205");  sprintf(title, "K+ mass, Vub enh. ");  h = new TH1D(name, title, 50, 0., 5.); 
+//      sprintf(name, "c205");  sprintf(title, "K+ mass, Vub depl.");  h = new TH1D(name, title, 50, 0., 5.); 
+
+//    }
+
+  int overlap(-1), recoed(-1), aid(0);
+  Bool_t cascade(kFALSE), klong(kFALSE), kshort(kFALSE), kspippim(kFALSE), kspi0pi0(kFALSE), neutron(kFALSE), lostk(kFALSE), kplus(kFALSE), kmiss(kFALSE) ;
+  
+  TLorentzVector p(0., 0., 0., 0.), plostmax(0., 0., 0., 0.)
+    , pkl(0., 0., 0., 0.), pks(0., 0., 0., 0.), pk(0., 0., 0., 0.), pn(0., 0., 0., 0.), pl(0., 0., 0., 0.)
+    , pmiss(0., 0., 0., 0.);
+
+  Int_t bla(0);
+  for (int i = 0; i < nMc; ++i) {
+    mk4Vector(p, pMc[i], thetaMc[i], phiMc[i], massMc[i]);
+    // -- recoil B is #2 ????TRUE on generic as well ????
+    if (isAncestor(fB1Index, i)) {
+      overlap = 1;
+    } else if (isAncestor(fB2Index, i)) {
+      overlap = 2;
+    } else {
+      overlap = 0;
+    }
+    if (overlap != 2) continue;
+    
+    // -- Cascade
+    if ((overlap == 2) && (isTruEl(i)||isTruMu(i)||isTruTau(i))) {
+      aid = TMath::Abs(idMc[mothMc[i]-1]);
+      int did = ((aid - (aid%100))/100)%10;
+      if (TMath::Abs(did) == 4) {
+	pl += p; 
+	cascade = kTRUE;
+      } 
+    }
+     // -- charged Kaons
+    if ((overlap == 2) && (TMath::Abs(idMc[i]) == 321)) {
+      if (isRecoed(i) == -1) {
+        kmiss= kTRUE;
+      }
+    }
+    
+    
+
+    // -- Charged Kaons not identified? 
+    bla = isRecoed(i);
+    if (bla > -1) {
+      recoed = 1;
+      if ((p.Vect().Mag() > 0.3) && (TMath::Abs(idMc[i]) == 321)) {
+	Bool_t ka = isRecKaon(bla);
+	if (!ka) {
+	  lostk = kTRUE;
+	  pk = p;
+	}
+      }
+    } else {
+      pmiss += p;
+      if (p.Vect().Mag() > plostmax.Vect().Mag()) {
+	plostmax = p; 
+      }
+      recoed = 0; 
+    }
+    // -- charged Kaons
+    if ((overlap == 2) && (TMath::Abs(idMc[i]) == 321)) {
+      kplus = kTRUE;
+      pkl += p;
+    }
+    // -- KSHORT
+    if ((overlap == 2) && (TMath::Abs(idMc[i]) == 310)) {
+      kshort = kTRUE;
+      if (nDauMc[i] == 2) {
+	Int_t id[2]={0,0};
+	Int_t counter=0;
+	for (Int_t j=0; j<nMc; j++) {
+	  Int_t imother = mothMc[j]-1;
+	  if (imother == i) {
+	    id[counter]=idMc[j];
+	    counter++;
+	  }
+	  if (counter == 2) break;
+	}
+	
+	if ((TMath::Abs(id[0])==211) 
+	    && (TMath::Abs(id[1])==211)) 
+	  kspippim=kTRUE;
+	if ((id[0]==111) && (id[1]==111)) 
+	  kspi0pi0=kTRUE;
+      }
+      pks += p;
+    }
+
+    // -- KLONG
+    if ((overlap == 2) && (TMath::Abs(idMc[i]) == 130)) {
+      klong = kTRUE;
+      pkl += p;
+    }
+    // -- neutrons from HQ decays
+    if ((overlap == 2) && (TMath::Abs(idMc[i]) == 2112)) {
+      aid = TMath::Abs(idMc[mothMc[i]-1]);
+      int did = TMath::Abs(((aid - (aid%100))/100)%10);
+      if ((did == 4) || (did == 5)) {
+	neutron = kTRUE;
+	pn += p;
+      }
+    }
+  }
+  
+
+  fMxCategory = 0;
+  if (klong)    fMxCategory += MCklong;    // 1
+  if (kspippim) fMxCategory += MCkshortpippim;   // 2
+  if (kspi0pi0) fMxCategory += MCkshortpi0pi0;   // 4
+  if (kplus)    fMxCategory += MCkplus;    // 8
+  if (lostk)    fMxCategory += MCkineff;    // 16
+  if (kmiss)    fMxCategory += MCkmiss;    // 32
+  if (cascade)  fMxCategory += MCcascade;  // 64
+    
+
+//    fHistFile->cd(dir);
+//    if (vubDepleted) {sprintf(name, "c"); } else { sprintf(name, "u"); }
+//    double lostPartMom = plostmax.Vect().Mag();
+//    double xmassRes = fMxhad - fMxhadGen;
+//    double xmassfitRes = fMxhadfit - fMxhadGen;
+
+//    sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(0.);
+//    sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(0., xmassRes);
+//    sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(0., xmassfitRes);
+//    // -- KLONG
+//    if (klong) {
+//      sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(1.);
+//      sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(1., xmassRes);
+//      sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(1., xmassfitRes);
+//      sprintf(title, "%s101", name); ((TH1D*)gDirectory->Get(title))->Fill(pkl.Vect().Mag());
+//      sprintf(title, "%s201", name); ((TH1D*)gDirectory->Get(title))->Fill(pkl.Mag());
+//    }
+//    // -- neutron
+//    if (neutron) {
+//      sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(2.);
+//      sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(2., xmassRes);
+//      sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(2., xmassfitRes);
+//      sprintf(title, "%s102", name); ((TH1D*)gDirectory->Get(title))->Fill(pn.Vect().Mag());
+//      sprintf(title, "%s202", name); ((TH1D*)gDirectory->Get(title))->Fill(pn.Mag());
+//    }
+//    // -- lost particles
+//    if (lostPartMom > 0.5) {
+//      sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(3.);
+//      sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(3., xmassRes);
+//      sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(3., xmassfitRes);
+//      sprintf(title, "%s103", name); ((TH1D*)gDirectory->Get(title))->Fill(pmiss.Vect().Mag());
+//      sprintf(title, "%s203", name); ((TH1D*)gDirectory->Get(title))->Fill(pmiss.Mag());
+//    }
+//    // -- cascade decays
+//    if (cascade) {
+//      sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(4.);
+//      sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(4., xmassRes);
+//      sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(4., xmassfitRes);
+//      sprintf(title, "%s104", name); ((TH1D*)gDirectory->Get(title))->Fill(pl.Vect().Mag());
+//      sprintf(title, "%s204", name); ((TH1D*)gDirectory->Get(title))->Fill(pl.Mag());
+//    }
+//    // -- un-identified charged kaons
+//    if (lostk) {
+//      sprintf(title, "%s100", name); ((TH1D*)gDirectory->Get(title))->Fill(5.);
+//      sprintf(title, "%s1000",name); ((TH2D*)gDirectory->Get(title))->Fill(5., xmassRes);
+//      sprintf(title, "%s1001",name); ((TH2D*)gDirectory->Get(title))->Fill(5., xmassfitRes);
+//      sprintf(title, "%s105", name); ((TH1D*)gDirectory->Get(title))->Fill(pk.Vect().Mag());
+//      sprintf(title, "%s205", name); ((TH1D*)gDirectory->Get(title))->Fill(pk.Mag());
+//    }
+                  
+}
+
+// ----------------------------------------------------------------------
+Int_t recoilNtp::compChgBreco( int nBs , int chbcand ) {
+  int chg(0);
+  int tmpdBLUND[7] = { d1B0Lund[nBs],
+		       d2B0Lund[nBs],
+		       d3B0Lund[nBs],
+		       d4B0Lund[nBs],
+		       d5B0Lund[nBs],
+		       d6B0Lund[nBs],
+		       d7B0Lund[nBs] };
+  if(chbcand) {
+    tmpdBLUND[0] =  d1ChBLund[nBs];
+    tmpdBLUND[1] =  d2ChBLund[nBs];
+    tmpdBLUND[2] =  d3ChBLund[nBs];
+    tmpdBLUND[3] =  d4ChBLund[nBs];
+    tmpdBLUND[4] =  d5ChBLund[nBs];
+    tmpdBLUND[5] =  d6ChBLund[nBs];
+    tmpdBLUND[6] =  d7ChBLund[nBs] ;
+  }
+
+  for(int i = 0; i<7; i++) {
+
+    if(tmpdBLUND[i] == 211  || tmpdBLUND[i] == 321   || tmpdBLUND[i] == 411  || tmpdBLUND[i] == 413)     chg++;
+    if(tmpdBLUND[i] == -211 || tmpdBLUND[i] == -321  || tmpdBLUND[i] == -411 || tmpdBLUND[i] == -413)    chg--;
+    // if(TMath::Abs(tmpdBLUND[i]) != 211 && TMath::Abs(tmpdBLUND[i]) != 321 && TMath::Abs(tmpdBLUND[i]) != 411 && TMath::Abs(tmpdBLUND[i]) != 413 ) cout << tmpdBLUND[i] << endl;
+  }
+  return chg;
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::smearTracks() { 
+  static Bool_t first(kTRUE);
+  if (0 == fOptSmearTracks) return;
+  if (fRunnumber < 100000) return; // no smearing for data
+  //  if (fRunnumber > 500000) return; // no smearing for SP4
+
+  TH1D *h;
+  TDirectory *old = gDirectory; 
+  fHistFile->cd();
+
+  if (first) { 
+    first = kFALSE; 
+    cout << "smearing Tracks with s = " << SMEARTRKPX << endl;
+    h = new TH1D("r0", "prec - pgen", 100, -0.1, 0.1);
+    h = new TH1D("r2", "prec - pgen 2", 100, -0.1, 0.1);
+
+    h = new TH1D("t0", "trec - tgen", 100, -0.1, 0.1);
+    h = new TH1D("t2", "trec - tgen 2", 100, -0.1, 0.1);
+
+    h = new TH1D("f0", "frec - fgen", 100, -0.1, 0.1);
+    h = new TH1D("f2", "frec - fgen 2", 100, -0.1, 0.1);
+
+    h = new TH1D("s0", "ptrec - ptgen", 100, -0.1, 0.1);
+    h = new TH1D("s2", "ptrec - ptgen 2", 100, -0.1, 0.1);
+
+    h = new TH1D("a0", "1/ptrec - 1/ptgen", 100, -0.1, 0.1);
+    h = new TH1D("a2", "1/ptrec - 1/ptgen 2", 100, -0.1, 0.1);
+  }
+
+  // smearing is probably happening in pT, 061002 moving to p smearing
+  // non-diagonal covariances are ignored at the moment 
+  // the additional smearing should increase the end resolution by factors SMEARTRKPX and SMEARTRKPY: 
+  //     sigma(tooSmall)**2 + sigma(additional)**2 = s**2 * sigma(tooSmall)**2 
+  // ->  sigma(additional)**2 =  s**2 * sigma(tooSmall)**2 - sigma(tooSmall)**2
+  double p(0.), p2(0.), px(0.), py(0.), pz(0.), pt(0.), npt(0.), npx(0.), npy(0.), npz(0.), np(0.);
+  double t(0.), f(0.), nnt(0.), nnf(0.);
+  double shift(0.);
+  double covp; 
+  if (fVerbose) cout << "== Start track list in smearTracks() ==" << endl;
+  for (int itrk = 0 ; itrk < nTrk; ++itrk) {
+    px  = momentumTrk[itrk]*TMath::Sin(thetaTrk[itrk])*TMath::Cos(phiTrk[itrk]);
+    py  = momentumTrk[itrk]*TMath::Sin(thetaTrk[itrk])*TMath::Sin(phiTrk[itrk]);
+    pz  = momentumTrk[itrk]*TMath::Cos(thetaTrk[itrk]);
+    p   = momentumTrk[itrk];
+    t   = thetaTrk[itrk];
+    f   = phiTrk[itrk];
+    p2  = p*p;
+    pt  = TMath::Sqrt(px*px + py*py);
+    npx = px;
+    npy = py;
+    np  = p;
+    if (fVerbose) cout << itrk << " unsmeared: " << momentumTrk[itrk]
+		       << " (" << thetaTrk[itrk] << ", " << phiTrk[itrk] << ") ";
+
+    double xsadd  = SMEARTRKPX*SMEARTRKPX*ppcov00[itrk] - ppcov00[itrk];
+    if (xsadd > 0.) xsadd = TMath::Sqrt(xsadd);
+    double xsmear = gRandom->Gaus(shift, xsadd); 
+    if (fVerbose) cout <<ppcov00[itrk] << " .. " <<SMEARTRKPX <<" 77 " <<xsmear<<endl;
+    if (TMath::Abs(px) > 1.e-3) { npx =  px + xsmear; }
+
+    double ysadd  = SMEARTRKPX*SMEARTRKPX*ppcov11[itrk] - ppcov11[itrk];
+    if (ysadd > 0.) ysadd = TMath::Sqrt(ysadd);
+    double ysmear = gRandom->Gaus(shift, ysadd); 
+    if (TMath::Abs(py) > 1.e-3) { npy = py + ysmear; }
+
+    double zsadd  = SMEARTRKPX*SMEARTRKPX*ppcov22[itrk] - ppcov22[itrk];
+    if (zsadd > 0.) zsadd = TMath::Sqrt(zsadd);
+    double zsmear = gRandom->Gaus(shift, zsadd); 
+    if (TMath::Abs(pz) > 1.e-3) { npz = pz + zsmear; }
+    
+    npt =  TMath::Sqrt(npx*npx + npy*npy);
+    np = TMath::Sqrt(npx*npx + npy*npy + pz*pz);
+    double nnp  = TMath::Sqrt(npx*npx + npy*npy + npz*npz);
+    double nnpt = TMath::Sqrt(npx*npx + npy*npy);
+
+    // -- smearing p (instead of pT)
+    //      double nnnp = 0.;
+    //      covp = (px*px*ppcov00[itrk] + py*py*ppcov11[itrk] + pz*pz*ppcov22[itrk]) / p2; 
+    //      double psadd  = SMEARTRKPX*SMEARTRKPX*covp - covp;
+    //      if (psadd > 0.) psadd = TMath::Sqrt(psadd);
+    //      double psmear = gRandom->Gaus(shift, psadd); 
+    //      if (TMath::Abs(p) > 1.e-3) { nnnp =  p + psmear; }
+    //      double nnnpt = nnnp*TMath::Sin(thetaTrk[itrk]);
+
+    nnt =  (npx == 0.0 && npy == 0.0 && npz == 0.0 ? 0.0 : TMath::ATan2(TMath::Sqrt(npx*npx+npy*npy),npz));
+    nnf =  (npx == 0.0 && npy == 0.0 ? 0.0 : TMath::ATan2(npy,npx));
+    thetaTrk[itrk] = nnt;
+    phiTrk[itrk]   = nnf;
+    momentumTrk[itrk] = nnp;
+
+    if (fVerbose) cout << " -> smeared: " << momentumTrk[itrk] 
+		       << " (" << thetaTrk[itrk] << ", " << phiTrk[itrk] << ") " << endl;
+
+    int imc = IndexTrk[itrk] - 1;
+    double mpt(0.);
+    if (imc > 0 && imc < nMc) {
+      mpt = pMc[imc]*TMath::Sin(thetaMc[imc]);
+      if (mpt > 0.2) {
+	((TH1D*)fHistFile->Get("r0"))->Fill(p - pMc[imc]);
+	((TH1D*)fHistFile->Get("r2"))->Fill(nnp - pMc[imc]);
+
+	((TH1D*)fHistFile->Get("t0"))->Fill(t - thetaMc[imc]);
+	((TH1D*)fHistFile->Get("t2"))->Fill(nnt - thetaMc[imc]);
+
+	((TH1D*)fHistFile->Get("f0"))->Fill(f - phiMc[imc]);
+	((TH1D*)fHistFile->Get("f2"))->Fill(nnf - phiMc[imc]);
+
+	((TH1D*)fHistFile->Get("s0"))->Fill(pt - mpt);
+	((TH1D*)fHistFile->Get("s2"))->Fill(nnpt - mpt);
+	((TH1D*)fHistFile->Get("a0"))->Fill(1./pt - 1./mpt);
+	((TH1D*)fHistFile->Get("a2"))->Fill(1./nnpt - 1./mpt);
+      }
+    }    
+
+  }
+  if (fVerbose) cout << "== End track list in smearTracks() ==" << endl;
+  old->cd();
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::smearNeut() { 
+  static Bool_t first(kTRUE);
+  if (0 == fOptSmearNeut) return;
+  if (fRunnumber < 100000) return; // no smearing for data
+  if (fFileChanged) { 
+    if (fRunRange.Contains("Run 1")) {
+      fOptSmearNeut = 1; 
+      cout << "Smearing/ Shifting Neutrals with RUN1 recipe "  << endl;      
+    } else if (fRunRange.Contains("Run 2a")) {
+      fOptSmearNeut = 2; 
+      cout << "Smearing/ Shifting Neutrals with RUN2 recipe "  << endl;      
+    } else if (fRunRange.Contains("Run 2b")) {
+      fOptSmearNeut = 2; 
+      cout << "Smearing/ Shifting Neutrals with RUN2 recipe "  << endl;      
+    } else {
+      cout << "Warning: No run range determined. Taking RUN2 as default!" << endl;
+      fOptSmearNeut = 2; 
+    }
+  }
+
+  //    if (first && fOptSmearNeut==1) {  cout << "Smearing/ Shifting Neutrals with RUN1 recipe "  << endl;}
+  //    if (first && fOptSmearNeut==2) {  cout << "Smearing/ Shifting Neutrals with RUN2 recipe "  << endl;}                                  
+  for (int i = 0; i < nGam; ++i) {
+    double tempene = clusterReCorrection(energyGam[i], thetaGam[i]);
+    SIGMANEUT = 0;
+    if(energyGam[i]< 0.1 ) {
+	SIGMANEUT =  0.03;
+    } else if(energyGam[i]< 0.3 ) {
+	SIGMANEUT =  0.026;
+    } else if(energyGam[i]< 0.6 ) {
+        SIGMANEUT =  (fOptSmearNeut==1) ? 0.024: 0.016;
+    } else if(energyGam[i]< 1. ) {     
+        SIGMANEUT =  (fOptSmearNeut==1) ? 0.020: 0.016;
+    }
+    SIGMANEUT *= energyGam[i];
+
+    tempene = gRandom->Gaus(tempene, SIGMANEUT); 
+    TH1D *h;
+    TDirectory *old = gDirectory;
+    fHistFile->cd();
+    if (first) {      
+      first = kFALSE;
+      h = new TH1D("energypre", " ", 100, 0., 4.);
+      h = new TH1D("energypost", " ", 100,  0., 4.);
+      h = new TH1D("energysmear", " ", 100,  -0.01, .01);
+    }
+#ifndef FAST
+    ((TH1D*)gDirectory->Get("energypre"))->Fill(energyGam[i]);
+    ((TH1D*)gDirectory->Get("energysmear"))->Fill(energyGam[i]-tempene);
+#endif
+    energyGam[i] = tempene;
+#ifndef FAST
+    ((TH1D*)gDirectory->Get("energypost"))->Fill(energyGam[i]);
+#endif
+  }  
+  first = kFALSE;
+
+}
+
+// ----------------------------------------------------------------------
+// level = 0  CT
+//         1  CTACC
+//         2  GTVL
+//         3  GTVLACC
+//         4  GTL
+//         5  GTLACC
+//         6  GTVLACC && DCH hits for pt > 0.2
+//         7  GTVLACC && DCH hits for pt > 0.2 && looper removal
+void recoilNtp::selectTracks() {
+  static Bool_t first(kTRUE);
+  static int killedTracks(0);
+  static int killedSlowPions(0); 
+  if (first == kTRUE) {
+    first = kFALSE;
+    cout << "-> Selecting tracks  at level " << TRACKSELECTION << endl;
+    cout << "-> " << PTLO << " < pT " << endl; 
+    if ((DOTRACKKILLING > 0) && (fRunnumber > 100000)) {
+      if (DOTRACKKILLING &1) cout << "-> Killing tracks with flat probability " << TRACKKILL << endl;
+      if (DOTRACKKILLING &2) cout << "-> Killing in addition slow pions with flat probability " << SLOWPIONKILL << endl;
+    } else {
+      cout << "-> No track killing " << endl;
+    }
+  }
+  Bool_t ct(kTRUE), gtvl(kFALSE), gtl(kFALSE), acc(kFALSE);
+  Double_t pt(0.), dca(0.), dcaz(0.), rand(0.);
+  if (fVerbose) cout << "== Start track list in selectTracks() ==" << endl;
+  for (int i = 0; i < nTrk; ++i) {
+    tlenTrack[i] = ndchTrack[i] = nsvtTrack[i] = c2nTrack[i]  = dcaTrack[i] = dcazTrack[i] = -99.; 
+    goodTrack[i] = goodHadron[i] = goodChargedKaon[i] = goodPion[i] = 0; 
+    gtvl = gtl = acc = 0;
+    pt = momentumTrk[i]*sin(thetaTrk[i]);
+
+    dcaz = zPocaTrk[i] - beamSZ;
+    dcazTrack[i] = dcaz; 
+    dca  = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+    dcaTrack[i]  = (dca > 1.e-4 ? TMath::Log10(dca) : -3.9); 
+    c2nTrack[i] = (ntdofTrk[i] > 0 ? tChi2Trk[i]/ntdofTrk[i] : -1); 
+    tlenTrack[i] = tLenTrk[i]; 
+    ndchTrack[i] = ndchTrk[i]; 
+    nsvtTrack[i] = nsvtTrk[i]; 
+
+    ct = kTRUE;
+    acc = ((thetaTrk[i] > 0.410) && (thetaTrk[i] < 2.54));
+    gtvl = ((pt > 0.0) 
+	    && (momentumTrk[i] < 10.0)
+	    && (tproTrk[i] >= 0.) 
+	    //  	    && ((xPocaTrk[i]*xPocaTrk[i] + yPocaTrk[i]*yPocaTrk[i]) <= 1.5*1.5)
+	    //  	    && (zPocaTrk[i] >= -10.0 && zPocaTrk[i] <= 10.0));
+	    && (dca  <= 1.5)
+	    && (TMath::Abs(dcaz) <= 10.0));
+    gtl  = ((pt > 0.1) 
+	    && (momentumTrk[i] <= 10.0)
+	    && (ndchTrk[i] >= 12)
+	    && (tproTrk[i] >= 0.) 
+	    //  	    && ((xPocaTrk[i]*xPocaTrk[i] + yPocaTrk[i]*yPocaTrk[i]) <= 1.5*1.5)
+	    //  	    && (zPocaTrk[i] >= -10.0 && zPocaTrk[i] <= 10.0));
+	    && (dca  <= 1.5)
+	    && (TMath::Abs(dcaz) <= 10.0));
+
+    if (TRACKSELECTION == 0) { 
+      if (ct) goodTrack[i] = 1; 
+    } 
+    if (TRACKSELECTION == 1) {
+      if (ct && acc) goodTrack[i] = 1;
+    }
+    if (TRACKSELECTION == 2) {
+      if (gtvl) goodTrack[i] = 1;
+    }
+    if (TRACKSELECTION == 3) {
+      if (gtvl && acc) goodTrack[i] = 1;
+    }
+    if (TRACKSELECTION == 4) {
+      if (gtl) goodTrack[i] = 1;
+    }
+    if (TRACKSELECTION == 5) {
+      if (gtl && acc) goodTrack[i] = 1;
+    }
+
+    // if it is supposed to have dch hits it should have them (loose because of SVT only track resolution)...
+    if (TRACKSELECTION == 6) {
+      if (acc && gtvl&& (ndchTrk[i] > 0 || pt< 0.2 )) goodTrack[i] = 1;
+    }
+    
+    if (TRACKSELECTION == 7) {
+      if (acc && gtvl&& (ndchTrk[i] > 0 || pt< 0.2 )) goodTrack[i] = 1;
+    }
+
+
+    if (pt < PTLO)  goodTrack[i] = 0;
+
+    // http://www.slac.stanford.edu/BFROOT/www/Physics/TrackEfficTaskForce/TrackingTaskForce-2001.html
+    // states: 
+    // For GoodTracksVeryLoose and ChargedTracks, if you are working with a very low multiplicity sample 
+    // (less than 5 tracks per event) you can set the systematic to 0.5% per track.
+    // Otherwise, the systematic must be raised to 1.3% per track since the multiplicity dependence 
+    // of these efficiencies is not well known. 
+    //
+    // For the special case of slow pions (momenta below about 200 MeV) 
+    // a systematic uncertainty of 1.6% should be used.
+
+
+    // -- Track killing in MC: 
+    //    DOTRACKKILLING&1: All tracks with flat probability 1.3%
+    //    DOTRACKKILLING&2: In addition, slow pions can be killed with 1.6%
+    if (fRunnumber > 100000) {
+      if (DOTRACKKILLING & 1) {
+	rand = gRandom->Rndm(); 
+	if (rand < TRACKKILL) {
+	  ++killedTracks; 
+	  goodTrack[i] = 0; 
+	  //  	  if (fVerbose) cout << "Killing track: " << i << " p = " << momentumTrk[i] 
+	  //  			     << " rand = " << rand << " < " << TRACKKILL 
+	  //  			     << " -- killed " << killedTracks << " tracks so far "
+	  //  			     << endl;
+	  if (0 == killedTracks%1000) cout << "killed " << killedTracks << " tracks so far (in the entire event)" << endl;
+	}      
+      }
+      if (DOTRACKKILLING & 2) {
+        if ((pt < 0.200) && (rand < SLOWPIONKILL) && (goodTrack[i] == 1)) {
+          goodTrack[i] = 0; 
+	  ++killedSlowPions; 
+	  //            cout << "Killing slow pion: " << i << " p = " << momentumTrk[i] 
+	  //  	       << " rand = " << rand << " < " << SLOWPIONKILL
+	  //  	       << " -- killed " << killedSlowPions << " slow pions so far "
+	  //  	       << endl;
+	  if (0 == killedSlowPions%100) cout << "killed " << killedSlowPions << " slow pions so far (in the entire event)" << endl;
+        }
+      }
+    }
+
+    if (fVerbose) cout << i << "  " << momentumTrk[i] << "  " << goodTrack[i] << endl;
+  }
+
+  if (TRACKSELECTION == 7) {
+    cleanGoodTracks(); 
+  }
+
+
+  // -- Initialize all particle flag arrays with track selection result
+  for (int j = 0; j < nTrk; ++j) {
+    goodHadron[j] = goodTrack[j]; 
+    goodChargedKaon[j] = goodTrack[j]; 
+    goodPion[j] = goodTrack[j]; 
+  }
+
+  if (fVerbose) cout << "== End track list in selectTracks() ==" << endl;
+}
+
+
+
+// ----------------------------------------------------------------------
+// level = 0 E_gamma > 0.080 GeV
+//         1 GPL
+//         2 GPLACC
+//         3 GPD
+//         4 GPDACC
+//         5 Cuts on: low/high E, low LAT
+//         6 Cuts on: low/high E, low/high LAT, low s9s25
+//         7 Cuts on: low/high E, low/high LAT, low s9s25, veto unmatched clusters
+void recoilNtp::selectPhotons() {
+  fHistFile->cd();
+  static Bool_t first(kTRUE);
+  if (first == kTRUE) {
+    first = kFALSE;
+    cout << "-> Selecting photons at level " << PHOTONSELECTION << endl;
+  }
+  Bool_t gpl(kTRUE), gpd(kFALSE), acc(kFALSE), superric(kFALSE), klsel(kFALSE), ric(kFALSE), ricTight(kFALSE), gg(kFALSE),altsuperric(kFALSE),
+         altklsel(kFALSE),altric(kFALSE),altricTight(kFALSE);
+  for (int i = 0; i < nGam; ++i) {
+    goodPhoton[i] = 0;
+    altPhoton[i] = 0;
+    gpl = gpd = acc = ric = kFALSE;
+    acc = ((thetaGam[i] > 0.410) && (thetaGam[i] < 2.54));
+    gpl = ((energyGam[i] >= 0.030)
+           && (nCryGam[i] >= 1.)
+           && (lMomGam[i] <= 0.8));
+    gpd = ((energyGam[i] >= 0.100)
+	   && (nCryGam[i] >= 1.)
+	   && (lMomGam[i] <= 0.8));
+
+    TLorentzVector p4Gam(0., 0., 0., 0.);
+    mk4Vector(p4Gam,energyGam[i],thetaGam[i],phiGam[i],0);
+    if(p4Brecoil.T()<=0)cout <<" photon selection screwed because recoil B energy is "<<p4Brecoil.T()<<endl;
+    p4Gam.Boost(-p4Brecoil.BoostVector());
+
+    superric = energyGam[i] >= GAMMAELO && p4Gam.T()<2.8 && lMomGam[i]>0.05 && lMomGam[i]<0.5 && s9s25Gam[i]>0.9;
+    klsel = energyGam[i] >= GAMMAELO && p4Gam.T()<2.8 && KLlikeEMC(i)<0;
+        
+    ric = energyGam[i] >= GAMMAELO && energyGam[i]<4. &&  lMomGam[i]>0.05;
+    ricTight = energyGam[i] >= GAMMAELO&& energyGam[i]<4. && lMomGam[i]>0.05 && lMomGam[i]<0.5 && s9s25Gam[i]>0.9;
+
+    altsuperric = energyGam[i] >= GAMMALTLO && p4Gam.T()<2.8 && lMomGam[i]>0.05 && lMomGam[i]<0.5 && s9s25Gam[i]>0.9;
+    altklsel = energyGam[i] >= GAMMALTLO && p4Gam.T()<2.8 && KLlikeEMC(i)<0;
+        
+    altric = energyGam[i] >= GAMMALTLO && energyGam[i]<4. &&  lMomGam[i]>0.05;
+    altricTight = energyGam[i] >= GAMMALTLO&& energyGam[i]<4. && lMomGam[i]>0.05 && lMomGam[i]<0.5 && s9s25Gam[i]>0.9;
+
+    gg = ((energyGam[i] >= 0.030)
+	  && (nCryGam[i] >= 1.)
+	  && (lMomGam[i] <= 0.8)
+	  && (p4Gam.T() < 2.8)
+	  && (splitOffGam[i] == 0)
+	  );
+
+    if (energyGam[i] > GAMMAELO) { 
+      if (PHOTONSELECTION == 0) goodPhoton[i] = 1; 
+    } 
+    if (energyGam[i] > GAMMALTLO) { 
+      if (ALTPHOTONSEL == 0) altPhoton[i] = 1;
+    } 
+    if (gg && acc) {
+      if (PHOTONSELECTION == 1) goodPhoton[i] = 1;
+      if (ALTPHOTONSEL == 1) altPhoton[i] = 1; 
+    }
+    if (gpl && acc) {
+      if (PHOTONSELECTION == 2) goodPhoton[i] = 1;
+      if (ALTPHOTONSEL == 2) altPhoton[i] = 1; 
+    }
+    if (gpd) {
+      if (PHOTONSELECTION == 3) goodPhoton[i] = 1;
+      if (ALTPHOTONSEL == 3) altPhoton[i] = 1; 
+    }
+    if (gpd && acc) {
+      if (PHOTONSELECTION == 4) goodPhoton[i] = 1;
+      if (ALTPHOTONSEL == 4) altPhoton[i] = 1; 
+    }
+    if (ric && acc){
+      if (PHOTONSELECTION == 5) goodPhoton[i] = 1;
+    }
+    if (altric && acc){
+      if (ALTPHOTONSEL == 5) altPhoton[i] = 1; 
+    }
+    if (ricTight && acc){
+      if (PHOTONSELECTION == 6) goodPhoton[i] = 1;
+    }
+    if (altricTight && acc){
+      if (ALTPHOTONSEL == 6) altPhoton[i] = 1; 
+    }
+    if (ricTight && acc &&  splitOffGam[i]==0 ){
+      if (PHOTONSELECTION == 7) goodPhoton[i] = 1;
+    }
+    if (altricTight && acc &&  splitOffGam[i]==0 ){
+      if (ALTPHOTONSEL == 7) altPhoton[i] = 1; 
+    }
+    if (superric && acc &&  splitOffGam[i]==0 ){
+      if (PHOTONSELECTION == 8) goodPhoton[i] = 1;
+    }
+    if (altsuperric && acc &&  splitOffGam[i]==0 ){
+      if (ALTPHOTONSEL == 8) altPhoton[i] = 1; 
+    }
+    if (klsel && acc &&  splitOffGam[i]==0 ){
+      if (PHOTONSELECTION == 9) goodPhoton[i] = 1;
+    }
+    if (altklsel && acc &&  splitOffGam[i]==0 ){
+      if (ALTPHOTONSEL == 9) altPhoton[i] = 1; 
+    }
+// additional fix to Ks bug: kill intermediate energy photons	
+// according to k(e)=1+gaus(0.68,0.72,0.3)*poli(8)
+    if(fIsMC && runNumber< fOptFilterK0sPi0Pi0&& goodPhoton[i] == 1){
+      double coeff[9]={ .792903,4.80598,-32.5345,95.5484,-145.436,123.012,-58.6776,14.8144,-1.54217};
+      Int_t iKs=isKs2Pi0Dau(i);
+      if(iKs>=0){
+	double killFac=1+0.68*exp(-0.5*pow((energyGam[i]-0.72)/0.3,2));
+	double corr = 0;
+	for (Int_t pol=0;pol<9;pol++)// 8th prder polinomial corerction
+	  corr+=coeff[pol]*pow(energyGam[i],pol);
+
+	killFac/=corr;
+	double xrand=gRandom->Rndm() ;
+	if(xrand > 1./killFac)  goodPhoton[i] = 0;
+	//	if(corr<0.8)cout << "low corr: "<<corr<<"for E= "<<energyGam[i]<<endl;
+      }
+      
+    }
+    if (fVerbose) cout << i << "  " << energyGam[i] <<" "<<thetaGam[i]<<" "<<phiGam[i]<<p4Gam.T()<<" "<<lMomGam[i]<<" "<<s9s25Gam[i]<<" "<<splitOffGam[i]<< "  " << goodPhoton[i] << endl;
+  }
+}
+
+
+// ----------------------------------------------------------------------
+Bool_t recoilNtp::isPidKillEl(int i) {
+  if ((idTrk[i]) == -211)  return fPTel[4]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 211)   return fPTel[5]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -321)  return fPTel[6]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 321)   return fPTel[7]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 11)    return fPTel[0]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -11)   return fPTel[1]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 13)    return fPTel[2]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -13)   return fPTel[3]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -2212) return fPTel[8]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 2212)  return fPTel[9]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  return kFALSE;
+}
+
+// ----------------------------------------------------------------------
+Bool_t recoilNtp::isPidKillMu(int i) {
+  if ((idTrk[i]) == -211)  return fPTmu[4]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 211)   return fPTmu[5]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -321)  return fPTmu[6]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 321)   return fPTmu[7]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 11)    return kFALSE; // p.d. electrons don't fake muons
+  if ((idTrk[i]) == -11)   return kFALSE; // p.d. electrons don't fake muons
+  if ((idTrk[i]) == 13)    return fPTmu[2]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -13)   return fPTmu[3]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -2212) return fPTmu[8]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 2212)  return fPTmu[9]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  return kFALSE;
+}
+
+// ----------------------------------------------------------------------
+Bool_t recoilNtp::isPidKillKaon(int i) {
+  if ((idTrk[i]) == -211)  return fPTka[4]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 211)   return fPTka[5]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -321)  return fPTka[6]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 321)   return fPTka[7]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 11)    return fPTka[0]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -11)   return fPTka[1]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 13)    return fPTka[2]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -13)   return fPTka[3]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == -2212) return fPTka[8]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  if ((idTrk[i]) == 2212)  return fPTka[9]->idR(momentumTrk[i], thetaTrk[i], phiTrk[i]);
+  return kFALSE;	
+}
+
+
+
+// ----------------------------------------------------------------------
+void recoilNtp::fillPidMaps() {
+  int i(0);
+  static bool first(kTRUE), firstK(kTRUE), firstE(kTRUE), firstM(kTRUE);
+
+#ifndef FAST
+  for (i = 0; i < 100; ++i) {
+    recEl[i] = recMu[i] = recKa[i] = 0; // paranoia
+  }
+#endif
+
+  // -- Protection against running PidKilling on Data
+  if ((fRunnumber < 100000) && (fOptPidKilling || fOptPidKillingKaon || fOptPidKillingEl || fOptPidKillingMu)) {
+    if (first) cout << "-> Resetting PidKilling options, since this is data" << endl;
+    fOptPidKilling = kFALSE;
+    fOptPidKillingKaon = kFALSE;
+    fOptPidKillingEl = kFALSE;
+    fOptPidKillingMu = kFALSE;
+  }
+
+  //    cout << "----------------------------------------------------------------------" << endl;
+  Bool_t gtl;
+  Double_t pt(0.), dca(0.), dcaz(0.);
+  if (fOptPidKilling > 0) {
+    if (first) { 
+      first = kFALSE; 
+      cout << "-> Running with general pidkilling" << endl;
+    }
+    for (i = 0; i < nTrk; ++i) {
+      recEl[i] = 0; 
+      recMu[i] = 0; 
+      recKa[i] = 0; 
+      if (isPidKillKaon(i)) recKa[i] = 1; 
+      if (momentumTrk[i] < KAMOMLO) recKa[i] = 0;
+      // -- Tighter track requirements for leptons
+      pt = momentumTrk[i]*sin(thetaTrk[i]);
+      dcaz = zPocaTrk[i] - beamSZ;
+      dca  = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+      gtl = ((pt > 0.1) 
+	     && (momentumTrk[i] <= 10.0)
+	     && (ndchTrk[i] >= 12)
+	     && (tproTrk[i] >= 0.) 
+	     && (dca  <= 1.5)
+	     && (TMath::Abs(dcaz) <= 10.0));
+      if (kFALSE == gtl) continue;
+      if (isPidKillEl(i))   recEl[i] = 1; 
+      if (isPidKillMu(i))   recMu[i] = 1; 
+    } 
+  } else {
+    if (first) { 
+      first = kFALSE; 
+      cout << "-> Running without pidkilling" << endl;
+    }
+    for (i = 0; i < nTrk; ++i) {
+      recKa[i] = 0; 
+      recEl[i] = 0;
+      recMu[i] = 0;
+      // -- Kaons
+      if (TMath::Abs(kaonIdTrk[i]) & IDKA) {
+	recKa[i] = 1; 
+	if (momentumTrk[i] < KAMOMLO) recKa[i] = 0; 
+      } else {
+	recKa[i] = 0; 
+      }
+      if(fOptPidKillingKaon > 0){
+	if (firstK) { 
+	  firstK = kFALSE; 
+	  cout << "-> Running with Kaon pidkilling" << endl;	
+	}
+	if (isPidKillKaon(i)) {
+	  recKa[i] = 1; 
+	  if (momentumTrk[i] < KAMOMLO) recKa[i] = 0;
+	} else {
+	  recKa[i] = 0;
+	}
+      } 
+      // -- Tighter track requirements for leptons
+      pt = momentumTrk[i]*sin(thetaTrk[i]);
+      dcaz = zPocaTrk[i] - beamSZ;
+      dca  = TMath::Sqrt((xPocaTrk[i]-beamSX)*(xPocaTrk[i]-beamSX) + (yPocaTrk[i]-beamSY)*(yPocaTrk[i]-beamSY));
+      gtl = ((pt > 0.1) 
+	     && (momentumTrk[i] <= 10.0)
+	     && (ndchTrk[i] >= 12)
+	     && (tproTrk[i] >= 0.) 
+	     && (dca  <= 1.5)
+	     && (TMath::Abs(dcaz) <= 10.0));
+      
+      //      cout <<" track " << i << " ele " << elecIdTrk[i] << " " << IDEL << " mu " <<muonIdTrk[i]<<" " << IDMU <<" kaon " << kaonIdTrk[i]<<" " <<IDKA<<endl;
+      if (kFALSE == gtl) continue;
+
+      if (TMath::Abs(elecIdTrk[i]) & IDEL) {recEl[i] = 1; } 
+      if ((TMath::Abs(muonIdTrk[i]) & IDMU) && ((TMath::Abs(kaonIdTrk[i]) & IDKA) == 0))  {recMu[i] = 1; } 
+
+      if (fOptPidKillingEl > 0) {
+	if (firstE) { 
+	  firstE = kFALSE; 
+	  cout << "-> Running with Electron pidkilling" << endl;	
+	}
+	if (isPidKillEl(i)) {recEl[i] = 1;} else {recEl[i] = 0;}
+      } 
+
+      if (fOptPidKillingMu > 0) {
+	if (firstM) { 
+	  firstM = kFALSE; 
+	  cout << "-> Running with Muon pidkilling" << endl;	
+	}
+	if (isPidKillMu(i)) {recMu[i] = 1;} else {recMu[i] = 0;}
+
+      } 
+
+    }
+  }
+  
+  if (fVerbose) {
+    cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << endl;
+    for (i = 0; i < nTrk; ++i) {
+      if (isRecEl(i))   cout << "Track " << i << " is an electron with p = " << momentumTrk[i] << endl;
+      if (isRecMu(i))   cout << "Track " << i << " is a  muon with p = " << momentumTrk[i] << endl;
+      if (isRecKaon(i)) cout << "Track " << i << " is a kaon with p = " << momentumTrk[i] << endl;
+    }
+    cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << endl;
+  }    
+}
+
+
+// ----------------------------------------------------------------------
+void recoilNtp::breco(int chbcand) {
+
+  static Bool_t first(kTRUE); 
+  char name[100], title[100];
+  TH1D *h;
+  TH2D *h2;
+
+  if (first) {
+    first = kFALSE;
+    
+    fHistFile->cd();
+    fHistFile->mkdir("breco", "breco");
+    fHistFile->cd("breco");
+
+    sprintf(name, "h100");  sprintf(title, "Breco modes");  h = new TH1D(name, title, 20000, 0., 20000.); 
+    sprintf(name, "f100");  sprintf(title, "Breco modes with purity <=0");  h = new TH1D(name, title, 20000, 0., 20000.); 
+    
+    sprintf(name, "h200");  sprintf(title, "mes");  h = new TH1D(name, title, 40, 5.2, 5.3); 
+    sprintf(name, "h300");  sprintf(title, "mes dE all");  h2 = new TH2D(name, title, 40, 5.2, 5.3, 40, -0.2, 0.2); 
+    
+    sprintf(name, "mesallDupli");  sprintf(title, "mes All Dupli");  h = new TH1D(name, title, 40, 5.2, 5.3); 
+    sprintf(name, "deallDupli");  sprintf(title, "delta E All Dupli");  h = new TH1D(name, title, 40, -0.1, 0.1); 
+    sprintf(name, "mesdeDupli");  sprintf(title, "mes dE all Dupli");  h2 = new TH2D(name, title, 40, 5.2, 5.3, 40, -0.2, 0.2); 
+
+    int i; 
+#ifndef FAST
+    for (i = 0; i < 600; ++i) {
+	int thebmode = i%100;
+	if(thebmode<54) {
+          sprintf(name, "h%d", 11000+i);  sprintf(title, "mes, mode = %d", 11000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "h%d", 12000+i);  sprintf(title, "mes, mode = %d", 12000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "h%d", 13000+i);  sprintf(title, "mes, mode = %d", 13000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "h%d", 14000+i);  sprintf(title, "mes, mode = %d", 14000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "h%d", 15000+i);  sprintf(title, "mes, mode = %d", 15000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+
+          sprintf(name, "ae%d", 11000+i);  sprintf(title, "lepton cut, mode = %d", 11000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ae%d", 12000+i);  sprintf(title, "lepton cut, mode = %d", 12000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ae%d", 13000+i);  sprintf(title, "lepton cut, mode = %d", 13000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ae%d", 14000+i);  sprintf(title, "lepton cut, mode = %d", 14000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ae%d", 15000+i);  sprintf(title, "lepton cut, mode = %d", 15000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+
+          sprintf(name, "ac%d", 11000+i);  sprintf(title, "all cuts, mode = %d", 11000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ac%d", 12000+i);  sprintf(title, "all cuts, mode = %d", 12000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ac%d", 13000+i);  sprintf(title, "all cuts, mode = %d", 13000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ac%d", 14000+i);  sprintf(title, "all cuts, mode = %d", 14000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "ac%d", 15000+i);  sprintf(title, "all cuts, mode = %d", 15000+i);  h = new TH1D(name, title, 40, 5.2, 5.3); 
+
+          sprintf(name, "acm%d", 11000+i);sprintf(title, "all cuts mx<mxcut, mode = %d", 11000+i);h=new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "acm%d", 12000+i);sprintf(title, "all cuts mx<mxcut, mode = %d", 12000+i);h=new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "acm%d", 13000+i);sprintf(title, "all cuts mx<mxcut, mode = %d", 13000+i);h=new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "acm%d", 14000+i);sprintf(title, "all cuts mx<mxcut, mode = %d", 14000+i);h=new TH1D(name, title, 40, 5.2, 5.3); 
+          sprintf(name, "acm%d", 15000+i);sprintf(title, "all cuts mx<mxcut, mode = %d", 15000+i);h=new TH1D(name, title, 40, 5.2, 5.3); 
+
+      }
+
+    }
+#endif
+
+  }
+
+  // #trx #pi0 #ks
+  nnpi0=0; nntrk=0; nnks=0; nnpar=0;
+  if(!chbcand) {
+    //B0
+    if(d1B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d1B0Lund[indexbestB]==310) {nnks++;}
+    else if(d1B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d2B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d2B0Lund[indexbestB]==310) {nnks++;}
+    else if(d2B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d3B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d3B0Lund[indexbestB]==310) {nnks++;}
+    else if(d3B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d4B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d4B0Lund[indexbestB]==310) {nnks++;}
+    else if(d4B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d5B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d5B0Lund[indexbestB]==310) {nnks++;}
+    else if(d5B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d6B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d6B0Lund[indexbestB]==310) {nnks++;}
+    else if(d6B0Lund[indexbestB]!=0) {nntrk++;}
+    if(d7B0Lund[indexbestB]==111) {nnpi0++;}
+    else if(d7B0Lund[indexbestB]==310) {nnks++;}
+    else if(d7B0Lund[indexbestB]!=0) {nntrk++;}
+  } else {
+    //ChB
+    if(d1ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d1ChBLund[indexbestB]==310) {nnks++;}
+    else if(d1ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d2ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d2ChBLund[indexbestB]==310) {nnks++;}
+    else if(d2ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d3ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d3ChBLund[indexbestB]==310) {nnks++;}
+    else if(d3ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d4ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d4ChBLund[indexbestB]==310) {nnks++;}
+    else if(d4ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d5ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d5ChBLund[indexbestB]==310) {nnks++;}
+    else if(d5ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d6ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d6ChBLund[indexbestB]==310) {nnks++;}
+    else if(d6ChBLund[indexbestB]!=0) {nntrk++;}
+    if(d7ChBLund[indexbestB]==111) {nnpi0++;}
+    else if(d7ChBLund[indexbestB]==310) {nnks++;}
+    else if(d7ChBLund[indexbestB]!=0) {nntrk++;}
+  }
+  nnpar=nnpi0+nnks+nntrk;
+
+  
+
+  fHistFile->cd("breco");
+	
+  fBrecoMc = MCB0[indexbestB];
+  fMes = mseB0[indexbestB];
+  fDeltaE = deltaeB0[indexbestB];
+  int tmpdauB = d1B0Lund[indexbestB];
+  int tmpmodeB = modeB0[indexbestB];
+  if(chbcand) {
+    fBrecoMc = MCChB[indexbestB];
+    fMes = mseChB[indexbestB];
+    fDeltaE = deltaeChB[indexbestB];
+    tmpdauB = d1ChBLund[indexbestB];
+    tmpmodeB = modeChB[indexbestB];
+  }
+
+  fBmode = tmpmodeB;
+
+  // BetaCoreTools/BtaExclusiveDecayList.hh
+  // the following is an arbitrary definition
+  // fSeedMode = 0 dc
+  // fSeedMode = 1 dstar
+  // fSeedMode = 2 d0
+  // fSeedMode = 3 dstar0
+  if ((11000 <= tmpmodeB) &&  (tmpmodeB < 12000)) {
+    fSeedMode = 2;
+  } else if  ((12000 <= tmpmodeB) &&  (tmpmodeB < 13000)) {
+    fSeedMode = 0;
+  } else if  ((13000 <= tmpmodeB) &&  (tmpmodeB < 14000)) {
+    fSeedMode = 1;
+  } else if  ((14000 <= tmpmodeB) &&  (tmpmodeB < 16000)) {
+    fSeedMode = 3;
+  } else {
+    fSeedMode = -1;
+  }
+
+  fBrecoCharge= 0;
+  fBrecoFlavor = 1;  
+
+  if (chbcand) {
+     if(d2ChBLund[indexbestB]!=0&&d2ChBLund[indexbestB]!=111&&d2ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d2ChBLund[indexbestB])/d2ChBLund[indexbestB]);}	
+     if(d3ChBLund[indexbestB]!=0&&d3ChBLund[indexbestB]!=111&&d3ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d3ChBLund[indexbestB])/d3ChBLund[indexbestB]);}
+     if(d4ChBLund[indexbestB]!=0&&d4ChBLund[indexbestB]!=111&&d4ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d4ChBLund[indexbestB])/d4ChBLund[indexbestB]);}
+     if(d5ChBLund[indexbestB]!=0&&d5ChBLund[indexbestB]!=111&&d5ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d5ChBLund[indexbestB])/d5ChBLund[indexbestB]);}
+     if(d6ChBLund[indexbestB]!=0&&d6ChBLund[indexbestB]!=111&&d6ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d6ChBLund[indexbestB])/d6ChBLund[indexbestB]);}
+     if(d7ChBLund[indexbestB]!=0&&d7ChBLund[indexbestB]!=111&&d7ChBLund[indexbestB]!=310){ fBrecoCharge=fBrecoCharge+(TMath::Abs(d7ChBLund[indexbestB])/d7ChBLund[indexbestB]);}	
+     fBrecoFlavor=fBrecoCharge;	
+  }else{
+     fBrecoCharge=0;
+//     cout << indexbestB <<  " " << bestB0 << " " << nB0 << " " << d1B0Lund[indexbestB] << " " << fMes << " " << fIntPurity << endl;
+     fBrecoFlavor=-1*(TMath::Abs(d1B0Lund[indexbestB])/d1B0Lund[indexbestB]);
+  }
+
+  if ((MESSIDEBANDLO < fMes) && (fMes < MESSIDEBANDHI)) {
+    mesSideband = kTRUE; 
+  } else {
+    mesSideband = kFALSE; 
+  }
+
+  if ((MESSIGNALBANDLO < fMes) && (fMes < MESSIGNALBANDHI)) {
+    mesSignalband = kTRUE; 
+  } else {
+    mesSignalband = kFALSE; 
+  }
+
+  if ((MESSIGNALLO < fMes) && (fMes < MESSIGNALHI)
+      && (DESIGNALLO < fDeltaE) && (fDeltaE < DESIGNALHI)
+      ) {
+    signalBox = kTRUE;
+  } else {
+    signalBox = kFALSE;
+  }
+
+  if ((MESSIDEBANDLO < fMes) && (fMes < MESSIGNALHI)
+      && (DESIGNALLO < fDeltaE) && (fDeltaE < DESIGNALHI)
+      ) {
+    tsdump = kTRUE;
+  } else {
+    tsdump = kFALSE;
+  }
+
+  fHistFile->cd("breco");
+
+  ((TH1D*)gDirectory->Get("h100"))->Fill(tmpmodeB);
+  ((TH1D*)gDirectory->Get("h200"))->Fill(fMes);
+  ((TH2D*)gDirectory->Get("h300"))->Fill(fMes, fDeltaE);
+
+  if(fisDuplicate) {
+    ((TH1D*)gDirectory->Get("deallDupli"))->Fill(fDeltaE);
+    ((TH1D*)gDirectory->Get("mesallDupli"))->Fill(fMes);
+    ((TH1D*)gDirectory->Get("mesdeDupli"))->Fill(fMes, fDeltaE);
+  }
+
+#ifndef FAST
+  sprintf(name, "h%d", fBmode);   ((TH1D*)gDirectory->Get(name))->Fill(fMes);
+#endif
+
+ 
+#if 0
+    int SMEARBRECO = 1;
+    if (SMEARBRECO) {
+      int ILTYP; 
+      float CVAL[4] = {0., 0., 0., 1110.};
+      float P_REC[16] = {
+	p4BrecoGen.Px(), p4BrecoGen.Py(), p4BrecoGen.Pz(), p4BrecoGen.E(), 
+	0., 0., 0., 0., 
+	0., 0., 0., 0., 
+	0., 0., 0., 0.};
+      float P_FIT[16];
+      float CHI2T, PROBCHI2; 
+      
+      int   ISMEAR(1);
+      int   IERR;
+      int   ISV = fVerbose;       
+     int i1 = abcfit_interface_vub_(&ISMEAR,&ILTYP,CVAL,P_REC,P_FIT,&CHI2T,&PROBCHI2,&IERR, &ISV);
+
+      p4BrecoGenSmear.SetXYZM(P_FIT[0], P_FIT[1], P_FIT[2], P_FIT[3]); 
+
+      if (signalBox) {
+	fHistFile->cd("sgallevents");
+      } else {
+	fHistFile->cd("bgallevents");
+      }
+
+      ((TH1D*)gDirectory->Get("s100"))->Fill(p4BrecoGen.Vect().Mag(), 1.);
+      ((TH1D*)gDirectory->Get("s101"))->Fill(p4BrecoNC.Vect().Mag(), 1.);
+      ((TH1D*)gDirectory->Get("s102"))->Fill(p4BrecoGenSmear.Vect().Mag(), 1.);
+      ((TH1D*)gDirectory->Get("s103"))->Fill(p4BrecoNC.Vect().Mag() - p4BrecoGenSmear.Vect().Mag(), 1.);
+      ((TH1D*)gDirectory->Get("s104"))->Fill(p4BrecoNC.Vect().Mag() - p4BrecoGen.Vect().Mag(), 1.);
+      ((TH1D*)gDirectory->Get("s105"))->Fill(p4BrecoGen.Vect().Mag() - p4BrecoGenSmear.Vect().Mag(), 1.);
+
+    }
+#endif
+
+  
+  fHistFile->cd();
+}  
+
+
+Bool_t recoilNtp::klselection( Int_t& klindex )
+{
+  Bool_t selection = kFALSE;
+  
+  for (Int_t i=0; i<nGam ; i++) {
+    if (ecalGam[i]<= 0) {
+      if ((IfrFWDGam[i])&&IfrLastHitGam[i]>14) continue;
+      Int_t nlay = IfrLayGam[i];
+      if ( nlay>2 ) 
+        if ( minTrkClusterOpen(thetaGam[i], phiGam[i]) > .500 ) {
+          selection = kTRUE;
+          klindex = i;
+          break ;
+        }
+    }
+  }
+  return selection;
+}
+  
+Double_t recoilNtp::minTrkClusterOpen(Double_t theta, Double_t phi)  
+{
+  Double_t min=-10.0;
+  
+  TVector3 v1(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta));
+  for (Int_t i=0; i<nTrk; i++) {
+    if ( momentumTrk[i]>.750) {
+      Double_t theta2 = thetaAtEMCTrk[i];
+      Double_t phi2 = phiAtEMCTrk[i];
+      
+      TVector3 v2(sin(theta2)*cos(phi2),sin(theta2)*sin(phi2),cos(theta2));
+      Double_t cosangle = v1 * v2;
+      if (min<cosangle) min=cosangle;
+    }
+  }
+  return acos(min);
+}
+
+TList * recoilNtp::createTrueList( Int_t particle, Int_t * firstDecay, Int_t max) 
+{
+  
+  Int_t i,overlap ;
+  TList * list = new TList;
+  
+  for (i=0; i<nMc; i++) {
+    if (isAncestor(fB1Index, i)) {
+      overlap = 1;
+    } else if (isAncestor(fB2Index, i)) {
+      overlap = 2;
+    } else {
+      overlap = 0;
+    }
+
+    if (overlap != 2) continue;
+    if (idMc[i] == particle) {
+      TLorentzVector * p4tmp = new TLorentzVector;
+      mk4Vector( *p4tmp, pMc[i], thetaMc[i], phiMc[i], massMc[i]);
+      list->Add( p4tmp );
+      if (firstDecay != 0) {
+	for (Int_t j=0; i<nMc; i++) {
+	  if ( i == mothMc[j]-1) {
+	    *firstDecay = idMc[j];
+            firstDecay++;
+            break;
+	  }
+	}
+      }
+    }
+  }
+  
+  return list;
+}
+
+Int_t recoilNtp::angularMatch(TList& list,Int_t indexGam)
+{
+  Int_t match(-1), counter(0);
+  Double_t recTheta = thetaGam[indexGam];
+  Double_t recPhi = phiGam[indexGam];
+
+  TIterator*  next = list.MakeIterator();
+  TLorentzVector* p4;
+  while ((p4 = ((TLorentzVector*) (*next)())) != 0  ) {
+    if (fklreslen<100) {
+  
+      Bool_t inCone=kFALSE;
+      if ( TMath::Abs(p4->Theta()-recTheta) < .050 ) 
+	if ( TMath::Abs(p4->Phi()-recPhi) < .100 ) { 
+	  match = counter;
+          inCone=kTRUE;
+        }
+      
+      if ( fOptKlongs || inCone) {
+        fklresth[fklreslen]=p4->Theta()-recTheta;
+        fklresph[fklreslen]=p4->Phi()-recPhi;
+        fidCone[fklreslen]=idGam[indexGam];
+        finCone[fklreslen]=inCone;
+        fklreslen++;  
+      }
+      counter++;
+    }
+    else break;
+  }
+  delete next;
+  return match;
+}
+  
+Bool_t recoilNtp::P4XhadKS(TLorentzVector& pMiss, TLorentzVector& pX,
+                         Int_t isVerbose)
+{
+  Int_t iks = bestKsIndex(0);
+  if (iks>=0) {
+    TLorentzVector ksp4;
+    mk4Vector( ksp4, pKs[iks], thKs[iks], phiKs[iks], KAZMASS);
+    pX = p4Xhad - ksp4;
+    pMiss = p4Upsilon - p4Breco - p4Recoil + ksp4;
+  }
+  else return kFALSE;
+  return kTRUE;
+}
+
+void recoilNtp::MxMisIdchK(Double_t& mass, Double_t& missmass2, TLorentzVector& pX, TLorentzVector& pMiss)
+{
+ 
+  mass=0;
+  missmass2=0;
+  
+  if (fNKp>0) {
+    TLorentzVector p4X(0,0,0,0),p4(0,0,0,0);
+    mk4Vector( p4X, fPxhad, fTxhad, fFxhad, fMxhad);
+    for (Int_t i=0; i<nTrk; i++) {
+      if (isRecKaon(i)) {
+        Double_t p  = momentumTrk[i];
+        Double_t ek = sqrt( p*p + KAPMASS*KAPMASS);
+        Double_t epi= sqrt( p*p + PIPMASS*PIPMASS);
+        Double_t EX = sqrt(fMxhad*fMxhad + fPxhad*fPxhad);
+        Double_t E  = EX - ek + epi;
+        TLorentzVector p4Misss(p4Upsilon - p4Breco - p4Recoil);
+        Double_t Emiss = p4Misss.E() - epi + ek;
+        mass = sqrt(E*E - fPxhad*fPxhad);
+        missmass2 = Emiss*Emiss - p4Misss.P()*p4Misss.P();
+        
+	pX.SetXYZT(p4Xhad.Px(),p4Xhad.Py(),p4Xhad.Pz(),E);
+	pMiss.SetXYZT(p4Misss.Px(),p4Misss.Py(),p4Misss.Pz(),Emiss);
+
+        break;
+      }
+    }
+  }
+}
+
+Bool_t recoilNtp::MxhadKS(Double_t& mX, Double_t& missMass2,TLorentzVector& pX, 
+                            TLorentzVector& pMiss, Int_t isVerbose)
+{
+  Bool_t status = P4XhadKS(pMiss,pX,isVerbose);
+  if (!status) return kFALSE;
+    
+  mX = pX.M();
+  missMass2 = pMiss.M2();
+  return kTRUE;
+}
+Bool_t recoilNtp::MxHadchK(int chbcand, Double_t& mX, Double_t& missMass2,TLorentzVector& pX, 
+                            TLorentzVector& pMiss, Int_t isVerbose)
+{
+  Int_t from(0);
+  
+  if (fNKp>0) {
+    Int_t ik = -1;
+    for (Int_t i = 0; i < nTrk; ++i) {
+      from = B0RecTrk[i];
+      if(chbcand) from= chBRecTrk[i];
+      if ((from&brecoOverlap)) continue;
+      if (isRecKaon(i)) {  
+	ik = i;
+	break;
+      }
+    }
+    if (ik == -1) {
+      cout << "ERROR number of K+>0 but not FOUND!!" << endl;
+      return kFALSE;
+    }
+    else {
+      TLorentzVector kp4;
+      mk4Vector( kp4, momentumTrk[ik], thetaTrk[ik], phiTrk[ik], KAPMASS);
+      pX = p4Xhad - kp4;
+      pMiss = p4Upsilon - p4Breco - p4Recoil + kp4;
+      mX = pX.M();
+      missMass2 = pMiss.M2();
+      return kTRUE;
+    }
+  }
+  else return kFALSE;
+}
+
+void recoilNtp::findbestB()
+{
+    double tmpintpur=-999;
+    indexbestB=-999;
+    bestB0=1;
+
+    static int first(1); 
+    TH1D *h; 
+    if (first && (fHistFile != 0)) {
+      fHistFile->cd();
+      fHistFile->mkdir("bestb", "bestb");
+      fHistFile->cd("bestb");
+      char title[200];
+      char name[200];
+      first = 0;
+      sprintf(name, "h101");  sprintf(title, "int purity B0");  h = new TH1D(name, title, 500, 0., 1.); 
+      sprintf(name, "h111");  sprintf(title, "int purity B+");  h = new TH1D(name, title, 500, 0., 1.); 
+    }
+    
+    for (int iB0=0; iB0<nB0; iB0++){
+      int mode = modeB0[iB0]-10000;
+      if(brecointpur[mode]>tmpintpur) {
+	indexbestB = iB0;    
+        tmpintpur = brecointpur[mode];
+//	tmpintpur = intpurB0[iB0];   // old 
+      }
+    }
+    
+    for (int iChB=0; iChB<nChB; iChB++){
+      int mode = modeChB[iChB]-10000;
+      if(brecointpur[mode]>tmpintpur) {
+	indexbestB = iChB;    
+        tmpintpur = brecointpur[mode];
+//	tmpintpur = intpurChB[iChB];  // old
+	bestB0=0;
+      }
+    }
+    if(fHistFile!=0){
+      fHistFile->cd();
+      ((TH1D*)gDirectory->Get("meszero"))->Fill(mseB0[0]);
+      ((TH1D*)gDirectory->Get("meszero"))->Fill(mseChB[0]);
+      if(bestB0) { 
+        ((TH1D*)gDirectory->Get("mesbest"))->Fill(mseB0[indexbestB]);
+      }else{
+        ((TH1D*)gDirectory->Get("mesbest"))->Fill(mseChB[indexbestB]);
+      }
+    }
+
+    if (fHistFile != 0) {
+      fHistFile->cd("bestb");
+      if(bestB0) {
+	((TH1D*)gDirectory->Get("h101"))->Fill(tmpintpur);
+      } else {
+	((TH1D*)gDirectory->Get("h111"))->Fill(tmpintpur);
+      }
+      fHistFile->cd();
+    }
+
+}
+
+// ----------------------------------------------------------------------
+void recoilNtp::calculateEvtW8() {
+  int dImode(0); 
+  double b = getBsysweight(fBVxbTyp,fVub); 
+  ((TH1D*)gDirectory->Get("bw8"))->Fill(b);
+  double d = getDsysweight(fDpi,fDk,fDks,fDpiz,fDlep,dImode,fVub);
+  ((TH1D*)gDirectory->Get("dw8"))->Fill(d);
+  
+  fEvtW8 = b * d * fEvtW8; 
+  ((TH1D*)gDirectory->Get("ew8"))->Fill(b);
+}
+
+// ----------------------------------------------------------------------
+double recoilNtp::getBsysweight(int decType,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  if (fIsMC) {
+    if(DOBDECWEIGHT) theweight = Bsem->weight(decType); 
+    if(thevub) theweight = 1.;
+  }
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double recoilNtp::getDsysweight(int decDpi,int decDk,int decDks,int decDpiz,int decDlep,int decImode,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  int bla(1);
+  if (fIsMC) {
+    if(DODDECWEIGHT) theweight = Dvar->weight(decDpi,decDk,decDks,decDpiz,decDlep,decImode,bla);    
+    if(thevub) theweight = 1.;
+  }
+  return theweight;
+}
+
+
+
+//------------------------------------------------------------------------------//
+//
+// Description: Function for the Correction of the Cluster Energy
+//              => returns the corrected cluster energy
+//
+//   clusterCorrection(double rawEnergy, double clusterPostionTheta, bool newCorr=true)
+//     => returns corrected energy with
+//        - constants from March    2002 ("new") if newCorr=true (default)
+//        - constants from November 1999 ("old") if newCorr=false
+//
+//   clusterReCorrection(oldCorrectedEnergy, clusterPostionTheta)
+//     => convert old corrected energy
+//             to new corrected energy
+//
+//              rawEnergy           - raw cluster energy (in GeV)
+//              clusterPostionTheta - theta of the cluster positon (in rad)
+//              oldCorrectedEnergy  - old corrected cluster energy (in GeV)
+//
+// Author : Enrico Maly  25 Apr 2002
+//
+//------------------------------------------------------------------------------//
+
+double
+recoilNtp::clusterCorrection(const double rawEnergy,
+                  const double clusterPositionTheta, 
+                  const bool   newCorr) const
+{
+
+// constants from April 2002
+ double constants[19] = {
+   +9.046e-01,
+   +1.243e-02,
+   +7.785e-03,
+   -2.178e-03,
+   +1.620e-02,
+   -5.686e-03,
+   +2.063e-04,
+   +1.408e-01,
+   -1.133e-01,
+   +2.214e-02,
+   +8.409e-03,
+   -1.650e-02,
+   +5.301e-03,
+   +4.998e-02,
+   -2.964e-02,
+   +9.960e-01,
+   -9.097e-02,
+   +4.351e-02,
+   -5.891e-03
+ };
+ 
+ // constants from November 1999
+ double oldConstants[19] = {
+   +1.024e-00,
+   -1.093e-01,
+   +4.528e-02,
+   -5.959e-03,
+   +3.955e-04,
+   +4.375e-04,
+   -2.855e-04,
+   +1.643e-02,
+   -1.881e-02,
+   +4.838e-03,
+   +1.583e-02,
+   -1.680e-02,
+   +5.074e-03,
+   +1.989e-02,
+   -1.907e-02,
+   +1.133e-00,
+   -2.420e-01,
+   +9.396e-02,
+   -1.142e-02,
+ };
+
+  const double lgE = log10(1000*rawEnergy);
+  const double cosTh = cos(clusterPositionTheta);
+
+  double *c;
+  if (newCorr) c=constants;
+  else c=oldConstants;
+
+  double eCorr=rawEnergy;
+
+  // barrel section
+  if (cosTh<=0.892)
+    {
+
+      const double p0 = c[0]+c[1]*lgE+c[2]*lgE*lgE+c[3]*pow(lgE,3);
+      const double p1 = c[4]+c[5]*lgE+c[6]*lgE*lgE;
+      const double p2 = c[7]+c[8]*lgE+c[9]*lgE*lgE;
+      const double p3 = c[10]+c[11]*lgE+c[12]*lgE*lgE;
+      const double p4 = c[13]+c[14]*lgE;
+
+      const double correctionForBarrel = p0+p1*cosTh+p2*cosTh*cosTh+p3*pow(cosTh,3)+p4*pow(cosTh,4);
+      eCorr = rawEnergy/correctionForBarrel;
+
+    }
+  // endcap section
+  else if (cosTh>0.892)
+    {
+      const double correctionForEndcap = c[15]+c[16]*lgE+c[17]*lgE*lgE+c[18]*pow(lgE,3);
+      eCorr = rawEnergy/correctionForEndcap;
+    }
+
+  return eCorr;
+
+}
+double
+recoilNtp::clusterReCorrection(const double oldCorrectedEnergy, 
+                    const double clusterPositionTheta) const
+{
+
+  double eCorr=oldCorrectedEnergy;
+  const double eRaw=eCorr*eCorr/clusterCorrection(eCorr,clusterPositionTheta,false);
+  eCorr=clusterCorrection(eRaw,clusterPositionTheta,true);
+
+  return eCorr;
+
+}
+	
+double	
+recoilNtp::KLlikeEMC(int iCand) const
+{	
+  //-------- Background PDFs for the data of RUN2 --------------------------
+  double back_ecal[10] = { 0.5275, 0.21681, 0.10349, 0.05486, 0.03238, 0.02183, 0.01579, 0.01172, 0.00884, 0.00677};
+  double back_lat[10] = { 0.09198, 0.26943, 0.28318, 0.13907, 0.06998, 0.04745, 0.0368, 0.03117, 0.02151, 0.00942};
+  double back_crystals[10] = { 0.03202, 0.42276, 0.34644, 0.11175, 0.03933, 0.02358, 0.01408, 0.00618, 0.00261, 0.00126};
+  double back_secmom[10] = { 0.43028, 0.38517, 0.07238, 0.03521, 0.0262, 0.01545, 0.01215, 0.00955, 0.00753, 0.00608};
+  double back_zern20[10] = { 0.00745, 0.00894, 0.01011, 0.01139, 0.01581, 0.02165, 0.03045, 0.05589, 0.25287, 0.58544};
+  double back_zern42[10] = { 0.66203, 0.19298, 0.05003, 0.03441, 0.02507, 0.01716, 0.00951, 0.00573, 0.00273, 0.34011E-03};
+  double back_s1s9[8] = { 0., 0.93556E-05, 0.00472, 0.04841, 0.14427, 0.20776, 0.24495, 0.34988};
+  double back_s9s25[6] = { 0., 0., 0.29512E-03, 0.01094, 0.14129, 0.84748};
+  //----------------------------------------------------------------------------
+  
+  //----------- Signal PDFs for the data of RUN2 --------------------------
+  double sig_ecal[10] = { 0.23928, 0.33592, 0.22081, 0.10395, 0.05966, 0.01193, 0.01193, 0.76422E-03, 0.76422E-03, 0.76422E-03};
+  double sig_lat[10] = { 0.1364, 0.11018, 0.11018, 0.10434, 0.10614, 0.1407, 0.12379, 0.10709, 0.03059, 0.03059};
+  double sig_crystals[10] = { 0.10184, 0.24081, 0.2948, 0.19563, 0.10597, 0.04163, 0.00644, 0.00644, 0.00644, 0.00644};
+  double sig_secmom[10] = { 0.22105, 0.22105, 0.18421, 0.12933, 0.10712, 0.05343, 0.04217, 0.02627, 0.00769, 0.00769};
+  double sig_zern20[10] = { 0.00746, 0.00746, 0.00746, 0.02248, 0.02248, 0.05591, 0.11991, 0.22323, 0.26681, 0.26681};
+  double sig_zern42[10] = { 0.33813, 0.3211, 0.15336, 0.12222, 0.01716, 0.01716, 0.00772, 0.00772, 0.00772, 0.00772};
+  double sig_s1s9[8] = { 0.01492, 0.11158, 0.19429, 0.23105, 0.18548, 0.13799, 0.06235, 0.06235};
+  double sig_s9s25[6] = {0.01065, 0.01065, 0.05403, 0.12455, 0.22319, 0.57693};
+  //--------------------------------------------------------------------------------
+  
+  //**** Inizialization of the ****
+  //*****various contributions ****
+  //**to the likelihood function***
+  double like1 = 0.;
+  double like2 = 0.;
+  double like3 = 0.;
+  double like4 = 0.;
+  double like5 = 0.;
+  double like6 = 0.;
+  double like7 = 0.;
+  double like8 = 0.;
+  //********************
+  
+  double likeli = 0.;
+  double step = 0.;
+  int n_chan = 0;
+  
+  
+  //___________ For each variable, access to the correct values of _________
+  //______________ the signal and background PDFs and evaluate _____________
+  //_________ the corresponding contribution to the likelihood function ____
+  n_chan = 10;
+  step = 0.2;
+  for(int ja = 1; ja <= n_chan; ja++) {
+    int jja = ja-1;
+    if(ecalGam[iCand]>(0.2+(ja-1)*step) && ecalGam[iCand]<(0.2+ja*step)) {
+      if(back_ecal[jja] != 0. && sig_ecal[jja] != 0.) {
+	like1 = log(float(sig_ecal[jja])) - log(float(back_ecal[jja]));
+      }
+    }
+  }
+  
+  step = 0.1;
+  for(int jb = 1; jb <= n_chan; jb++){
+    int jjb = jb-1;
+    if(lMomGam[iCand]>=((jb-1)*step) && lMomGam[iCand]<(jb*step)) {
+      if(back_lat[jjb] != 0. && sig_lat[jjb] != 0.) {
+	like2 = log(float(sig_lat[jjb])) - log(float(back_lat[jjb]));
+      }
+    }
+  }
+  
+  step = 5.;
+  for(int jc = 1; jc <= n_chan; jc++){
+    int jjc = jc-1;
+    if(nCryGam[iCand]>=((jc-1)*step) && nCryGam[iCand]<(jc*step)) {
+      if(back_crystals[jjc] != 0. && sig_crystals[jjc] != 0.) {
+	like3 = log(float(sig_crystals[jjc])) - log(float(back_crystals[jjc]));
+      }
+    }
+  }
+  
+  step = 0.001;
+  for(int jd = 1; jd <= n_chan; jd++){
+    int jjd = jd-1;
+    if(secMomGam[iCand]>=((jd-1)*step) && secMomGam[iCand]<(jd*step)) {
+      if(back_secmom[jjd] != 0. && sig_secmom[jjd] != 0.) {
+	like4 = log(float(sig_secmom[jjd])) - log(float(back_secmom[jjd]));
+      }
+    }
+  }
+  
+  step = 0.1;
+  for(int je = 1; je <= n_chan; je++){
+    int jje = je-1;
+    if(ZMom20Gam[iCand]>=((je-1)*step) && ZMom20Gam[iCand]<(je*step)) {
+      if(back_zern20[jje] != 0. && sig_zern20[jje] != 0.) {
+	like5 = log(float(sig_zern20[jje])) - log(float(back_zern20[jje]));
+      }
+    }
+  }
+  
+  step = 0.05;
+  for(int jf = 1; jf <= n_chan; jf++){
+    int jjf = jf-1;
+    if(ZMom42Gam[iCand]>=((jf-1)*step) && ZMom42Gam[iCand]<(jf*step)) {
+      if(back_zern42[jjf] != 0. && sig_zern42[jjf] != 0.) {
+	like6 = log(float(sig_zern42[jjf])) - log(float(back_zern42[jjf]));
+      }
+    }
+  }
+  
+  step = 0.1;
+  n_chan = 8;
+  for(int jg = 1; jg <= n_chan; jg++){
+    int jjg = jg-1;
+    if(s1s9Gam[iCand]>=(0.2+(jg-1)*step) && s1s9Gam[iCand]<(0.2+jg*step)) {
+      if(back_s1s9[jjg] != 0. && sig_s1s9[jjg] != 0.) {
+	like7 = log(float(sig_s1s9[jjg])) - log(float(back_s1s9[jjg]));
+      }
+    }
+  }
+  
+  step = 0.1;
+  n_chan = 6;
+  for(int jh = 1; jh <= n_chan; jh++){
+    int jjh = jh-1;
+    if(s9s25Gam[iCand]>=(0.4+(jh-1)*step) && s9s25Gam[iCand]<(0.4+jh*step)) {
+      if(back_s9s25[jjh] != 0. && sig_s9s25[jjh] != 0.) {
+	like8 = log(float(sig_s9s25[jjh])) - log(float(back_s9s25[jjh]));
+      }
+    }
+  }
+  //____________________________________________________________________________
+  
+  likeli = like1 + like2 + like3 + like4 + like5 + like6 + like7 + like8;
+  
+  return likeli;
+  
+}
+
+double
+recoilNtp::KLlikeIFR(int iCand) const
+{
+  //-------- Background PDFs for the data of RUN2 --------------------------
+    double back_first[13] = {0.60094, 0.10427, 0.07344, 0.03872, 0.03763, 0.02899, 0.02053, 0.01668, 0.01419, 0.01786, 0.01649, 0.01215, 0.01811};
+    double back_last[16] = {0.10622, 0.11292, 0.11276, 0.09837, 0.10227, 0.08403, 0.05166, 0.04824, 0.0444, 0.03653, 0.02859, 0.02598, 0.02811, 0.01636, 0.02523, 0.07834};
+    double back_layers[10] = {0.39475, 0.31462, 0.13947, 0.07263, 0.03439, 0.0188, 0.01093, 0.0069, 0.00449, 0.00301};
+    double back_length[18] = {0.24839, 0.20055, 0.11651, 0.07728, 0.04762, 0.03555, 0.02201,0.02003, 0.01516, 0.01234, 0.00989, 0.00989, 0.00918, 0.00636, 0.00874, 0.00991, 0.06256, 0.06256};
+    double back_strips[6] = {0.30616, 0.41523, 0.13778, 0.07169, 0.0426, 0.02655};
+    double back_multip[6] = {0.1402, 0.50683, 0.23513, 0.0678, 0.03268, 0.01735};
+    double back_sigma[5] = {0.49318, 0.31015, 0.12636, 0.05229, 0.01802};
+    //----------------------------------------------------------------------------
+
+  //----------- Signal PDFs for the data of RUN2 --------------------------
+    double sig_first[13] = {0.16, 0.16, 0.16, 0.09481, 0.09481, 0.09481, 0.02844, 0.02844, 0.02844, 0.03756, 0.03756, 0.03756, 0.03756};
+    double sig_last[16] = {0.05955, 0.05955, 0.05955, 0.05955, 0.09936, 0.09936, 0.09936, 0.04142, 0.04142, 0.04142, 0.07989, 0.07989, 0.07989, 0.03327, 0.03327, 0.03327};
+    double sig_layers[10] = {0.18847, 0.21875, 0.15265, 0.15265, 0.15265, 0.02421, 0.02421, 0.02421, 0.02421, 0.02421};
+    double sig_length[18] = {0.20804, 0.18532, 0.13347, 0.13347, 0.06371, 0.06371, 0.06371, 0.0195, 0.0195, 0.0195, 0.0195, 0.01011, 0.01011, 0.01011, 0.01011, 0.01011, 0.01011, 0.01011};
+    double sig_strips[6] = {0.04651, 0.42515, 0.21216, 0.15645, 0.08475, 0.07498};
+    double sig_multip[6] = {0.0903, 0.49604, 0.31731, 0.03212, 0.03212, 0.03212};
+    double sig_sigma[5] = {0.20203, 0.33329, 0.2966, 0.08404, 0.08404};
+    //--------------------------------------------------------------------------
+
+  //**** Inizialization of the ****
+  //*****various contributions ****
+  //**to the likelihood function***
+    double like1 = 0.;
+    double like2 = 0.;
+    double like3 = 0.;
+    double like4 = 0.;
+    double like5 = 0.;
+    double like6 = 0.;
+    double like7 = 0.;
+    //******************************
+
+    double likeli = 0.;
+    double step = 0.;
+    int n_chan = 0;
+
+
+  //___________ For each variable, access to the correct values of _________
+  //______________ the signal and background PDFs and evaluate _____________
+  //_________ the corresponding contribution to the likelihood function ____
+    n_chan = 13;
+    for(int ja = 1; ja <= n_chan; ja++) {
+       if(IfrFirstHitGam[iCand] == ja) {
+       int jja = ja-1;
+         if(back_first[jja] != 0. && sig_first[jja] != 0.) {
+           like1 = log(float(sig_first[jja])) - log(float(back_first[jja]));
+         }
+       }
+    }
+
+    n_chan = 16;
+    for(int jb = 1; jb <= n_chan; jb++){
+       int jjb = jb-1;
+       if(IfrLastHitGam[iCand] == jb) {
+         if(back_last[jjb] != 0. && sig_last[jjb] != 0.) {
+           like2 = log(float(sig_last[jjb])) - log(float(back_last[jjb]));
+         }
+       }
+    }
+
+    n_chan = 10;
+    for(int jc = 1; jc <= n_chan; jc++){
+       int jjc = jc-1;
+       if(IfrLayGam[iCand] == jc) {
+         if(back_layers[jjc] != 0. && sig_layers[jjc] != 0.) {
+           like3 = log(float(sig_layers[jjc])) - log(float(back_layers[jjc]));
+         }
+       }
+    }
+
+    n_chan = 18;
+    int length = IfrLastHitGam[iCand] - IfrFirstHitGam[iCand] + 1;
+    for(int jd = 1; jd <= n_chan; jd++){
+       int jjd = jd-1;  
+       if(length == jd) {
+         if(back_length[jjd] != 0. && sig_length[jjd] != 0.) {
+           like4 = log(float(sig_length[jjd])) - log(float(back_length[jjd]));
+         }
+       }
+    }
+
+    n_chan = 6;
+    step = 10.;
+    for(int je = 1; je <= n_chan; je++){
+       int jje = je-1;
+       if(IfrNsGam[iCand] >= ((je -1)*step) && IfrNsGam[iCand] < (je*step)) {
+         if(back_strips[jje] != 0. && sig_strips[jje] != 0.) {
+           like5 = log(float(sig_strips[jje])) - log(float(back_strips[jje]));
+         }
+       }
+    }
+        
+    n_chan = 6;
+    step = 3.;
+    double multip = IfrNsGam[iCand]/IfrLayGam[iCand];
+    for(int jf = 1; jf <= n_chan; jf++){
+       int jjf = jf-1;
+       if(multip >= ((jf -1)*step) && multip < (jf*step)) {
+         if(back_multip[jjf] != 0. && sig_multip[jjf] != 0.) {
+           like6 = log(float(sig_multip[jjf])) - log(float(back_multip[jjf]));
+         }
+       }
+    }
+
+    step = 2.;
+    n_chan = 5;
+    //------- Sigma -------------------------
+    double sqr_diff = 0.;
+    int n_lay= 0;
+    double mult_sum = 0.;
+    // uglyyyyyyyyyyyyyyyyyy
+    int nStrips[20];
+    nStrips[0]=IfrStrips0[iCand];
+    nStrips[1]=IfrStrips1[iCand];
+    nStrips[2]=IfrStrips2[iCand];
+    nStrips[3]=IfrStrips3[iCand];
+    nStrips[4]=IfrStrips4[iCand];
+    nStrips[5]=IfrStrips5[iCand];
+    nStrips[6]=IfrStrips6[iCand];
+    nStrips[7]=IfrStrips7[iCand];
+    nStrips[8]=IfrStrips8[iCand];
+    nStrips[9]=IfrStrips9[iCand];
+    nStrips[10]=IfrStrips10[iCand];
+    nStrips[11]=IfrStrips11[iCand];
+    nStrips[12]=IfrStrips12[iCand];
+    nStrips[13]=IfrStrips13[iCand];
+    nStrips[14]=IfrStrips14[iCand];
+    nStrips[15]=IfrStrips15[iCand];
+    nStrips[16]=IfrStrips16[iCand];
+    nStrips[17]=IfrStrips17[iCand];
+    nStrips[18]=IfrStrips18[iCand];
+    nStrips[19]=IfrStrips19[iCand];
+
+    for(int iii= IfrFirstHitGam[iCand]; iii<=IfrLastHitGam[iCand]; iii++) {
+       if(iii != 0) {
+
+         if(nStrips[iii] != 0) {
+           mult_sum = mult_sum + nStrips[iii];
+           n_lay = n_lay +1;
+           sqr_diff = sqr_diff + ((nStrips[iii] - multip)*(nStrips[iii] - multip));
+         } // nStrips(iii) != 0
+       } // iii != 0
+    } // end loop firstHit()<iii<lastHit()
+    //cout<<"    sqr_diff: "<<sqr_diff<< endl;
+    double sigma_multip = sqrt(sqr_diff/(n_lay - 1)); 
+    if(n_lay == 1) sigma_multip = sqrt(sqr_diff);
+    //-----------------------------------------------
+    for(int jg = 1; jg <= n_chan; jg++){
+       int jjg = jg-1;
+       if(sigma_multip >= ((jg-1)*step) && sigma_multip < (jg*step)) {
+         if(back_sigma[jjg] != 0. && sig_sigma[jjg] != 0.) {
+           like7 = log(float(sig_sigma[jjg])) - log(float(back_sigma[jjg]));
+         }
+       }
+    }
+    //___________________________________________________________________________
+
+    likeli = like2 + like3 + like4 + like5 + like7;
+
+    return likeli;
+}
+
+void recoilNtp::doBrem(int index){
+
+  int countbrem(0);
+  for (int ig=0;ig<nGam;ig++){
+    
+    TLorentzVector tempele,tempphotbrem;      
+    mk4Vector(tempele, momentumTrk[index], thetaTrk[index], phiTrk[index], ELMASS);
+    mk4Vector(tempphotbrem, energyGam[ig], thetaGam[ig], phiGam[ig], 0.);      
+
+    double dph=phiGam[ig]-tempele.Phi();
+    double dphv=phiAtEMCTrk[index]-tempele.Phi();
+    double dth=thetaAtEMCTrk[index]-thetaGam[ig];
+    
+    if(TMath::Abs(dth) < 0.04 ){
+      ((TH1D*)gDirectory->Get("deltaphiratioele"))->Fill(dph/dphv);
+    }
+    if(dph/dphv>-0.2 && dph/dphv<0.6){ 
+      ((TH1D*)gDirectory->Get("absdeltathetaele"))->Fill(dth);
+    }
+    if(TMath::Abs(dth) < 0.04 && dph/dphv>-0.2 && dph/dphv<0.6){
+      countbrem++;
+      tempele += tempphotbrem;
+      momentumTrk[index] = tempele.Vect().Mag();
+      thetaTrk[index] = tempele.Theta();
+      phiTrk[index] = tempele.Phi();
+      
+      isBremPhoton[ig] = 1;
+      goodPhoton[ig] = 0;
+      altPhoton[ig]=0;
+    }
+  }
+  
+}

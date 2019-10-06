@@ -1,0 +1,1721 @@
+
+// ----------------------------------------------------------------------
+
+void chi2Hist2D(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
+
+  int ioth=TMath::Abs(par[3])>2 ? 1 : 2 ;
+  Double_t chi2(0.);
+  int nBinX = vub2Hist->GetNbinsX();
+  int nBinY = vub2Hist->GetNbinsY();
+  //CB bug fix
+  //  for (int j=0;j<nBinX;j++){
+  //    for (int jj=0;jj<nBinY;jj++){
+  for (int j=1;j<nBinX+1;j++){
+    for (int jj=1;jj<nBinY+1;jj++){
+      
+      double x=par[0]*vub2Hist->GetBinContent(j,jj)+par[1]*vcb2Hist->GetBinContent(j,jj)+par[ioth]*oth2Hist->GetBinContent(j,jj);
+      if(x>0 && data2Hist->GetBinContent(j,jj)>0){
+	double s2=pow(data2Hist->GetBinError(j,jj),2);
+	if(par[3]<0.1) { 
+	  s2+= // add MC stat
+	    (pow(par[0]*vub2Hist->GetBinError(j,jj),2)+
+	     pow(par[1]*vcb2Hist->GetBinError(j,jj),2)+
+	     pow(par[ioth]*oth2Hist->GetBinError(j,jj),2));
+	}
+	chi2+=pow((x-data2Hist->GetBinContent(j,jj)),2)/s2;
+      }
+    }
+  }
+  f=chi2;
+}
+
+// ----------------------------------------------------------------------
+
+void chi2Hist2Dsu(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
+
+  int ioth=TMath::Abs(par[3])>2 ? 0 : 2 ;
+  Double_t chi2(0.);
+  int nBinX = vub2Hist->GetNbinsX();
+  int nBinY = vub2Hist->GetNbinsY();
+  //CB bug fix
+  //  for (int j=0;j<nBinX;j++){
+  //    for (int jj=0;jj<nBinY;jj++){
+  for (int j=1;j<nBinX+1;j++){
+    for (int jj=1;jj<nBinY+1;jj++){
+      
+      double bincut = 0.;
+      double x=par[0]*vub2Hist->GetBinContent(j,jj)+par[1]*vcb2Hist->GetBinContent(j,jj)+par[ioth]*oth2Hist->GetBinContent(j,jj);
+      if(x>bincut && data2Hist->GetBinContent(j,jj)>bincut){
+	double s2=pow(data2Hist->GetBinError(j,jj),2);
+	if(par[3]<0.1) { 
+	  s2+= // add MC stat
+	    (pow(par[0]*vub2Hist->GetBinError(j,jj),2)+
+	     pow(par[1]*vcb2Hist->GetBinError(j,jj),2)+
+	     pow(par[ioth]*oth2Hist->GetBinError(j,jj),2));
+	}
+	chi2+=pow((x-data2Hist->GetBinContent(j,jj)),2)/s2;
+      }
+    }
+  }
+  f=chi2;
+}
+
+
+// ----------------------------------------------------------------------
+// 2-Dim strategy. Here we build a q2,mx plane distribution that is 
+// going to be chi2 fitted afterwards
+// ----------------------------------------------------------------------
+void VirClass::FitMes2D(const char* comp, int signalUnfolding, bool fixsigpeakratio)
+{
+  TStopwatch timer; // for timing purpose  
+
+  // std::vector<double> fitResults;
+  vector<double> fitResults[3]; //3: one for each charge (bch, bos, bss);
+
+  std::map<std::string, RooDataSet*> dataSets; // xxx maybe move somewhere more general
+  dataSets["data"] = datadata;
+  if (signalUnfolding == 1) {
+    dataSets["vubin"]  = datavubin; 
+    dataSets["vubout"] = datavubout;
+    dataSets["vcboth"] = datavcboth;
+  } else {
+    dataSets["vub"]    = datamcvub;
+    dataSets["vcb"]    = datamcvcb; 
+    dataSets["other"]  = datamcoth;
+  }
+
+  if (dataSets.find(comp) == dataSets.end()) {
+    std::cout << "No dataset with name " << comp << " found! Doing nothing!" << std::endl;
+    return;
+  }
+
+
+//   std::vector<TCanvas*> canvcoll(3); //AP 4 canvases, one for each flavB
+
+//   for (size_t i=0; i<canvcoll.size(); i++) {
+//     char name[100];
+//     sprintf(name,"c%i",i+2);
+//     canvcoll[i]= new TCanvas(name," ",200,10,3200,2000); 
+//     canvcoll[i]->Clear();
+//     canvcoll[i]->Divide(int(nQ2B/4)+1,4);
+//   }
+  
+  //Calculating default fits parameters. All analysis cuts are applied
+
+//   canvcoll[0]->cd(1); 
+  char simply[400]; 
+  TVector2 signalsig;
+  TCanvas *c0;
+  int matchMC = countMC ? 2: 0;
+
+  for (Int_t jFlav=3; jFlav<6; jFlav++) {
+
+    c0 = new TCanvas("","",200,10,1414,1000);
+    
+    sprintf(simply,"lepYaSe && flavB== %d",jFlav);
+
+    if (signalUnfolding == 1) {
+      if (std::string(comp) == "vubin") 
+	signalsig = sighistounb(datavubin,  Vmes, fitResults[jFlav-3], mesvubcuts, 2500., 200., simply, USECB);
+      else if (std::string(comp) == "vubout") 
+	signalsig = sighistounb(datavubout, Vmes, fitResults[jFlav-3], mesvubcuts, 2500., 200., simply, USECB);
+      else if (std::string(comp) == "vcboth") 
+	signalsig = sighistounb(datavcboth, Vmes, fitResults[jFlav-3], mesothcuts,  800., 180., simply, USECB);
+    } else {
+      if (std::string(comp) == "vub") 
+	signalsig = sighistounb(datamcvub, Vmes, fitResults[jFlav-3], mesvubcuts, 2500., 200., simply, USECB);
+      else if (std::string(comp) == "vcb") 
+	signalsig = sighistounb(datamcvcb, Vmes, fitResults[jFlav-3], mesvcbcuts, 4000., 700., simply, USECB);
+      else if (std::string(comp) == "other") 
+	signalsig = sighistounb(datamcoth, Vmes, fitResults[jFlav-3], mesothcuts,  800., 180., simply, USECB);
+    }
+    
+    
+    if (std::string(comp) == "data") {
+      cout<<" Fitting mES data "<<endl;
+      signalsig = sighistounb(datadata, Vmes, fitResults[jFlav-3], mesdatacuts, 2000., 1000., simply, USECB);
+      cout<<" finished fitting mes data"<<endl;
+    }
+
+    //xframe->Draw(); //?
+    //And now the mx,q2 plane is filled
+    //CB TEMP
+    
+    for (int iBinsMx=1; iBinsMx<nMxB; iBinsMx++) {
+      c1 = new TCanvas("mxscancanvas","",0,0,1414,1000);
+      c1->Clear();
+      c1->Divide(int(nQ2B/4)+1,4);
+      c1->cd(1);
+      //  c1=c0;
+      
+      //troviamo parametri migliori
+      
+      sprintf(simply,"%s%.3f%s%.3f%s%d%s","(mx>",xB1[iBinsMx-1],") && (mx<",xB1[iBinsMx],") && (flavB==",jFlav,") && lepYaSe ");
+      
+      double nSignalStartbf = 200., nBackgroundStartbf = 1.;
+	//  exceptions from these (please add more here if needed)
+      if (signalUnfolding!= 1 && TString(comp) == "vcb") { nSignalStartbf = 200; nBackgroundStartbf = 100.; }
+
+	// fitting
+	std::vector<double> dummyVector2;
+
+	if (countMC && std::string(comp) != "data")
+	  signalsig = sighistounb(dataSets[comp], Vmes, dummyVector2, fitResults[jFlav-3], nSignalStartbf, nBackgroundStartbf, simply, 1, 0, matchMC);
+	else 
+	  signalsig = sighistounb(dataSets[comp], Vmes, dummyVector2, fitResults[jFlav-3], nSignalStartbf, nBackgroundStartbf, simply, 1, fixsigpeakratio);
+ 
+      
+      //fine: troviamo parametri migliori
+      
+      for (int iBinsQ=1; iBinsQ<nQ2B; iBinsQ++) {  
+	
+	c1->cd(iBinsQ+1);
+	
+	//cvcoll[iBinsMx-1]->cd(iBinsQ+1);
+	// prepare the cut
+
+	sprintf(simply,"%s%.3f%s%.3f%s%d%s%.1f%s%.1f%s","(mx>",xB1[iBinsMx-1],") && (mx<",xB1[iBinsMx],") && (flavB==",jFlav,") && lepYaSe && (q2>",qB1[iBinsQ-1],") && (q2<",qB1[iBinsQ],")");
+
+	// default parameters
+	double nSignalStart = 200., nBackgroundStart = 1.;
+	//  exceptions from these (please add more here if needed)
+	if (signalUnfolding!= 1 && TString(comp) == "vcb") { nSignalStart = 200; nBackgroundStart = 100.; }
+
+	// fitting
+	std::vector<double> dummyVector;
+
+	if (countMC && std::string(comp) != "data")
+	  signalsig = sighistounb(dataSets[comp], Vmes, dummyVector,dummyVector2 , nSignalStart, nBackgroundStart, simply, 1, 0, matchMC);
+	else 
+	  signalsig = sighistounb(dataSets[comp], Vmes, dummyVector,dummyVector2, nSignalStart, nBackgroundStart, simply, 1, fixsigpeakratio);
+
+
+	//Drawing mES plot //??
+	//xframe->Draw();
+
+	// getting fit result: number of events and error 
+	double sigs = 0.; double errsigs = 0;
+	Double_t corr;
+
+	if (signalsig.X()>0.00001) {
+	  sigs = signalsig.X();
+	  errsigs =  signalsig.Y();
+	}
+
+	if(std::string(comp)=="data" && SUBTRACTPEAKING){
+	  if(pkgbkgcorr_AC.size()>3)
+	    corr = pkgbkgcorr_AC[(jFlav-3)*(xB1.size()-1)+iBinsMx-1].X();
+	  else
+	    corr = pkgbkgcorr_AC[jFlav-3].X();
+	  
+	  cout<<"Subtracting peaking background: correction "<<corr<<endl;
+	  sigs *= corr;
+	  errsigs *= corr;
+
+	}
+
+	// put number of signal events and error into result grid
+	char name[100];
+	sprintf(name,"%s%d%s",comp,jFlav,"comb");
+	((TH2D*)gDirectory->Get(name))->SetBinContent(iBinsMx, iBinsQ, sigs);
+	((TH2D*)gDirectory->Get(name))->SetBinError(iBinsMx, iBinsQ, errsigs);
+	
+      } // for (int iBinsQ=1; iBinsQ<nQ2B; iBinsQ++)
+      
+      sprintf(simply,"%s%s%s%s%d%s%d%s",DIRNAME.Data(),PREFIXOUT.Data(),"mEScomb_",comp,jFlav,"_mx_",iBinsMx,".eps");
+      gStyle->SetPaperSize(4.*20., 4.*26.);
+      c1->Print(simply);
+      delete c1; c1=NULL;
+      
+      //      for (UInt_t in = 0; in<canvcoll.size(); in++) {
+      //	char line[200];
+
+      //	canvcoll[in]->Print(line);
+      //	gStyle->SetPaperSize(20., 26.);
+    }
+      
+    // for (int iBinsMx=1; iBinsMx<nMxB; iBinsMx++)
+    
+    // generate plots
+    delete c0; c0=NULL;
+    
+  } // for (Int_t jFlav=3; jFlav<6; jFlav++)
+
+  if(BTYPE != 2) {
+    char name[40];
+    if( MIXCORR != 0 ) {
+      const Float_t chid = 0.188;
+      //Do the Mixing correction here and not later beacuse of Crossfeed corrections and to not break the code.
+      sprintf(name,"%s%s",comp,"4comb");
+      sprintf(simply,"%s%s",comp,"5comb");
+      
+      for(Int_t ix = 0; ix < ((TH1*)gDirectory->Get(name))->GetNbinsX(); ix++)
+	for(Int_t iy = 0; iy < ((TH1*)gDirectory->Get(name))->GetNbinsY(); iy++)
+	  cout << "before Mixing Correction flavB 4 bin (" << ix << "," << iy <<")= " << ((TH1*)gDirectory->Get(name))->GetBinContent(ix,iy) << endl;
+      
+      ((TH1*)gDirectory->Get(name))->Scale((1-chid)/(1-2*chid));
+      ((TH1*)gDirectory->Get(name))->Add( (TH1*)gDirectory->Get(simply),(-chid/(1-2*chid)) );
+
+      for(Int_t ix = 0; ix < ((TH1*)gDirectory->Get(name))->GetNbinsX(); ix++)
+	for(Int_t iy = 0; iy < ((TH1*)gDirectory->Get(name))->GetNbinsY(); iy++)
+	  cout << "and after Mixing Correction flavB 4 bin (" << ix << "," << iy <<")= " << ((TH1*)gDirectory->Get(name))->GetBinContent(ix,iy) << endl;
+    }
+
+    sprintf(name,"%s%s",comp,"3comb");
+    sprintf(simply,"%s%s",comp,"4comb");
+    
+    ApplyCrossFeedCalculations(TString(dataSets[comp]->GetName()),TString("lepYaSe"),((TH2D*)gDirectory->Get(name)),((TH2D*)gDirectory->Get(simply)));
+  }
+ 
+    // print out timer
+  std::cout << "Timer for fitMes2D: "; timer.Print();
+    
+  gStyle->SetPaperSize(20., 26.);
+  return;
+}
+  
+
+void VirClass::FitPlots(const char* comp, int su, int cut)   {
+    
+  std::vector<double> fitResults;
+
+  char simply[400];
+  char compdata[100];
+  sprintf(compdata,"data");
+
+  TCanvas *c2  = new TCanvas("c2"," ",200,10,3000,1200); 
+  //  TCanvas *c2  = new TCanvas("c2"," ",200,10,3200,2000); 
+  c2->Clear();
+  //CB  c2->Divide(5,4);
+  c2->Divide(3,1);
+
+  //Calculating default fits parameters. All analysis cuts are applied
+   
+
+  //And now the mx,q2 plane is filled
+  int cnt=0;
+  for(int j=3; j<6; j++) {
+    cnt++;
+    c2->cd(cnt);
+    if(!strcmp(comp,compdata)){
+      if(cut==0) {
+	sprintf(simply,"%s%d"," lepYes && flavB==",j);
+	sighistounb(datadata, Vmes, fitResults, mesNsl, 20000., 10000., simply, USECB);
+      }else{
+	if(su==0){
+	  sprintf(simply,"%s%.3f%s%.3f%s%d"," lepYaSe && (mx>",xB1[0],") && (mx<",xB1[1],") && flavB==",j);
+	}else{
+	  sprintf(simply,"%s%.3f%s%.3f%s%.1f%s%d"," lepYaSe && (mx>",xB1[0],") && (mx<",xB1[1],") && q2>",Q2BIN," && flavB==",j);
+	}
+	sighistounb(datadata, Vmes, fitResults, mesdatacuts, 2000., 1000., simply, USECB);
+      }
+    }
+    xframe->Draw();
+  }
+
+  char line[200];
+  sprintf(line,"%s%s%s%s%d%s",DIRNAME.Data(),PREFIXOUT.Data(),"mESbad_",comp,cut,".eps");
+  c2->Print(line);
+
+  return;
+}
+
+
+void VirClass::doBkgSub2D(int su) {
+
+  //Background subtraction
+  double  tempbin,temperr;
+  double  tempbinvcb,tempbinerrvcb,temperrvcb, tempbinoth,tempbinerroth,temperroth;
+  fHistFile->cd();
+  char name[200];
+  for(int ik=1;ik<nMxB;ik++){ //xB1.size()+1
+    //CB    for(int iik=1;iik<nMxB;iik++){
+    for(int iik=1;iik<nQ2B;iik++){ //9???? AP
+
+      sprintf(name, "datacomb");	         
+      tempbin = ((TH2D*)gDirectory->Get(name))->GetBinContent(ik,iik);
+      temperr = ((TH2D*)gDirectory->Get(name))->GetBinError(ik,iik);
+
+      if(su ==1){
+	sprintf(name, "vcbothcomb");
+	tempbinvcb = ((TH2D*)gDirectory->Get(name))->GetBinContent(ik,iik) * vcbothcomp;
+	tempbinerrvcb = ((TH2D*)gDirectory->Get(name))->GetBinError(ik,iik) * vcbothcomp;
+	temperrvcb = tempbinvcb * errvcbothcomp / vcbothcomp;
+      } else{
+	sprintf(name, "vcbcomb");
+	tempbinvcb = ((TH2D*)gDirectory->Get(name))->GetBinContent(ik,iik) * vcbcomp;
+	tempbinerrvcb = ((TH2D*)gDirectory->Get(name))->GetBinError(ik,iik) * vcbcomp;
+	temperrvcb = tempbinvcb * errvcbcomp / vcbcomp;
+      }
+      if(su ==1){
+	sprintf(name, "vuboutcomb");
+	tempbinoth = ((TH2D*)gDirectory->Get(name))->GetBinContent(ik,iik) * vuboutcomp;
+	tempbinerroth = ((TH2D*)gDirectory->Get(name))->GetBinError(ik,iik) * vuboutcomp;
+	temperroth = tempbinoth * errvuboutcomp / vuboutcomp;  
+      } else{
+	sprintf(name, "othercomb");
+	tempbinoth = ((TH2D*)gDirectory->Get(name))->GetBinContent(ik,iik) * othcomp;
+	tempbinerroth = ((TH2D*)gDirectory->Get(name))->GetBinError(ik,iik) * othcomp;
+	temperroth = tempbinoth * errothcomp / othcomp;   
+      }
+      tempbin = tempbin - tempbinvcb - tempbinoth;
+      temperr = sqrt(temperr*temperr + tempbinerrvcb*tempbinerrvcb + tempbinerroth*tempbinerroth);
+    
+      sprintf(name, "subdatacomb");	 
+      ((TH2D*)gDirectory->Get(name))->SetBinContent(ik,iik, tempbin);
+      ((TH2D*)gDirectory->Get(name))->SetBinError(ik,iik, temperr); 
+    }	
+  }
+
+  //Computes component in first bin with errors
+  //  int sigB = 1 ;
+  // int sigB, firstB, lastB;
+  vcbSB = errvcbSB = errfitvcbSB = vcbFirstBin = vcbErrFirstBin = 0;
+  othSB = errothSB = errfitothSB = othFirstBin = othErrFirstBin = 0;
+  vcbothSB = vuboutSB = evcbothSB2 = evuboutSB2 = efitvcbothSB2 = efitvuboutSB2 = 0;
+
+  errvcbSBtemp = errvcbSB2 = errfitvcbSBtemp = errfitvcbSB2 = 0;
+  errothSBtemp = errothSB2 = errfitothSBtemp = errfitothSB2 = 0;
+  errvubmcSBtemp = aerrvubmcSB2 =0;
+  errvubSBtemp = errvubSB2 = errvubSBNOFITtemp = errvubSBNOFIT2 = 0;
+  dataErrFirstBintemp = dataErrFirstBin2 = 0;
+  vcbErrFirstBintemp = vcbErrFirstBin2 = othErrFirstBintemp = othErrFirstBin2 = 0;
+  vuboutFirstBin = 0;
+
+//  vubmcSB = errvubmcSB = 0;
+  avubmcSB = aerrvubmcSB = 0;
+  double vubSBFIT, errvubSBFIT, MCerrvubSBFIT;
+  double vubSBNOFIT, errvubSBNOFIT, MCerrvubSBNOFIT; 
+  vubSBFIT   = errvubSBFIT   = MCerrvubSBFIT = 0;
+  vubSBNOFIT = errvubSBNOFIT = MCerrvubSBNOFIT = 0;
+  vubSB = errvubSB = MCerrvubSB = 0;
+  dataFirstBin = dataErrFirstBin = 0;
+
+  //Restrict ourselves to the first mX bin [all q2 bins are taken into account]
+  //This should be made q2bin dependent
+
+  int fstQ2B;
+  int lstQ2B;
+  int lstMxB;
+    
+  // int nQ2B=9; //AP
+  //CB  fstQ2B = ((TH2D*)gDirectory->Get("subdatacomb"))->GetYaxis()->FindBin(Q2BIN)-1; lstQ2B=nQ2B-1;
+  fstQ2B = ((TH2D*)gDirectory->Get("subdatacomb"))->GetYaxis()->FindBin(Q2BIN); 
+  lstQ2B = ((TH2D*)gDirectory->Get("subdatacomb"))->GetYaxis()->FindBin(Q2HICUT); 
+  lstMxB = ((TH2D*)gDirectory->Get("subdatacomb"))->GetXaxis()->FindBin(MXBIN);
+  //  lstQ2B = (int)nQ2B;
+  
+  cout << "------------ VirClass::doBkgSub2D --------- first and last q2 bins: " << fstQ2B << "  " << lstQ2B << endl; 
+  cout << "------------ VirClass::doBkgSub2D --------- last Mxbin and number of Mxbins: " << lstMxB << " " << nMxB << endl;
+  
+  for(int p = 1; p < lstMxB; p++){
+    for(int pp = fstQ2B; pp < lstQ2B; pp++){  // oppure pp<lstq2b+1 ??
+    //    for(int pp=4;pp<nMxB;pp++){
+      if(su){
+	sprintf(name, "vcbothcomb");	         
+	vcbSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * vcbothcomp;
+	errvcbSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp) * vcbothcomp,2);
+	errfitvcbSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * errvcbothcomp,2);
+
+	sprintf(name, "vuboutcomb");	         
+	othSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * vuboutcomp;
+	errothSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp) * vuboutcomp,2);
+	errfitothSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * errvuboutcomp,2);
+
+	sprintf(name, "vubincomb");
+	avubmcSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	aerrvubmcSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+
+      } else{
+	sprintf(name, "vcbcomb");	         
+	vcbSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * vcbcomp;
+	errvcbSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp) * vcbcomp,2);
+	errfitvcbSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * errvcbcomp,2);     
+
+	sprintf(name, "othercomb");	         
+	othSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * othcomp;
+	errothSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp) * othcomp,2);
+	errfitothSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp) * errothcomp,2);   
+
+	sprintf(name, "vubcomb");
+	avubmcSB += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	aerrvubmcSB2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+      }
+      sprintf(name, "subdatacomb");  
+      vubSBNOFIT += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+      errvubSBNOFIT2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+   
+      if(FITTOTSHAPE){
+	sprintf(name, "datacomb");
+	dataFirstBin += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	dataErrFirstBin2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+	if(su){
+	  sprintf(name, "vcbothcomb");
+	} else{
+	  sprintf(name, "vcbcomb");
+	}
+	vcbFirstBin += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	vcbErrFirstBin2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+	if(su){
+	  sprintf(name, "vuboutcomb");
+	  // vuboutFirstBin += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	  //vuboutErFirBin2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+	}else{
+	  sprintf(name, "othercomb");
+	}
+	othFirstBin += ((TH2D*)gDirectory->Get(name))->GetBinContent(p,pp);
+	othErrFirstBin2 += pow(((TH2D*)gDirectory->Get(name))->GetBinError(p,pp),2);
+      }    
+    }  
+  }
+  
+  errvcbSB = sqrt(errvcbSB2);  errfitvcbSB = sqrt(errfitvcbSB2);
+  errothSB = sqrt(errothSB2);  errfitothSB = sqrt(errfitothSB2);
+  aerrvubmcSB = sqrt(aerrvubmcSB2);  errvubSBNOFIT = sqrt(errvubSBNOFIT2);
+
+  dataErrFirstBin = sqrt(dataErrFirstBin2); 
+  vcbErrFirstBin = sqrt(vcbErrFirstBin2);
+  othErrFirstBin = sqrt(othErrFirstBin2);
+  //  vuboutErrFirstBin = sqrt(vuboutErFirBin2);
+
+  if(su){
+    
+    vubSBFIT =      dataFirstBin-vcbFirstBin*vcbothcomp-othFirstBin*vuboutcomp;
+    MCerrvubSBFIT = aerrvubmcSB*vubincomp;
+    
+  } else{
+    vubSBFIT =      dataFirstBin-vcbFirstBin*vcbcomp-othFirstBin*othcomp;
+    MCerrvubSBFIT = aerrvubmcSB*vubcomp;
+  
+  }
+
+//  if(FITTOTSHAPE==2) {
+
+    if(su){
+      errvubSBFIT = errvubincomp*avubmcSB;
+	
+      /*	
+      MCerrvubSBFIT = sqrt(pow(MCerrvubSBFIT,2)
+			   +pow(vcbFirstBin*errvcbothcomp,2)
+			   +pow(othFirstBin*errvuboutcomp,2)
+			   -pow(vcbFirstBin*errvcbothcompNOMC,2)
+			   -pow(othFirstBin*errvuboutcompNOMC,2));
+      */
+    } else{
+      errvubSBFIT = errvubcomp*avubmcSB;
+      
+      /*
+      MCerrvubSBFIT = sqrt(pow(MCerrvubSBFIT,2)
+			   +pow(vcbFirstBin*errvcbcomp,2)
+			   +pow(othFirstBin*errothcomp,2)
+			   -pow(vcbFirstBin*errvcbcompNOMC,2)
+			   -pow(othFirstBin*errothcompNOMC,2));
+      */
+    }
+ /*
+  } else{
+    if(su){
+      errvubSBFIT = sqrt(pow(dataErrFirstBin,2)
+		       +pow(vcbFirstBin*errvcbothcomp,2)
+		       +pow(othFirstBin*errvuboutcomp,2));
+    }else{
+      errvubSBFIT = sqrt(pow(dataErrFirstBin,2)
+		       +pow(vcbFirstBin*errvcbcomp,2)
+		       +pow(othFirstBin*errothcomp,2));
+    }
+  }
+*/
+  if(su){
+    sprintf(name, "vubincomb");
+    areavubmcSB = ((TH2D*)gDirectory->Get(name))->Integral();
+    sprintf(name, "vcbothcomb");
+    areavcbSB = ((TH2D*)gDirectory->Get(name))->Integral();
+    sprintf(name, "vuboutcomb");
+    areaothSB = ((TH2D*)gDirectory->Get(name))->Integral();
+  } else{
+    sprintf(name, "vubcomb");
+    areavubmcSB = ((TH2D*)gDirectory->Get(name))->Integral();
+    sprintf(name, "vcbcomb");
+    areavcbSB = ((TH2D*)gDirectory->Get(name))->Integral();
+    sprintf(name, "othercomb");
+    areaothSB = ((TH2D*)gDirectory->Get(name))->Integral();
+  }
+  vubSB = vubSBNOFIT;
+  errvubSB = errvubSBNOFIT;
+  MCerrvubSB = MCerrvubSBNOFIT;
+  if(FITTOTSHAPE){
+    vubSB = vubSBFIT;
+    errvubSB = errvubSBFIT;
+    MCerrvubSB = MCerrvubSBFIT;
+  }
+
+  double vubincoeff=vubincomp;
+  double vuboutcoeff=vuboutcomp;
+  double vubcoeff = vubcomp;
+  if(su){
+    if(vubincomp < 0.0001) {
+      vubincoeff = vubincompNOMC;
+      vuboutcoeff = vuboutcompNOMC;
+    }
+  }else{
+    if(vubcomp < 0.0001) vubcoeff=vubcompNOMC;
+  }
+
+  //Rescaling of mX or q2 histograms
+  if(su){
+    ((TH2D*)gDirectory->Get("SCvuboutcomb"))->Add(((TH2D*)gDirectory->Get("vuboutcomb")),vuboutcoeff);
+    ((TH2D*)gDirectory->Get("SCvcbothcomb"))->Add(((TH2D*)gDirectory->Get("vcbothcomb")),vcbothcomp);
+    ((TH2D*)gDirectory->Get("SCvubincomb"))->Add(((TH2D*)gDirectory->Get("vubincomb")),vubincoeff);
+  } else{
+    ((TH2D*)gDirectory->Get("SCothercomb"))->Add(((TH2D*)gDirectory->Get("othercomb")),othcomp);
+    ((TH2D*)gDirectory->Get("SCvcbcomb"))->Add(((TH2D*)gDirectory->Get("vcbcomb")),vcbcomp);
+    ((TH2D*)gDirectory->Get("SCvubcomb"))->Add(((TH2D*)gDirectory->Get("vubcomb")),vubcoeff);
+  }
+
+
+  //Making allBkg and allMC histos
+  if(su){
+    ((TH2D*)gDirectory->Get("allbkgcomb"))->Add(((TH2D*)gDirectory->Get("vcbothcomb")),((TH2D*)gDirectory->Get("vuboutcomb")),vcbothcomp,vuboutcoeff);
+    ((TH2D*)gDirectory->Get("allmccomb"))->Add(((TH2D*)gDirectory->Get("allbkgcomb")),((TH2D*)gDirectory->Get("vubincomb")),1,vubincoeff);
+  } else{
+    ((TH2D*)gDirectory->Get("allbkgcomb"))->Add(((TH2D*)gDirectory->Get("vcbcomb")),((TH2D*)gDirectory->Get("othercomb")),vcbcomp,othcomp);
+    ((TH2D*)gDirectory->Get("allmccomb"))->Add(((TH2D*)gDirectory->Get("allbkgcomb")),((TH2D*)gDirectory->Get("vubcomb")),1,vubcoeff);
+  }  
+}
+
+void VirClass::makeBkgSubPlot2D(int su) {
+
+  gROOT->SetStyle("Plain");
+  char util[200];
+  char name[200];
+  char name2[200];
+  double themax, themin;
+  double themax2,themax3, themax4;
+  gStyle->SetOptStat(0); gStyle->SetOptTitle(0); gStyle->SetFillStyle(1001); 
+  TCanvas *c1 = new TCanvas("c1"," ",200,10,1300,520); 
+  
+  sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"fitresults.eps");
+   
+  openEpsFile(name);
+  c1->Clear(); 
+  c1->Divide(1,2);  
+  c1->cd(1);
+
+  TH2 *datH = new TH2D(*(TH2D*)gDirectory->Get("datacomb"));
+  themax = datH->GetMaximum() * 1.2; 
+  datH->SetMaximum(themax); 
+  datH->SetMarkerSize(1.); datH->SetMarkerColor(kBlack); 
+  datH->SetMarkerStyle(20);
+  datH->SetLineColor(kBlack);
+  datH->GetXaxis()->SetTitleSize(0.08);
+  datH->GetYaxis()->SetTitleSize(0.08);
+  datH->Draw("lego1");
+
+  TH2 *amcH = new TH2D(*(TH2D*)gDirectory->Get("allmccomb"));
+  amcH->SetLineColor(kBlack);
+  amcH->SetFillColor(38);
+  amcH->Draw("lego1 same"); 
+ 
+  TH2 *abkH = new TH2D(*(TH2D*)gDirectory->Get("allbkgcomb"));
+  abkH->SetLineColor(kBlack);
+  abkH->SetFillColor(kYellow);
+  abkH->Draw("lego1 same");
+
+   if(!su){ sprintf(name2,"SCothercomb");
+  }else{ sprintf(name2,"SCvuboutcomb");}
+
+  TH2 *othH = new TH2D(*(TH2D*)gDirectory->Get(name2));
+  if(su){
+    othH->SetFillColor(kMagenta);
+  } else{othH->SetFillColor(13);
+  }
+  othH->SetLineColor(kBlack);
+  othH->Draw("lego1 same");
+
+  //Redraw Data for cleaning pourposes
+  datH->Draw("same");
+    
+  TLegendEntry *legge; 
+  TLegend *leg;
+  leg = new TLegend(0.6,0.6,0.88,0.89);
+  leg->SetBorderSize(0); leg->SetTextSize(0.06);
+  //make text size 0.08 to improve reading 
+  leg->SetFillStyle(4000);  leg->SetFillColor(0); 
+  if(su){
+    legge = leg->AddEntry(amcH, "b #rightarrow ul#nu IN", "f"); 
+    legge = leg->AddEntry(abkH, "b #rightarrow cl#nu +oth", "f"); 
+    legge = leg->AddEntry(othH, "b #rightarrow ul#nu OUT", "f"); 
+  } else{
+    legge = leg->AddEntry(amcH, "b #rightarrow ul#nu", "f"); 
+    legge = leg->AddEntry(abkH, "b #rightarrow cl#nu", "f"); 
+    legge = leg->AddEntry(othH, "other", "f"); 
+  }
+  legge = leg->AddEntry(datH, "data", "p"); 
+  leg->Draw();
+  shrinkPad(0.18,0.07,0.02,0.02);
+  gPad->Update();
+  cout<<"At least first part went weel"<<endl;    
+
+  c1->cd(2);
+ 
+  TH2 *sdaH = new TH2D(*(TH2D*)gDirectory->Get("subdatacomb"));
+
+  if(!su){ sprintf(name2,"SCvubcomb");
+  }else{ sprintf(name2,"SCvubincomb");}
+
+  TH2 *svuH = new TH2D(*(TH2D*)gDirectory->Get(name2));
+  themax = 1.2*sdaH->GetMaximum();
+  if(1.2*svuH->GetMaximum() > themax) themax = 1.2*svuH->GetMaximum();
+  sdaH->SetMaximum(themax);
+  
+  if(sdaH->GetMinimum() < 0) {
+    themin = 1.2*sdaH->GetMinimum();
+    sdaH->SetMinimum(themin);
+  }
+  sdaH->SetMarkerStyle(20);
+  sdaH->SetStats(0);
+  sdaH->GetXaxis()->SetTitleSize(0.08);
+  sdaH->GetYaxis()->SetTitleSize(0.08);
+  sdaH->Draw();
+    
+  svuH->SetLineColor(kBlack);
+  svuH->SetFillColor(38);
+  svuH->DrawCopy("lego1 same");  
+  sdaH->DrawCopy("lego1 same");
+  TLegendEntry *legge2; 
+  TLegend *leg2;
+  if(FITQ2 == 0) {
+    leg2 = new TLegend(0.5,0.6,0.88,0.89);
+  } else {
+    leg2 = new TLegend(0.1,0.6,0.48,0.89);
+  }
+  leg2->SetBorderSize(0); //leg2->SetTextSize(0.08); 
+  //restore 0.08 size to improve reading
+  leg2->SetTextSize(0.06); 
+  leg2->SetFillStyle(4000); 
+  legge2 = leg2->AddEntry(svuH, "scaled MC", "f"); 
+  legge2 = leg2->AddEntry(sdaH, "data subtr.", "p");
+  leg2->Draw();
+  TLine line(choplowB,0.,chophighB,0.);
+  line.SetLineColor(kRed); line.SetLineWidth(2); line.SetLineStyle(2); line.Draw();
+  shrinkPad(0.18,0.07,0.02,0.02);
+  gPad->Update();
+ 
+ 
+
+  closeEpsFile();
+
+  delete c1;
+    
+  c1 = new TCanvas("c1"," ",200,10,800,520); 
+  if (FITQ2 ==0){
+    sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"mxspectrum.eps");
+  } else {
+    sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"q2spectrum.eps");
+  }
+    
+  openEpsFile(name);
+ 
+  c1->Clear(); 
+  c1->Divide(1);
+  c1->cd(1);
+
+  sdaH->Draw("lego1");
+  svuH->DrawCopy("lego1 same");  
+  sdaH->DrawCopy("lego1 same");
+  line.SetLineColor(kRed); line.SetLineWidth(2); line.SetLineStyle(2); line.Draw();   
+  leg2->Draw();
+  
+  closeEpsFile();
+  //############################## projecting - q2 slice #######################################################
+  //############################## q2 bin = 0.,Q2BIN/3.,Q2BIN/3.*2.,Q2BIN,26. ##################################
+
+  double x_1 = ((5. - MXBIN)/3.) + MXBIN;
+  double x_2 = ((5. - MXBIN)/3.*2.) + MXBIN;
+
+  gROOT->SetStyle("Plain");
+  gStyle->SetOptStat(0); gStyle->SetOptTitle(0); gStyle->SetFillStyle(1001);
+  c1  = new TCanvas("c1"," ",200,10,1200,1000); 
+  TCanvas *canv=new TCanvas("canv"," ",200,10,1200,1000);
+  sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"spectrum_sliceq2.eps");
+  openEpsFile(name);
+
+  c1->Clear();
+  c1->Divide(2, 2);
+  canv->Divide(2,2);
+  
+   //The projection is made from the channels along the X axis
+   //   ranging from firstxbin to lastxbin included.
+   // c1->cd(1);
+   //   datH->Draw("lego1");
+   //   svuH->Draw("lego1");
+   //amcH->Draw("lego1"); 
+   //   amcH->Draw("lego1 same"); 
+   //   abkH->Draw("lego1 same");
+   //   othH->Draw("lego1 same");
+   //Redraw Data for cleaning pourposes
+   //   datH->Draw("same");
+   //leg->Draw();
+
+ 
+   for(int i=1;i<nMxB;i++){
+   ///////  for(int s=0;s<nMxB;s++){
+     ////// for(int ss=1;ss<6;ss++){
+     fPostScriptFile->On();
+     sprintf(name,"%s%i","datHq2_",i);
+     TH1D *datHq2 = datH->ProjectionY(name,i,i,"e");
+     sprintf(name,"%s%i","amcHq2_",i);
+     TH1D *amcHq2 = amcH->ProjectionY(name,i,i,"e");
+     sprintf(name,"%s%i","abkHq2_",i);
+     TH1D *abkHq2 = abkH->ProjectionY(name,i,i,"e");
+     sprintf(name,"%s%i","othHq2_",i);
+     TH1D *othHq2 = othH->ProjectionY(name,i,i,"e");
+
+     sprintf(name,"%s%i","amcerrq2_",i);
+     TH1F *amcerrq2 = (TH1F*)amcHq2->Clone();
+     sprintf(name,"%s%i","proamcq2_",i);
+     TH1F *proamcq2 = (TH1F*)amcHq2->Clone();
+     sprintf(name,"%s%i","proabkq2_",i);
+     TH1F *proabkq2 = (TH1F*)abkHq2->Clone();
+
+     TH1D *histsub=(TH1D*)datHq2->Clone();
+     histsub->Reset();
+     TH1D *mchistsub=(TH1D*)datHq2->Clone();
+     mchistsub->Reset(); mchistsub->SetMarkerStyle(1);
+
+     q2bkgsub(datHq2,abkHq2,othHq2,su,histsub);
+     q2bkgsub(amcHq2,abkHq2,othHq2,su,mchistsub);
+
+     TH1F *amcsuberrq2=(TH1F*)mchistsub->Clone();
+     TH1F *proamcsubq2=(TH1F*)mchistsub->Clone();
+
+     c1->cd(i);
+  
+     themin=datHq2->GetMinimum()<0. ? datHq2->GetMinimum()*1.2:0.;
+     
+     themax = 1.2*datHq2->GetMaximum();
+     themax2 = 1.2*amcHq2->GetMaximum();
+     themax3 = 1.2*abkHq2->GetMaximum();
+     themax4 = 1.2*othHq2->GetMaximum();
+     
+     if(themax2 > themax) themax = themax2;
+     if(themax3 > themax) themax = themax3;
+     if(themax4 > themax) themax = themax4;
+     
+     datHq2->SetMaximum(themax);
+     datHq2->SetMinimum(themin);
+     datHq2->SetXTitle("q^{2} (GeV^{2})");
+     datHq2->SetMarkerSize(1.); 
+     datHq2->SetMarkerColor(kBlack); 
+     datHq2->SetMarkerStyle(20);
+     datHq2->SetLineColor(kBlack);
+     datHq2->GetXaxis()->SetTitleSize(0.08);
+     datHq2->GetYaxis()->SetTitleSize(0.08);
+     datHq2->Draw("e");
+     
+     amcHq2->SetLineColor(kBlack);
+     amcHq2->SetFillColor(38);
+     amcHq2->Draw("samehisto");
+     
+     abkHq2->SetLineColor(kBlack);
+     abkHq2->SetFillColor(kYellow);
+     abkHq2->Draw("samehisto");
+     
+     if(su){
+       othHq2->SetFillColor(kMagenta);
+     } else{
+       othHq2->SetFillColor(13);}
+     othHq2->SetLineColor(kBlack);
+     othHq2->Draw("samehisto");
+     
+     //transparent error box limited by red line
+     //  amcerrq2->SetFillColor(0);
+     //      amcerrq2->SetFillStyle(0);
+     //      amcerrq2->SetLineColor(2);
+     //      amcerrq2->Draw("e2same");
+
+     amcerrq2->SetFillColor(33);
+     amcerrq2->SetFillStyle(3003);
+     amcerrq2->Draw("samee2");
+
+     // //Redraw Data for cleaning pourposes
+     datHq2->Draw("esame");
+
+     //Redraw MC for cleaning pourposes
+//      proamcq2->SetLineColor(38);
+//      proamcq2->SetFillStyle(4000);
+//      proamcq2->Draw("samehisto");
+
+//      proabkq2->SetLineColor(kYellow);
+//      proabkq2->SetFillStyle(4000);
+//      proabkq2->Draw("samehisto");
+
+//      //Redraw Data for cleaning pourposes
+//      datHq2->Draw("esame");
+
+     TLegendEntry *legge3; 
+     TLegend *leg3;
+     leg3 = new TLegend(0.6,0.6,0.88,0.89);
+     leg3->SetBorderSize(0); leg3->SetTextSize(0.06);
+     //make text size 0.08 to improve reading 
+     leg3->SetFillStyle(4000);  leg3->SetFillColor(0); 
+     sprintf(util,"%3.2f%s%3.2f",xB1[i-1]," < M_{X} < ",xB1[i]);
+     // sprintf(util,"%s%3.2f","0 < Mx < ",xB1[i]);
+     leg3->SetHeader(util);
+     //     leg3->SetHeader("0 < Mx < MXBIN");
+     if(su){
+       legge3 = leg3->AddEntry(amcH, "b #rightarrow ul#nu IN", "f"); 
+       legge3 = leg3->AddEntry(abkH, "b #rightarrow cl#nu +oth", "f"); 
+       legge3 = leg3->AddEntry(othH, "b #rightarrow ul#nu OUT", "f"); 
+     } else{
+       legge3 = leg3->AddEntry(amcH, "b #rightarrow ul#nu", "f"); 
+       legge3 = leg3->AddEntry(abkH, "b #rightarrow cl#nu", "f"); 
+       legge3 = leg3->AddEntry(othH, "other", "f"); 
+     }   
+     legge3 = leg3->AddEntry(datH, "data", "p"); 
+     leg3->Draw();
+     shrinkPad(0.18,0.07,0.02,0.02);
+     gPad->Update();
+
+     //---->q2 bkg sub Now
+
+     fPostScriptFile->Off();
+     canv->cd(i);
+
+     themax = 1.2*histsub->GetMaximum();
+     themax2 = 1.2*mchistsub->GetMaximum();
+     
+     themax = themax2>themax ? themax2:themax;
+     themin = histsub->GetMinimum()<0.?histsub->GetMinimum()*1.2:0.;
+
+     //if(themax2 > themax) themax = themax2;
+     //if(themax3 > themax) themax = themax3;
+     //if(themax4 > themax) themax = themax4;
+     
+     histsub->SetMaximum(themax);
+     histsub->SetMinimum(themin);
+     histsub->SetXTitle("q^{2} (GeV^{2})");
+     histsub->SetMarkerSize(1.); 
+     histsub->SetMarkerColor(kBlack); 
+     histsub->SetMarkerStyle(20);
+     histsub->SetLineColor(kBlack);
+     histsub->GetXaxis()->SetTitleSize(0.08);
+     histsub->GetYaxis()->SetTitleSize(0.08);
+     histsub->Draw("e");
+     
+     mchistsub->SetLineColor(kBlack);
+     mchistsub->SetFillColor(38);
+     mchistsub->Draw("samehisto");
+     
+     amcsuberrq2->SetFillColor(33);
+     amcsuberrq2->SetFillStyle(3003);
+     amcsuberrq2->Draw("samee2");
+     
+      // //Redraw Data for cleaning pourposes
+      //histsub->Draw("esame");
+
+      //Redraw MC for cleaning pourposes
+//      proamcsubq2->SetLineColor(6);
+//      proamcsubq2->SetFillStyle(4000);
+//      proamcsubq2->Draw("samehisto");
+     
+     //       proabkq2->SetLineColor(kYellow);
+     //       proabkq2->SetFillStyle(4000);
+     //       proabkq2->Draw("samehisto");
+
+     //Redraw Data for cleaning pourposes
+     histsub->Draw("esame");
+     
+     TLegendEntry *leggesub3; 
+     TLegend *legsub3;
+     legsub3 = new TLegend(0.6,0.6,0.88,0.89);
+     legsub3->SetBorderSize(0); leg->SetTextSize(0.06);
+     //       //make text size 0.08 to improve reading 
+     legsub3->SetFillStyle(4000);  legsub3->SetFillColor(0); 
+     sprintf(util,"%3.2f%s%3.2f",xB1[i-1]," < M_{X} < ",xB1[i]);
+     //     leg3->SetHeader("0 < Mx < MXBIN");
+     legsub3->SetHeader(util);
+     if(su){
+       leggesub3 = legsub3->AddEntry(amcH, "b #rightarrow ul#nu IN", "f"); 
+       //leggesub3 = legsub3->AddEntry(abkH, "b->clnu+oth", "f"); 
+       //leggesub3 = legsub3->AddEntry(othH, "b->ulnuOUT", "f"); 
+     } else{
+       leggesub3 = legsub3->AddEntry(amcH, "b #rightarrow ul#nu", "f"); 
+       //leggesub3 = legsub3->AddEntry(abkH, "b->clnu", "f"); 
+       //leggesub3 = legsub3->AddEntry(othH, "other", "f"); 
+     }   
+     leggesub3 = legsub3->AddEntry(datH, "data", "p"); 
+     legsub3->Draw();
+     shrinkPad(0.18,0.07,0.02,0.02);
+     gPad->Update();
+    //  TH1D *datHq2_1 = datH->ProjectionY("datHq2_1", 1, 1); // firstXbin
+//      TH1D *datHq2_2 = datH->ProjectionY("datHq2_2", 2, 2); // secondXbin
+//      TH1D *datHq2_3 = datH->ProjectionY("datHq2_3", 3, 3); // thirdXbin
+//      TH1D *datHq2_4 = datH->ProjectionY("datHq2_4", 4, 4); // forthXbin
+     
+//      TH1D *amcHq2_1 = amcH->ProjectionY("amcHq2_1", 1, 1); 
+//      TH1D *amcHq2_2 = amcH->ProjectionY("amcHq2_2", 2, 2); 
+//      TH1D *amcHq2_3 = amcH->ProjectionY("amcHq2_3", 3, 3); 
+//      TH1D *amcHq2_4 = amcH->ProjectionY("amcHq2_4", 4, 4); 
+     
+//      TH1D *abkHq2_1 = abkH->ProjectionY("abkHq2_1", 1, 1); 
+//      TH1D *abkHq2_2 = abkH->ProjectionY("abkHq2_2", 2, 2); 
+//      TH1D *abkHq2_3 = abkH->ProjectionY("abkHq2_3", 3, 3); 
+//      TH1D *abkHq2_4 = abkH->ProjectionY("abkHq2_4", 4, 4); 
+     
+//      TH1D *othHq2_1 = othH->ProjectionY("othHq2_1", 1, 1); 
+//      TH1D *othHq2_2 = othH->ProjectionY("othHq2_2", 2, 2); 
+//      TH1D *othHq2_3 = othH->ProjectionY("othHq2_3", 3, 3); 
+//      TH1D *othHq2_4 = othH->ProjectionY("othHq2_4", 4, 4); 
+     
+//      TH1F *amcerrq2_1 = (TH1F*)amcHq2_1->Clone();
+//      TH1F *amcerrq2_2 = (TH1F*)amcHq2_2->Clone();
+//      TH1F *amcerrq2_3 = (TH1F*)amcHq2_3->Clone();
+//      TH1F *amcerrq2_4 = (TH1F*)amcHq2_4->Clone();
+
+//      TH1F *proamcq2_1 = (TH1F*)amcHq2_1->Clone();
+//      TH1F *proamcq2_2 = (TH1F*)amcHq2_2->Clone();
+//      TH1F *proamcq2_3 = (TH1F*)amcHq2_3->Clone();
+//      TH1F *proamcq2_4 = (TH1F*)amcHq2_4->Clone();
+  
+//      TH1F *proabkq2_1 = (TH1F*)abkHq2_1->Clone();
+//      TH1F *proabkq2_2 = (TH1F*)abkHq2_2->Clone();
+//      TH1F *proabkq2_3 = (TH1F*)abkHq2_3->Clone();
+//      TH1F *proabkq2_4 = (TH1F*)abkHq2_4->Clone();
+
+     // c1->cd(2);
+//      themax = 1.2*datHq2_1->GetMaximum();
+//      themax2 = 1.2*amcHq2_1->GetMaximum();
+//      themax3 = 1.2*abkHq2_1->GetMaximum();
+//      themax4 = 1.2*othHq2_1->GetMaximum();
+     
+//      if(themax2 > themax) themax = themax2;
+//      if(themax3 > themax) themax = themax3;
+//      if(themax4 > themax) themax = themax4;
+     
+//      datHq2_1->SetMaximum(themax);
+//      datHq2_1->SetXTitle("q2(GeV)");
+//      datHq2_1->SetMarkerSize(1.); datHq2_1->SetMarkerColor(kBlack); 
+//      datHq2_1->SetMarkerStyle(20);
+//      datHq2_1->SetLineColor(kBlack);
+//      datHq2_1->GetXaxis()->SetTitleSize(0.08);
+//      datHq2_1->GetYaxis()->SetTitleSize(0.08);
+//      datHq2_1->Draw("he");
+     
+//      amcHq2_1->SetLineColor(kBlack);
+//      amcHq2_1->SetFillColor(38);
+//      amcHq2_1->Draw("samehisto");
+     
+//      abkHq2_1->SetLineColor(kBlack);
+//      abkHq2_1->SetFillColor(kYellow);
+//      abkHq2_1->Draw("samehisto");
+     
+//      if(su){
+//        othHq2_1->SetFillColor(kMagenta);
+//      } else{
+//        othHq2_1->SetFillColor(13);}
+//      othHq2_1->SetLineColor(kBlack);
+//      othHq2_1->Draw("samehisto");
+    
+//      //transparent error box limited by red line
+//      //  amcerrq2_1->SetFillColor(0);
+//      //      amcerrq2_1->SetFillStyle(0);
+//      //      amcerrq2_1->SetLineColor(2);
+//      //      amcerrq2_1->Draw("e2same");
+
+//      amcerrq2_1->SetFillColor(33);
+//      amcerrq2_1->SetFillStyle(3003);
+//      amcerrq2_1->Draw("samee2");
+
+//      //Redraw Data for cleaning pourposes
+//      datHq2_1->Draw("samehe");
+
+//      //Redraw MC for cleaning pourposes
+//      proamcq2_1->SetLineColor(38);
+//      proamcq2_1->SetFillStyle(4000);
+//      proamcq2_1->Draw("samehisto");
+
+//      proabkq2_1->SetLineColor(kYellow);
+//      proabkq2_1->SetFillStyle(4000);
+//      proabkq2_1->Draw("samehisto");
+
+//      // //Redraw Data for cleaning pourposes
+//      //      datHq2_1->Draw("samepe");
+
+     
+//      TLegendEntry *legge3; 
+//      TLegend *leg3;
+//      leg3 = new TLegend(0.6,0.6,0.88,0.89);
+//      leg3->SetBorderSize(0.); leg->SetTextSize(0.06);
+//      //make text size 0.08 to improve reading 
+//      leg3->SetFillStyle(4000);  leg3->SetFillColor(0); 
+//      sprintf(util,"%s%3.2f","0 < Mx < ",MXBIN);
+//      leg3->SetHeader(util);
+//      //     leg3->SetHeader("0 < Mx < MXBIN");
+//      if(su){
+//        legge3 = leg3->AddEntry(amcH, "b->ulnuIN", "f"); 
+//        legge3 = leg3->AddEntry(abkH, "b->clnu+oth", "f"); 
+//        legge3 = leg3->AddEntry(othH, "b->ulnuOUT", "f"); 
+//      } else{
+//        legge3 = leg3->AddEntry(amcH, "b->ulnu", "f"); 
+//        legge3 = leg3->AddEntry(abkH, "b->clnu", "f"); 
+//        legge3 = leg3->AddEntry(othH, "other", "f"); 
+//      }   
+//      legge3 = leg3->AddEntry(datH, "data", "p"); 
+//      leg3->Draw();
+//      shrinkPad(0.18,0.07,0.02,0.02);
+//      gPad->Update();
+     
+//      c1->cd(3);
+//      themax = 1.2*datHq2_2->GetMaximum();
+//      themax2 = 1.2*amcHq2_2->GetMaximum();
+//      themax3 = 1.2*abkHq2_2->GetMaximum();
+//      themax4 = 1.2*othHq2_2->GetMaximum();
+     
+//      if(themax2 > themax) themax = themax2;
+//      if(themax3 > themax) themax = themax3;
+//      if(themax4 > themax) themax = themax4;
+     
+//      datHq2_2->SetMaximum(themax);
+//      datHq2_2->SetXTitle("q2(GeV)");
+//      datHq2_2->SetMarkerSize(1.); datHq2_2->SetMarkerColor(kBlack); 
+//      datHq2_2->SetMarkerStyle(20);
+//      datHq2_2->SetLineColor(kBlack);
+//      datHq2_2->GetXaxis()->SetTitleSize(0.08);
+//      datHq2_2->GetYaxis()->SetTitleSize(0.08);
+//      datHq2_2->Draw("he");
+     
+//      amcHq2_2->SetLineColor(kBlack);
+//      amcHq2_2->SetFillColor(38);
+//      amcHq2_2->Draw("sameh");
+     
+//      abkHq2_2->SetLineColor(kBlack);
+//      abkHq2_2->SetFillColor(kYellow);
+//      abkHq2_2->Draw("sameh");
+     
+//      if(su){
+//        othHq2_2->SetFillColor(kMagenta);
+//      } else{   
+//        othHq2_2->SetFillColor(13);}
+//      othHq2_2->SetLineColor(kBlack);
+//      othHq2_2->Draw("sameh"); 
+
+//      amcerrq2_2->SetFillColor(33);
+//      amcerrq2_2->SetFillStyle(3003);
+//      amcerrq2_2->Draw("samee2");
+
+//      //Redraw Data for cleaning pourposes
+//      datHq2_2->Draw("samehe");
+
+//      //Redraw MC for cleaning pourposes
+//      proamcq2_2->SetLineColor(38);
+//      proamcq2_2->SetFillStyle(4000);
+//      proamcq2_2->Draw("samehisto");
+
+//      proabkq2_2->SetLineColor(kYellow);
+//      proabkq2_2->SetFillStyle(4000);
+//      proabkq2_2->Draw("samehisto");
+   
+//      //      transparent error box limited by red line
+//      //      amcerrq2_2->SetFillColor(0);
+//      //      amcerrq2_2->SetFillStyle(0);
+//      //      amcerrq2_2->SetLineColor(2);
+//      //      amcerrq2_2->Draw("e2same");
+//      //      //Redraw Data for cleaning pourposes
+//      //      datHq2_2->Draw("samepe");
+
+//      // sprintf(util,"%3.2f%s%3.2f",MXBIN," < Mx < ",x_1);
+//      sprintf(util,"%3.2f%s",MXBIN," < Mx < 2.2");
+//      leg3->SetHeader(util); //############
+//      //     leg3->SetHeader("MXBIN < Mx < 2.2"); //############
+//      leg3->Draw();
+//      shrinkPad(0.18,0.07,0.02,0.02);
+//      gPad->Update();
+     
+//      c1->cd(4);
+//      themax = 1.2*datHq2_3->GetMaximum();
+//      themax2 = 1.2*amcHq2_3->GetMaximum();
+//      themax3 = 1.2*abkHq2_3->GetMaximum();
+//      themax4 = 1.2*othHq2_3->GetMaximum();
+   
+//      if(themax2 > themax) themax = themax2;
+//      if(themax3 > themax) themax = themax3;
+//      if(themax4 > themax) themax = themax4;
+
+//      datHq2_3->SetMaximum(themax);
+
+//      datHq2_3->SetXTitle("q2(GeV)");
+//      datHq2_3->SetMarkerSize(1.); datHq2_3->SetMarkerColor(kBlack); 
+//      datHq2_3->SetMarkerStyle(20);
+//      datHq2_3->SetLineColor(kBlack);
+//      datHq2_3->GetXaxis()->SetTitleSize(0.08);
+//      datHq2_3->GetYaxis()->SetTitleSize(0.08);
+//      datHq2_3->Draw("he");
+
+//      amcHq2_3->SetLineColor(kBlack);
+//      amcHq2_3->SetFillColor(38);
+//      amcHq2_3->Draw("sameh");
+
+//      abkHq2_3->SetLineColor(kBlack);
+//      abkHq2_3->SetFillColor(kYellow);
+//      abkHq2_3->Draw("sameh");
+
+//      if(su){
+//        othHq2_3->SetFillColor(kMagenta);
+//      } else{  
+//        othHq2_3->SetFillColor(13);}
+//      othHq2_3->SetLineColor(kBlack);
+//      othHq2_3->Draw("sameh");
+
+//      amcerrq2_3->SetFillColor(33);
+//      amcerrq2_3->SetFillStyle(3003);
+//      amcerrq2_3->Draw("samee2");
+
+//      //Redraw Data for cleaning pourposes
+//      datHq2_3->Draw("samehe");
+
+//      //Redraw MC for cleaning pourposes
+//      proamcq2_3->SetLineColor(38);
+//      proamcq2_3->SetFillStyle(4000);
+//      proamcq2_3->Draw("samehisto");
+
+//      proabkq2_3->SetLineColor(kYellow);
+//      proabkq2_3->SetFillStyle(4000);
+//      proabkq2_3->Draw("samehisto");
+   
+//      //      transparent error box limited by red line
+//      //      amcerrq2_3->SetFillColor(0);
+//      //      amcerrq2_3->SetFillStyle(0);
+//      //      amcerrq2_3->SetLineColor(2);
+//      //      amcerrq2_3->Draw("e2same");
+//      //      //Redraw Data for cleaning pourposes
+//      //      datHq2_3->Draw("samepe");
+
+//      sprintf(util,"%s","2.2 < Mx < 2.8");
+//      //     sprintf(util,"%s","2.2 < Mx < 2.5");
+//      //     sprintf(util,"%3.2f%s%3.2f",x_1," < Mx < ",x_2);
+//      leg3->SetHeader(util); //############
+//      //     leg3->SetHeader("2.2 < Mx < 2.8"); //############
+//      leg3->Draw();
+//      shrinkPad(0.18,0.07,0.02,0.02);
+//      gPad->Update();
+
+//      c1->cd(5);
+//      themax = 1.2*datHq2_4->GetMaximum();
+//      themax2 = 1.2*amcHq2_4->GetMaximum();
+//      themax3 = 1.2*abkHq2_4->GetMaximum();
+//      themax4 = 1.2*othHq2_4->GetMaximum();
+   
+//      if(themax2 > themax) themax = themax2;
+//      if(themax3 > themax) themax = themax3;
+//      if(themax4 > themax) themax = themax4;
+
+//      datHq2_4->SetMaximum(themax);
+
+//      datHq2_4->SetXTitle("q2(GeV)");
+//      datHq2_4->SetMarkerSize(1.); datHq2_4->SetMarkerColor(kBlack); 
+//      datHq2_4->SetMarkerStyle(20);
+//      datHq2_4->SetLineColor(kBlack);
+//      datHq2_4->GetXaxis()->SetTitleSize(0.08);
+//      datHq2_4->GetYaxis()->SetTitleSize(0.08);
+//      datHq2_4->Draw("he");
+
+//      amcHq2_4->SetLineColor(kBlack);
+//      amcHq2_4->SetFillColor(38);
+//      amcHq2_4->Draw("sameh");
+
+//      abkHq2_4->SetLineColor(kBlack);
+//      abkHq2_4->SetFillColor(kYellow);
+//      abkHq2_4->Draw("sameh");
+
+//      if(su){
+//        othHq2_4->SetFillColor(kMagenta);
+//      } else{
+//        othHq2_4->SetFillColor(13);}
+//      othHq2_4->SetLineColor(kBlack);
+//      othHq2_4->Draw("sameh");
+
+//      amcerrq2_4->SetFillColor(33);
+//      amcerrq2_4->SetFillStyle(3003);
+//      amcerrq2_4->Draw("samee2");
+
+//      //Redraw Data for cleaning pourposes
+//      datHq2_4->Draw("samehe");
+
+//      //Redraw MC for cleaning pourposes
+//      proamcq2_4->SetLineColor(38);
+//      proamcq2_4->SetFillStyle(4000);
+//      proamcq2_4->Draw("samehisto");
+
+//      proabkq2_4->SetLineColor(kYellow);
+//      proabkq2_4->SetFillStyle(4000);
+//      proabkq2_4->Draw("samehisto");
+
+//      //      transparent error box limited by red line
+//      // amcerrq2_4->SetFillColor(0);
+//      //      amcerrq2_4->SetFillStyle(0);
+//      //      amcerrq2_4->SetLineColor(2);
+//      //      amcerrq2_4->Draw("e2same");
+//      //      //Redraw Data for cleaning pourposes
+//      //      datHq2_4->Draw("samepe");
+
+//      sprintf(util,"%s","2.8 < Mx < 5.0");
+//      //     sprintf(util,"%s","2.5 < Mx < 5.0");
+//      //     sprintf(util,"%3.2f%s",x_2," < Mx < 5.0");
+//      leg3->SetHeader(util); //############
+//      //     leg3->SetHeader("2.8 < Mx < 5.0"); //############
+//      leg3->Draw();
+//      shrinkPad(0.18,0.07,0.02,0.02);
+//      gPad->Update();
+
+   }
+   sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"q2bkgsub.eps");
+   canv->SaveAs(name);	
+   delete canv;
+   fPostScriptFile->On();
+   closeEpsFile();
+
+  //############################## projecting - mx slice ########################################################
+  //############################## mx bin = 0,MXBIN,(5. - MXBIN)/3. + MXBIN,(5. - MXBIN)/3.*2. + MXBIN,5.########
+     double q2_1 = Q2BIN/3.;
+     double q2_2 = Q2BIN/3.*2.;
+
+     gROOT->SetStyle("Plain");
+     gStyle->SetOptStat(0); gStyle->SetOptTitle(0); gStyle->SetFillStyle(1001);
+     c1  = new TCanvas("c1"," ",200,10,1200,1000); 
+     sprintf(name, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),"spectrum_slicemx.eps");
+     
+     openEpsFile(name);
+     c1->Clear();
+     c1->Divide(2, 4);
+   
+     //     c1->cd(1);
+     //   datH->Draw("lego1");
+     //   svuH->Draw("lego1");
+     //     amcH->Draw("lego1"); 
+     //   amcH->Draw("lego1 same"); 
+     //   abkH->Draw("lego1 same");
+     //   othH->Draw("lego1 same");
+     //Redraw Data for cleaning pourposes
+     //  datH->Draw("same");
+     //leg->Draw();
+
+     for(int i=1;i<nQ2B;i++){
+       sprintf(name,"%s%i","datHmx_",i);
+       TH1D *datHmx = datH->ProjectionX(name,i,i,"e");
+       sprintf(name,"%s%i","amcHmx_",i);
+       TH1D *amcHmx = amcH->ProjectionX(name,i,i,"e");
+       sprintf(name,"%s%i","abkHmx_",i);
+       TH1D *abkHmx = abkH->ProjectionX(name,i,i,"e");
+       sprintf(name,"%s%i","othHmx_",i);
+       TH1D *othHmx = othH->ProjectionX(name,i,i,"e");
+
+       sprintf(name,"%s%i","amcerrmx_",i);
+       TH1F *amcerrmx = (TH1F*)amcHmx->Clone();
+       sprintf(name,"%s%i","proamcmx_",i);
+       TH1F *proamcmx = (TH1F*)amcHmx->Clone();
+       sprintf(name,"%s%i","proabkmx_",i);
+       TH1F *proabkmx = (TH1F*)abkHmx->Clone();
+
+//        TH1F *amcerrmx_1 = (TH1F*)amcHmx_1->Clone();
+//        TH1F *amcerrmx_2 = (TH1F*)amcHmx_2->Clone();
+//        TH1F *amcerrmx_3 = (TH1F*)amcHmx_3->Clone();
+//        TH1F *amcerrmx_4 = (TH1F*)amcHmx_4->Clone();
+//        TH1F *proamcmx_1 = (TH1F*)amcHmx_1->Clone();
+//        TH1F *proamcmx_2 = (TH1F*)amcHmx_2->Clone();
+//        TH1F *proamcmx_3 = (TH1F*)amcHmx_3->Clone();
+//        TH1F *proamcmx_4 = (TH1F*)amcHmx_4->Clone();
+//        TH1F *proabkmx_1 = (TH1F*)abkHmx_1->Clone();
+//        TH1F *proabkmx_2 = (TH1F*)abkHmx_2->Clone();
+//        TH1F *proabkmx_3 = (TH1F*)abkHmx_3->Clone();
+//        TH1F *proabkmx_4 = (TH1F*)abkHmx_4->Clone();
+       c1->cd(i);
+
+       themax = 1.2*datHmx->GetMaximum();
+       themax2 = 1.2*amcHmx->GetMaximum();
+       themax3 = 1.2*abkHmx->GetMaximum();
+       themax4 = 1.2*othHmx->GetMaximum();
+
+       if(themax2 > themax) themax = themax2;
+       if(themax3 > themax) themax = themax3;
+       if(themax4 > themax) themax = themax4;
+
+       datHmx->SetMaximum(themax);
+       datHmx->SetXTitle("M_{X} (GeV)");
+       datHmx->SetMarkerSize(1.);
+       datHmx->SetMarkerColor(kBlack);
+       datHmx->SetMarkerStyle(20);
+       datHmx->SetLineColor(kBlack);
+       datHmx->GetXaxis()->SetTitleSize(0.08);
+       datHmx->GetYaxis()->SetTitleSize(0.08);
+       datHmx->Draw("e");
+
+       amcHmx->SetLineColor(kBlack);
+       amcHmx->SetFillColor(38);
+       amcHmx->Draw("samehisto");
+
+       abkHmx->SetLineColor(kBlack);
+       abkHmx->SetFillColor(kYellow);
+       abkHmx->Draw("samehisto");
+
+       if(su){
+	 othHmx->SetFillColor(kMagenta);
+       } else{
+	 othHmx->SetFillColor(13);}
+       othHmx->SetLineColor(kBlack);
+       othHmx->Draw("samehisto");
+
+    //    //Redraw Data for cleaning pourposes
+//        datHmx->Draw("samepe");
+
+       //Redraw MC for cleaning pourposes
+       amcerrmx->SetFillColor(33);
+       amcerrmx->SetFillStyle(3003);
+       amcerrmx->Draw("samee2");
+
+//        proamcmx->SetLineColor(38);
+//        proamcmx->SetFillStyle(4000);
+//        proamcmx->Draw("samehisto");
+
+//        proabkmx->SetLineColor(kYellow);
+//        proabkmx->SetFillStyle(4000);
+//        proabkmx->Draw("samehisto");
+
+       //Redraw Data for cleaning pourposes
+       datHmx->Draw("samepe");
+
+       //      transparent error box limited by red line
+       //      amcerrmx_1->SetFillColor(0);
+       //      amcerrmx_1->SetFillStyle(0);
+       //      amcerrmx_1->SetLineColor(2);
+       //      amcerrmx_1->Draw("e2same");
+       //      //Redraw Data for cleaning pourposes
+       //      datHmx_1->Draw("samepe");
+
+
+       TLegendEntry *legge4;
+       TLegend *leg4;
+       leg4 = new TLegend(0.6,0.6,0.88,0.89);
+       leg4->SetBorderSize(0); leg->SetTextSize(0.06);
+       //make text size 0.08 to improve reading
+       leg4->SetFillStyle(4000);  leg4->SetFillColor(0);
+       sprintf(util,"%3.2f%s%3.2f",qB1[i-1]," < q^{2} < ",qB1[i]);
+       //       sprintf(util,"%s%3.2f","0 < q2 < ",qB1[i]);
+       leg4->SetHeader(util);
+       //     leg4->SetHeader("0 < q2 < 4.0");
+       if(su){
+	 legge4 = leg4->AddEntry(amcH, "b #rightarrow ul#nu IN", "f");
+	 legge4 = leg4->AddEntry(abkH, "b #rightarrow cl#nu +oth", "f");
+	 legge4 = leg4->AddEntry(othH, "b #rightarrow ul#nu OUT", "f");
+       } else{
+	 legge4 = leg4->AddEntry(amcH, "b #rightarrow ul#nu", "f");
+	 legge4 = leg4->AddEntry(abkH, "b #rightarrow cl#nu", "f");
+	 legge4 = leg4->AddEntry(othH, "other", "f");
+       }
+       legge4 = leg4->AddEntry(datH, "data", "p");
+       leg4->Draw();
+       shrinkPad(0.18,0.07,0.02,0.02);
+       gPad->Update();
+     }
+     
+     closeEpsFile();
+}
+
+TVector2 VirClass::getEffFromBauer(const Double_t &mx, const Double_t &q2){
+
+  TVector2 temp;
+  double tempeff(0.), temperreff(0.);
+  double mulfac = 1.21;
+  
+  int Bau = (int)q2;
+  //take numbers from Table 1 of hep-ph 0107074, Delta_mb = 80 MeV
+  //and value  extrapolation from figures
+  double G15[16]  = {0,0,0,0,0,0,0,0.15,0.185,0.185,0.17,0.15,0.12,0.10,0.07,0.05};
+  double G17[16]  = {0,0,0,0,0,0.34,0.325,0.3,0.27,0.23,0.195,0.16,0.13,0.10,0.07,0.05};
+  double G186[16] = {0,0,0,0,0,0.415,0.375,0.33,0.29,0.245,0.205,0.165,0.13,0.10,0.07,0.05};
+  double R15[16]  = {0,0,0,0,0,0,0,0,0,-0.135,-0.1025,-0.0725,-0.045,-0.0225,-0.004,0};
+  double R17[16]  = {0,0,0,0,0,-0.1125,-0.1,-0.078,-0.06,-0.04,-0.027,-0.015,-0.005,0,0,0};
+  double R186[16] = {0,0,0,0,0,-0.055,-0.042,-0.03,-0.02,-0.0125,-0.006,-0.002,0,0,0,0};
+
+  double WA[16] = {0,0,0,0,0,0,0.07,0.08,0.095,0.115,0.14,0.175,0.22,0.295,0.405,0.58};              //delta(1/mb^3)
+
+  double mb1Su15[16] = {0,0,0,0,0,0,0,0.36,0.23,0.19,0.18,0.18,0.19,0.21,0.24,0.28};                 //delta mb^1S =80 MeV \mx=1.5  up
+  double mb1Sd15[16] = {0,0,0,0,0,0,0,0,0,-0.24,-0.18,-0.17,-0.17,-0.18,-0.21,-0.23};                //delta mb^1S =80 MeV \mx=1.5  down
+  double mb1Su17[16] = {0,0,0,0,0,0.16,0.15,0.14,0.15,0.15,0.16,0.17,0.169,0.21,0.24,0.28};          //delta mb^1S =80 MeV \mx=1.7  up
+  double mb1Sd17[16] = {0,0,0,0,0,-0.21,-0.16,-0.14,-0.14,-0.14,-0.14,-0.15,-0.17,-0.18,-0.21,-0.23};//delta mb^1S =80 MeV \mx=1.7  downup
+  double mb1Su186[16]= {0,0,0,0,0,0.12,0.13,0.13,0.14,0.15,0.16,0.17,0.19,0.21,0.24,0.28};           //delta mb^1S =80 MeV \mx=1.86 up
+  double mb1Sd186[16]= {0,0,0,0,0,-0.12,-0.12,-0.12,-0.13,-0.13,-0.14,-0.15,-0.17,-0.18,-0.21,-0.23};//delta mb^1S =80 MeV \mx=1.86 down
+
+  double P15[16]  = {0,0,0,0,0,0,0,-0.13,-0.02,0.04,0.08,0.13,0.17,0.215,0.27,0.34};
+  double P17[16]  = {0,0,0,0,0,-0.03,0,0.03,0.055,0.08,0.11,0.14,0.175,0.215,0.27,0.34};
+  double P186[16] = {0,0,0,0,0,0.015,0.03,0.05,0.07,0.09,0.11,0.14,0.175,0.215,0.27,0.34};
+  char pippo[200];
+  sprintf(pippo,"%3.2f",mx);
+  if(!strcmp(pippo,"1.50")){
+    tempeff = G15[Bau]*(1 - R15[Bau])*mulfac;
+    temperreff = sqrt( pow(WA[Bau],2) + pow(P15[Bau],2) + (mb1Su15[Bau] * TMath::Abs(mb1Sd15[Bau])))*mulfac ;
+  }
+  if(!strcmp(pippo,"1.70")){
+    tempeff = G17[Bau]*(1 - R17[Bau])*mulfac;
+    temperreff = sqrt( pow(WA[Bau],2) + pow(P17[Bau],2) + (mb1Su17[Bau] * TMath::Abs(mb1Sd17[Bau])))*mulfac ;
+  }
+  if(!strcmp(pippo,"1.86")){
+    tempeff = G186[Bau]*(1 - R186[Bau])*mulfac;
+    temperreff = sqrt( pow(WA[Bau],2) + pow(P186[Bau],2) + (mb1Su186[Bau] * TMath::Abs(mb1Sd186[Bau])))*mulfac ;
+  } 
+  if(!(!strcmp(pippo,"1.50") || !strcmp(pippo,"1.70") || !strcmp(pippo,"1.86"))){
+    tempeff = 0.15;
+    temperreff = tempeff*0.2;
+    cout << "====================================================================================" << endl;
+    cout << "                                 W A R N I N G                                      " << endl;
+    cout << "                                    Bauer                                           " << endl;
+    cout << " I am returning placeholders : " << tempeff << " +/- " << temperreff << endl;
+    cout << "====================================================================================" << endl;
+  }
+  temp.Set(tempeff,temperreff);
+  return temp;
+  
+}
+
+
+TVector2 VirClass::getEffFromDFN2D(const Double_t &mx, const Double_t &q2)
+{
+
+  if(EFFDFN != -99) return TVector2(EFFDFN,0);
+  double tempeff(0.), temperreff(0.);
+  
+  
+  //take numbers from GeneratorsQA of DFN
+
+  //=============================== OLD SP5/SP6 acceptances ================================================== //
+  /*
+    double eff_150[16] = {0.603798, 0.575883, 0.545139, 0.513021, 0.477495, 0.440415, 0.403535, 0.364562, 
+                          0.32527,  0.285202, 0.244994, 0.206619, 0.1693,   0.135966, 0.105959, 0.0787224};
+    double eff_155[16] = {0.639489, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}; 
+    double eff_1625[16] = {0.688577, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}; 
+    double eff_170[16] = {0.736655, 0.695391, 0.651477, 0.607005, 0.557154, 0.506764, 0.457092, 0.406523, 
+                          0.355915, 0.307039, 0.259041, 0.213872, 0.172189, 0.136424, 0.105959, 0.0787224};
+   double eff_186[16] = {0.815139, 0.764909, 0.712307, 0.657714, 0.598617, 0.540059, 0.482456, 0.424615, 
+			0.36777,  0.313415, 0.262368, 0.214987, 0.172269, 0.136424, 0.105959, 0.0787224};
+ 
+  double erreff_150[16] = {0.00218323, 0.002206,   0.00222274, 0.0022311,  0.00222959, 0.00221595, 0.00218992, 0.00214841, 
+			   0.00209114, 0.00201541, 0.00191977, 0.00180726, 0.00167396, 0.00152995, 0.00137387, 0.0012021};
+  //  double erreff_155[16] = {0.001022, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}; //THIS WAS FOR SP5/SP6
+  
+  double erreff_155[16] = {0.001186, 0.001155, 0.001116, 0.001070, 0.001013, 0.000949, 0.000871, 0.000786, 
+			   0.000692, 0.000592, 0.000491, 0.000387, 0.000290, 0.000204, 0.000136, 0.000082}; //THis is for SP8
+  double erreff_1625[16] = {0.001061, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_170[16] = {0.00196603, 0.00205438, 0.00212697, 0.00218014, 0.00221722, 0.00223165, 0.00222362, 0.0021925, 
+			   0.00213718, 0.00205896, 0.00195559, 0.00183029, 0.00168525, 0.00153212, 0.00137387, 0.0012021};
+  double erreff_186[16] = {0.00173274, 0.00189286, 0.00202066, 0.00211792, 0.00218801, 0.00222468, 0.00223048, 0.00220634, 
+			   0.00215239, 0.00207063, 0.00196368, 0.00183375, 0.00168556, 0.00153212, 0.00137387, 0.0012021};
+   */
+  //========================================================================================================= //
+
+  //===============================  SP8 =================================================================== //
+  
+
+  // mb and a comes from hep-ex/0507253 (Oliver's and Henning's paper): mb=4.6586, a=1.32669
+  
+  double eff_OaH_150[16] = {0.515727, 0.501024, 0.482755, 0.4623, 0.438876, 0.413428, 0.384713, 0.353259,
+			    0.3187, 0.281379, 0.2453, 0.208762, 0.173144, 0.137526, 0.10292, 0.0751018};
+  
+  double eff_OaH_155[16] = {0.550309, 0.53372, 0.513242, 0.490578, 0.464877, 0.436115, 0.404639, 0.369918,
+ 			    0.332022, 0.291296, 0.252226, 0.212788, 0.175077, 0.137963, 0.10292, 0.0751018};
+    
+  double eff_OaH_1625[16] = {0.601321, 0.581901, 0.55758, 0.530821, 0.501001, 0.467592, 0.431398, 0.392007,
+			     0.349693, 0.304227, 0.260786, 0.21785, 0.177354, 0.138377, 0.10292, 0.0751018};
+      
+  double eff_OaH_170[16] = {0.648835, 0.62624, 0.598744, 0.567773, 0.533398, 0.495594, 0.454591, 0.410598,
+  			    0.363153, 0.31373, 0.266745, 0.220911, 0.178298, 0.138446, 0.10292, 0.0751018};
+  
+  double eff_OaH_186[16] = {0.742574, 0.712938, 0.677734, 0.637537, 0.59400, 0.546927, 0.496031, 0.442328,
+			    0.385702, 0.328501, 0.274522, 0.223419, 0.178528, 0.138446, 0.10292, 0.0751018};
+  
+  //this is the statistical error from GeneratorsQA
+
+  double erreff_OaH_150[16] = {0.0012363, 0.00120165, 0.00115715, 0.00110562, 0.0010447, 0.000976587, 0.00089783, 0.000809945,
+			       0.000712347, 0.000606928, 0.000506273, 0.000406987, 0.00031425, 0.000227195, 0.000150008, 0.0000949};  
+
+  double erreff_OaH_155[16] = {0.00131316, 0.00127716, 0.00123052, 0.00117639, 0.0011122, 0.0010374, 0.000952668, 0.000856656,
+			       0.000750034, 0.000634868, 0.000525437, 0.000417752, 0.000319153, 0.000228221, 0.000150008, 0.0000949};
+
+  double erreff_OaH_1625[16] = {0.00141228, 0.00137678, 0.0013284, 0.0012707, 0.00120159, 0.00111911, 0.00102488, 0.000917994,
+				0.000799907, 0.000671398, 0.000549238, 0.000431353, 0.000324952, 0.000229195, 0.000150008, 0.0000949};
+  
+  double erreff_OaH_170[16] = {0.00148562, 0.00145331, 0.00140774, 0.00134918, 0.00127644, 0.00118858, 0.00108578, 0.000968905,
+			       0.000837727, 0.000698282, 0.000565877, 0.000439611, 0.000327361, 0.000229357, 0.000150008, 0.0000949};
+  
+  double erreff_OaH_186[16] = {0.00155735, 0.00154709, 0.00151931, 0.00147008, 0.00139925, 0.00130596, 0.00118964, 0.00105379,
+			       0.00090057, 0.00074008, 0.000587662, 0.000446399, 0.000327948, 0.000229357, 0.000150008, 0.0000949};
+  
+  // Belle b->sgamma 04
+  double eff_Belle04_150[16] = {0.420094, 0.405778, 0.390076, 0.372124, 0.351979, 0.329429, 0.305283, 0.279642, 
+				0.252438, 0.223849, 0.194772, 0.165363, 0.135510, 0.107420, 0.080958, 0.059151}; 
+  double eff_Belle04_155[16] = {0.459067, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_Belle04_1625[16] = {0.514538, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_Belle04_170[16] = {0.570498, 0.544900, 0.517397, 0.487013, 0.453182, 0.417036, 0.379128, 0.339945,
+				0.299111, 0.258045, 0.217444, 0.178361, 0.141394, 0.108672, 0.080992, 0.059151}; 
+  double eff_Belle04_186[16] = {0.680843, 0.644885, 0.606013, 0.564370, 0.518239, 0.470801, 0.421757, 0.371925, 
+				0.321584, 0.272417, 0.224658, 0.180987, 0.141694, 0.108672, 0.080992, 0.059151}; 
+  double erreff_Belle04_150[16] = {0.000690, 0.000663, 0.000633, 0.000599, 0.000560, 0.000515, 0.000468, 0.000418,
+				   0.000365, 0.000311, 0.000257, 0.000205, 0.000154, 0.000111, 0.000074, 0.000046};
+  double erreff_Belle04_155[16] = {0.000762, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_Belle04_1625[16] = {0.000856, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_Belle04_170[16] = {0.000940, 0.000903, 0.000861, 0.000810, 0.000751, 0.000684, 0.000612, 0.000536, 
+				   0.000456, 0.000376, 0.000299, 0.000227, 0.000164, 0.000113, 0.000074, 0.000046}; 
+  double erreff_Belle04_186[16] = {0.001056, 0.001027, 0.000986, 0.000932, 0.000862, 0.000782, 0.000693, 0.000598, 
+				   0.000500, 0.000404, 0.000312, 0.000232, 0.000164, 0.000113, 0.000074, 0.000046};
+
+  // BaBar b->sgamma 05
+  double eff_Babar05_150[16] = {0.586162, 0.562481, 0.537161, 0.508549, 0.477056, 0.442128, 0.406968, 0.368427, 
+				0.328735, 0.288565, 0.248208, 0.208393, 0.170495, 0.135290, 0.104008, 0.077945};
+  double eff_Babar05_155[16] = {0.628481, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_Babar05_1625[16] = {0.68822, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_Babar05_170[16] = {0.741653, 0.702802, 0.661270, 0.616225, 0.567712, 0.516849, 0.465986, 0.413151, 
+				0.360405, 0.309498, 0.260729, 0.214233, 0.172778, 0.135745, 0.104019, 0.077945};
+  double eff_Babar05_186[16] = {0.834403, 0.783307, 0.729696, 0.672662, 0.612657, 0.551799, 0.491251, 0.430538, 
+				0.371563, 0.315293, 0.263278, 0.215097, 0.172867, 0.135745, 0.104019, 0.077945};
+  double erreff_Babar05_150[16] = {0.000961, 0.000929, 0.000892, 0.000846, 0.000793, 0.000731, 0.000666, 0.000592, 
+				   0.000514, 0.000435, 0.000357, 0.000282, 0.000213, 0.000154, 0.000106, 0.000070};
+  double erreff_Babar05_155[16] = {0.001011, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_Babar05_1625[16] = {0.001061, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_Babar05_170[16] = {0.001081, 0.001069, 0.001042, 0.000998, 0.000936, 0.000860, 0.000774, 0.000677, 
+				   0.000576, 0.000476, 0.000381, 0.000293, 0.000217, 0.000155, 0.000106, 0.000070};
+  double erreff_Babar05_186[16] = {0.001032, 0.001074, 0.001079, 0.001051, 0.000993, 0.000913, 0.000818, 0.000710, 
+				   0.000598, 0.000488, 0.000386, 0.000294, 0.000218, 0.000155, 0.000106, 0.000070};
+
+  // HFAG combined (b->clv + b->sgamma) 06
+  double eff_HFAGComb06_150[16] = {0.452512, 0.436532, 0.418847, 0.399034, 0.376761, 0.351905, 0.325588, 0.297641, 
+				   0.267799, 0.237215, 0.205877, 0.174141, 0.142704, 0.113482, 0.085502, 0.062853}; 
+  double eff_HFAGComb06_155[16] = {0.491828, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_HFAGComb06_1625[16] = {0.548619, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double eff_HFAGComb06_170[16] = {0.605787, 0.578117, 0.547522, 0.514300, 0.477677, 0.438749, 0.398180, 0.356216, 
+				   0.312656, 0.269716, 0.226998, 0.186131, 0.147879, 0.114668, 0.085525, 0.062853};
+  double eff_HFAGComb06_186[16] = {0.714094, 0.675221, 0.633312, 0.588422, 0.539377, 0.489057, 0.437297, 0.385160, 
+				   0.332502, 0.282105, 0.232871, 0.188258, 0.148133, 0.114668, 0.085525, 0.062853};
+  double erreff_HFAGComb06_150[16] = {0.000750, 0.000721, 0.000688, 0.000650, 0.000608, 0.000559, 0.000508, 0.000453, 
+				      0.000395, 0.000336, 0.000277, 0.000220, 0.000166, 0.000120, 0.000080, 0.000051};
+  double erreff_HFAGComb06_155[16] = {0.000818, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_HFAGComb06_1625[16] = {0.000909, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+  double erreff_HFAGComb06_170[16] = {0.000985, 0.000950, 0.000907, 0.000856, 0.000794, 0.000725, 0.000649, 0.000568, 
+				      0.000482, 0.000398, 0.000317, 0.000241, 0.000175, 0.000122, 0.000080, 0.000051};
+  double erreff_HFAGComb06_186[16] = {0.001074, 0.001053, 0.001016, 0.000964, 0.000895, 0.000814, 0.000722, 0.000624, 
+				      0.000521, 0.000423, 0.000328, 0.000245, 0.000175, 0.000122, 0.000080, 0.000051};
+
+  int DFN = (int)q2;
+
+  if (_shapeFunction == VirClass::eHFAGComb06) {
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_HFAGComb06_150[DFN]; temperreff = erreff_HFAGComb06_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_HFAGComb06_155[DFN]; temperreff = erreff_HFAGComb06_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_HFAGComb06_1625[DFN]; temperreff = erreff_HFAGComb06_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_HFAGComb06_170[DFN]; temperreff = erreff_HFAGComb06_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_HFAGComb06_186[DFN]; temperreff = erreff_HFAGComb06_186[DFN]; }
+  } else if (_shapeFunction == VirClass::eBabar05) {
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_Babar05_150[DFN]; temperreff = erreff_Babar05_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_Babar05_155[DFN]; temperreff = erreff_Babar05_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_Babar05_1625[DFN]; temperreff = erreff_Babar05_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_Babar05_170[DFN]; temperreff = erreff_Babar05_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_Babar05_186[DFN]; temperreff = erreff_Babar05_186[DFN]; }
+  } else if (_shapeFunction == VirClass::eBelle04) {
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_Belle04_150[DFN]; temperreff = erreff_Belle04_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_Belle04_155[DFN]; temperreff = erreff_Belle04_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_Belle04_1625[DFN]; temperreff = erreff_Belle04_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_Belle04_170[DFN]; temperreff = erreff_Belle04_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_Belle04_186[DFN]; temperreff = erreff_Belle04_186[DFN]; }
+  } else if (_shapeFunction == VirClass::summer07) {
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_OaH_150[DFN]; temperreff = erreff_OaH_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_OaH_155[DFN]; temperreff = erreff_OaH_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_OaH_1625[DFN]; temperreff = erreff_OaH_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_OaH_170[DFN]; temperreff = erreff_OaH_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_OaH_186[DFN]; temperreff = erreff_OaH_186[DFN]; }
+  } else {
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_OaH_150[DFN]; temperreff = erreff_OaH_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_OaH_155[DFN]; temperreff = erreff_OaH_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_OaH_1625[DFN]; temperreff = erreff_OaH_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_OaH_170[DFN]; temperreff = erreff_OaH_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_OaH_186[DFN]; temperreff = erreff_OaH_186[DFN]; }
+  }
+
+  if(isfitMC()) {
+    //CB take efficiencies as given in our hybrid MC
+    if (TMath::Abs(mx-1.50) < 1e-2) { tempeff = eff_OaH_150[DFN]; temperreff = erreff_OaH_150[DFN]; }
+    if (TMath::Abs(mx-1.55) < 1e-2) { tempeff = eff_OaH_155[DFN]; temperreff = erreff_OaH_155[DFN]; }
+    if (TMath::Abs(mx-1.625) < 1e-2) { tempeff = eff_OaH_1625[DFN]; temperreff = erreff_OaH_1625[DFN]; }
+    if (TMath::Abs(mx-1.70) < 1e-2) { tempeff = eff_OaH_170[DFN]; temperreff = erreff_OaH_170[DFN]; }
+    if (TMath::Abs(mx-1.86) < 1e-2) { tempeff = eff_OaH_186[DFN]; temperreff = erreff_OaH_186[DFN]; }
+  }
+
+  if(tempeff == 0. && temperreff == 0.) {
+    tempeff = 0.15;
+    temperreff = tempeff*0.2;
+    cout << "====================================================================================" << endl;
+    cout << "                                 W A R N I N G                                      " << endl;
+    cout << "                                     DFN                                            " << endl;
+    cout << " I am returning placeholders : " << tempeff << " +/- " << temperreff << endl;
+    cout << "====================================================================================" << endl;
+  }
+
+  return TVector2(tempeff,temperreff);
+}
+
+TVector2 VirClass::unfolPstarFact(Double_t &mx, Double_t &q2){
+
+  //pstar cut = 1 GeV
+  //  TVector1 passP;
+  TVector2 passP;
+  int  sta= (int)q2;
+  double temppstar(0.), errtemppstar(0.);
+  double PAP15[16]   = {1.23715, 1.25551, 1.26811, 1.29165, 1.29261, 1.2896, 1.29559, 1.2957, 1.27996, 1.2846, 1.27101, 1.28918, 1.29936, 1.32406, 1.27557, 1.27189};
+  double EPAP15[16]  = {0.0214753, 0.0219024, 0.0224019, 0.0231191, 0.0239167, 0.0247728, 0.0257019, 0.0269042, 0.0282522, 0.0300498, 0.0321516, 0.0349244, 0.038684, 0.0434051, 0.0484593, 0.0570456};
+
+  double PAP17[16]   = {1.21172, 1.23895, 1.25389, 1.28771, 1.29565, 1.29722, 1.30756, 1.30729, 1.28801, 1.29894, 1.27938, 1.2958, 1.30085, 1.32272, 1.27493, 1.27189};
+  double EPAP17[16]  = {0.0194593, 0.019976, 0.0205549, 0.0214273, 0.0223204, 0.0232822, 0.0244349, 0.0258431, 0.0272169, 0.0291953, 0.0315779, 0.0345462, 0.0384228, 0.0429103, 0.0477986, 0.0570456};
+
+  double PAP186[16]  = {1.21587, 1.2455, 1.2613, 1.29113, 1.30127, 1.29892, 1.30805, 1.30654, 1.29076, 1.30261, 1.28011, 1.29853, 1.29925, 1.32272, 1.27493, 1.27189};
+  double EPAP186[16] = {0.0186145, 0.0191336, 0.0197181, 0.0204908, 0.0215404, 0.0225245, 0.0237671, 0.0252331, 0.0265248, 0.0287882, 0.0312759, 0.0341493, 0.0384008, 0.0429103, 0.0477985, 0.0570456};
+
+  char pluto[200];
+  sprintf(pluto,"%3.2f",mx);
+  if(!strcmp(pluto,"1.50")){ 
+    temppstar =   PAP15[sta];
+    errtemppstar = EPAP15[sta];
+  }
+  if(!strcmp(pluto,"1.70")){
+    temppstar =   PAP17[sta];
+    errtemppstar = EPAP17[sta];
+  }
+  
+  if(!strcmp(pluto,"1.86")){
+    temppstar =   PAP186[sta];
+    errtemppstar = EPAP186[sta];
+  }
+  if(!(!strcmp(pluto,"1.50") || !strcmp(pluto,"1.70") || !strcmp(pluto,"1.86"))){
+    temppstar = 0.15;
+    errtemppstar = 0.15;
+    cout << "====================================================================================" << endl;
+    cout << "                                 W A R N I N G                                      " << endl;
+    cout << "                                                                                    " << endl;
+    cout << " I am returning placeholders : " << temppstar << " +/- " << errtemppstar << endl;
+    cout << "====================================================================================" << endl;
+  }
+  passP.Set(temppstar,errtemppstar);
+  return passP;
+  
+}
+//--------------------------------------------------------------------------------------------------
+void q2bkgsub(const TH1D* dat,const TH1D* bkg, const TH1D* oth, const int su, TH1D* histo)
+{
+  Double_t tempbin,temperr;
+  for(int i=1;i<dat->GetNbinsX()+1;i++) //1---8
+    {
+      //vubin+vubout-vcboht=vubin-(vcboth+vubout)+vubout
+      if(su)
+	tempbin=dat->GetBinContent(i)-bkg->GetBinContent(i)+(oth->GetBinContent(i));
+      else
+	tempbin=dat->GetBinContent(i)-bkg->GetBinContent(i);
+      temperr=sqrt(dat->GetBinError(i)*dat->GetBinError(i)+bkg->GetBinError(i)*bkg->GetBinError(i));
+      histo->SetBinContent(i,tempbin);
+      histo->SetBinError(i,temperr);
+    }
+}

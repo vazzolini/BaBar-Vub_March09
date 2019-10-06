@@ -1,0 +1,192 @@
+###########
+# pi l nu # 
+###########
+
+mkdir fitpi/ ;
+
+# signal MC  
+bsub -q medium -C 0 -o fitpi/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_pi.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitpi/
+bsub -q medium -C 0 -o fitpi/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_pi.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitpi/
+
+# generic MC
+bsub -q xlong -C 0 -o fitpi/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_pi.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitpi/
+
+#fit on data full q2 
+bsub -q xlong -C 0 -o fitpi/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi.dat -Mes mesparsetting.dat_excldatab0 -P testdata -ntp ntp1 -D fitpi/
+
+#fit on data full q2 argus fixed
+#bsub -q xlong -C 0 -o fitpi/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi.dat -Mes mesparsetting.dat_excldatab0_q2 -P testdata -ntp ntp1 -D fitpi/
+
+# fit on q2 BINS
+
+#fit on data 0 < q2 < 8 
+
+mkdir fitpi_q08/ ;
+
+bsub -q xlong -C 0 -o fitpi_q08/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi_q08.dat -Mes mesparsetting.dat_excldatab0_q2 -P pidataq08 -ntp ntp1 -D fitpi_q08/
+
+#fit on data 8 < q2 < 16 
+
+mkdir fitpi_q816/ ;
+bsub -q xlong -C 0 -o fitpi_q816/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi_q816.dat -Mes mesparsetting.dat_excldatab0_q2 -P pidataq816 -ntp ntp1 -D fitpi_q816/
+
+#fit on data 16 < q2 < 24 
+
+mkdir fitpi_q1624/ ;
+
+bsub -q xlong -C 0 -o fitpi_q1624/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi_q1624.dat -Mes mesparsetting.dat_excldatab0_q2 -P pidataq1624 -ntp ntp1 -D fitpi_q1624/
+
+############
+# pi0 l nu #
+############
+
+mkdir fitpi0/ ; 
+
+#signal MC 
+bsub -q medium -C 0 -o fitpi0/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_pi0.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitpi0/
+bsub -q medium -C 0 -o fitpi0/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_pi0.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitpi0/
+
+#generic MC
+bsub -q xlong -C 0 -o fitpi0/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_pi0.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitpi0/
+
+#fit on data full q2
+bsub -q xlong -C 0 -o fitpi0/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi0.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fitpi0/
+
+
+# fit on q2 BINS
+
+#fit on data 0 < q2 < 8 
+
+mkdir fitpi0_q08/ ;
+
+bsub -q xlong -C 0 -o fitpi0_q08/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi0_q08.dat -Mes mesparsetting.dat_excldatabp_q2 -P pi0dataq08 -ntp ntp1 -D fitpi0_q08/
+
+#fit on data 8 < q2 < 16 
+
+mkdir fitpi0_q816/ ;
+bsub -q xlong -C 0 -o fitpi0_q816/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi0_q816.dat -Mes mesparsetting.dat_excldatabp_q2 -P pi0dataq816 -ntp ntp1 -D fitpi0_q816/
+
+#fit on data 16 < q2 < 24 
+
+mkdir fitpi0_q1624/ ;
+
+bsub -q xlong -C 0 -o fitpi0_q1624/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_pi0_q1624.dat -Mes mesparsetting.dat_excldatabp_q2 -P pi0dataq1624 -ntp ntp1 -D fitpi_0q1624/
+
+
+#############
+# rho0 l nu #
+#############
+
+mkdir fitrho0/ ; 
+
+#signal MC
+bsub -q medium -C 0 -o fitrho0/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_rho0.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitrho0/
+bsub -q medium -C 0 -o fitrho0/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_rho0.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitrho0/
+
+#generic MC
+bsub -q xlong -C 0 -o fitrho0/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_rho0.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitrho0/
+
+#fit on data
+bsub -q xlong -C 0 -o fitrho0/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_rho0.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fitrho0/
+
+
+###########
+#rho l nu #
+###########
+
+mkdir fitrho/ ; 
+
+#signal MC
+bsub -q medium -C 0 -o fitrho/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_rho.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitrho/
+bsub -q medium -C 0 -o fitrho/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_rho.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitrho/
+
+#generic MC
+bsub -q xlong -C 0 -o fitrho/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_rho.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitrho/
+
+#fit on data
+bsub -q xlong -C 0 -o fitrho/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_rho.dat -Mes mesparsetting.dat_excldatab0 -P testdata -ntp ntp1 -D fitrho/
+
+
+##############
+# omega l nu #
+##############
+
+mkdir fitomega/ ; 
+
+#signal MC
+bsub -q medium -C 0 -o fitomega/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_omega.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitomega/
+bsub -q medium -C 0 -o fitomega/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_omega.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitomega/
+
+#generic MC 
+bsub -q xlong -C 0 -o fitomega/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_omega.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitomega/
+
+#fit on data
+bsub -q xlong -C 0 -o fitomega/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata.dat -C exclsettings/settingfit_data_omega.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fitomega/
+
+
+############
+# eta l nu #
+############
+
+mkdir fiteta/ ; 
+
+#signal MC
+bsub -q medium -C 0 -o fiteta/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_eta.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fiteta/
+bsub -q medium -C 0 -o fiteta/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_eta.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fiteta/
+
+#generic MC
+bsub -q xlong -C 0 -o fiteta/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_eta.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fiteta/
+
+#fit on data
+bsub -q xlong -C 0 -o fiteta/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata_eta.dat -C exclsettings/settingfit_data_eta.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fiteta/
+
+#############
+# etap l nu #
+#############
+
+mkdir fitetap/ ; 
+
+#signal MC
+bsub -q medium -C 0 -o fitetap/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_etap.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fitetap/
+bsub -q medium -C 0 -o fitetap/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_etap.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fitetap/
+
+#generic MC
+bsub -q xlong -C 0 -o fitetap/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_etap.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fitetap/
+
+#fit on data
+bsub -q xlong -C 0 -o fitetap/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata_etap.dat -C exclsettings/settingfit_data_etap.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fitetap/
+
+###########
+# a0 l nu #
+###########
+
+#mkdir fita0/ ; 
+
+#signal MC
+#bsub -q medium -C 0 -o fita0/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_a0.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fita0/
+#bsub -q medium -C 0 -o fita0/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_a0.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fita0/
+
+#generic MC
+#bsub -q xlong -C 0 -o fita0/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_a0.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fita0/
+
+#fit on data
+#bsub -q xlong -C 0 -o fita0/testdatafit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata_a0.dat -C exclsettings/settingfit_data_a0.dat -Mes mesparsetting.dat_excldatabp -P testdata -ntp ntp1 -D fita0/
+
+
+############
+# a0p l nu #
+############
+
+#mkdir fita0p/ ; 
+
+#signal MC
+#bsub -q medium -C 0 -o fita0p/testallsigfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesallsig.dat -C exclsettings/settingfit_mcfit_a0p.dat -Mes mesparsetting.dat_excl -P testallsig -ntp ntp1 -D fita0p/
+#bsub -q medium -C 0 -o fita0p/testresofit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesreso.dat -C exclsettings/settingfit_mcfit_a0p.dat -Mes mesparsetting.dat_excl -P testreso -ntp ntp1 -D fita0p/
+
+#generic MC
+#bsub -q xlong -C 0 -o fita0p/testgenfit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesgen.dat -C exclsettings/settingfit_mcfit_a0p.dat -Mes mesparsetting.dat_excl -P testgen -ntp ntp1 -D fita0p/
+
+#fit on data
+#bsub -q xlong -C 0 -o fita0p/testdataofffit.out ../bin/Linux24SL3_i386_gcc323/ExclFit -F inputfilesdata_a0p.dat -C exclsettings/settingfit_data_a0p.dat -Mes mesparsetting.dat_excldatab0 -P testdataoff -ntp ntp1 -D fita0p/
+
+

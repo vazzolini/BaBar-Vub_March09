@@ -1,0 +1,1248 @@
+
+void mXClass::Init(TTree *tree)
+{
+  //   Set branch addresses
+  if (tree == 0) return;
+  fChain    = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+
+  fChain->SetBranchAddress("run",&run);
+  fChain->SetBranchAddress("lower",&lower);
+  fChain->SetBranchAddress("upper",&upper);
+  fChain->SetBranchAddress("mes",&mes);
+  fChain->SetBranchAddress("de",&de);
+  fChain->SetBranchAddress("pur",&pur);
+  fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+  fChain->SetBranchAddress("Gvcbtyp",&Gvcbtyp);
+  fChain->SetBranchAddress("brecoidtrue",&brecoidtrue);
+  fChain->SetBranchAddress("GSem",&GSem);  
+  fChain->SetBranchAddress("GfDpi",&GfDpi); 
+  fChain->SetBranchAddress("GfDpiz",&GfDpiz);
+  fChain->SetBranchAddress("GfDk",&GfDk);  
+  fChain->SetBranchAddress("GfDks",&GfDks); 
+  fChain->SetBranchAddress("GfDkl",&GfDkl); 
+  fChain->SetBranchAddress("GfDlep",&GfDlep);
+  fChain->SetBranchAddress("GfDgam",&GfDgam);
+  if (fChain->FindBranch("GfK") != 0) {
+    fChain->SetBranchAddress("GfK", &GfK);
+    GfK = 0;
+  }
+  fChain->SetBranchAddress("intpur",&intpur);
+  fChain->SetBranchAddress("brecoflav",&brecoflav);
+  fChain->SetBranchAddress("brecocharge",&brecocharge);
+  fChain->SetBranchAddress("modeB",&modeB);
+  fChain->SetBranchAddress("truemodeB",&truemodeB);
+  fChain->SetBranchAddress("brecoqual",&brecoqual);
+  fChain->SetBranchAddress("vub",&vub);
+  fChain->SetBranchAddress("vcb",&vcb);
+  fChain->SetBranchAddress("other",&other);
+  fChain->SetBranchAddress("nle",&nle);
+  fChain->SetBranchAddress("nel",&nel);
+  fChain->SetBranchAddress("nmu",&nmu);
+  fChain->SetBranchAddress("nkp",&nkp);
+  fChain->SetBranchAddress("nks",&nks);
+  fChain->SetBranchAddress("nks_T",&nks_T);
+  fChain->SetBranchAddress("nks_VT",&nks_VT);
+  fChain->SetBranchAddress("nks_TVT",&nks_TVT);
+  fChain->SetBranchAddress("nchg",&nchg);
+  fChain->SetBranchAddress("chgdaugen",&chgdaugen);
+  fChain->SetBranchAddress("nneu",&nneu);
+  fChain->SetBranchAddress("neudaugen",&neudaugen);
+  fChain->SetBranchAddress("nneu80_160",&nneu80_160);
+  fChain->SetBranchAddress("nneu160_320",&nneu160_320);
+  fChain->SetBranchAddress("ctvgen",&ctvgen);
+  fChain->SetBranchAddress("ctlgen",&ctlgen);
+  fChain->SetBranchAddress("chigen",&chigen);
+  fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+  fChain->SetBranchAddress("pcmsgenwph",&pcmsgenwph);
+  fChain->SetBranchAddress("tcmsgen",&tcmsgen);
+  fChain->SetBranchAddress("fcmsgen",&fcmsgen);
+  fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+  fChain->SetBranchAddress("pxhadgen",&pxhadgen);
+  fChain->SetBranchAddress("txhadgen",&txhadgen);
+  fChain->SetBranchAddress("fxhadgen",&fxhadgen);
+  fChain->SetBranchAddress("exhadgen",&exhadgen);
+  fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+  fChain->SetBranchAddress("mxhadgenwoph",&mxhadgenwoph);
+  fChain->SetBranchAddress("xcharge",&xcharge);
+  fChain->SetBranchAddress("pxhad",&pxhad);
+  fChain->SetBranchAddress("txhad",&txhad);
+  fChain->SetBranchAddress("fxhad",&fxhad);
+  fChain->SetBranchAddress("exhad",&exhad);
+  fChain->SetBranchAddress("exhad",&exhad);
+  fChain->SetBranchAddress("mxhad",&mxhad);
+  fChain->SetBranchAddress("mxhadneucor",&mxhadneucor);
+  fChain->SetBranchAddress("mxhadfit",&mxhadfit);
+  fChain->SetBranchAddress("lcharge",&lcharge);
+  fChain->SetBranchAddress("pcms",&pcms);
+  fChain->SetBranchAddress("tcms",&tcms);
+  fChain->SetBranchAddress("fcms",&fcms);
+  fChain->SetBranchAddress("ecms",&ecms);
+  fChain->SetBranchAddress("plab",&plab);
+  fChain->SetBranchAddress("tlab",&tlab);
+  fChain->SetBranchAddress("flab",&flab);
+  fChain->SetBranchAddress("pnu",&pnu);
+  fChain->SetBranchAddress("tnu",&tnu);
+  fChain->SetBranchAddress("fnu",&fnu);
+  fChain->SetBranchAddress("pplus",&pplus);
+  fChain->SetBranchAddress("pplusgen",&pplusgen);
+  fChain->SetBranchAddress("pplusfit",&pplusfit);
+  fChain->SetBranchAddress("pminus",&pminus);
+  fChain->SetBranchAddress("pminusgen",&pminusgen);
+  fChain->SetBranchAddress("pminusfit",&pminusfit);
+  fChain->SetBranchAddress("mm2",&mm2);
+  fChain->SetBranchAddress("mm2neucor",&mm2neucor);
+  fChain->SetBranchAddress("deltam",&deltam);
+  fChain->SetBranchAddress("wdeltam",&wdeltam);
+  fChain->SetBranchAddress("wdeltampiz",&wdeltampiz);
+  fChain->SetBranchAddress("q2",&q2);
+  fChain->SetBranchAddress("q2neucor",&q2neucor);
+  fChain->SetBranchAddress("q2fit",&q2fit);
+  fChain->SetBranchAddress("q2Gen",&q2Gen);
+  fChain->SetBranchAddress("nnpi0",&nnpi0);
+  fChain->SetBranchAddress("totweight",&totweight);
+  fChain->SetBranchAddress("totweightNutMult",&totweightNutMult);
+  fChain->SetBranchAddress("totweightTrkMult",&totweightTrkMult);
+  fChain->SetBranchAddress("kplus",&fkplus);
+  fChain->SetBranchAddress("emiss",&emiss);
+  fChain->SetBranchAddress("pmiss",&pmiss);
+  fChain->SetBranchAddress("emissneucor",&emissneucor);
+  fChain->SetBranchAddress("pmissneucor",&pmissneucor);
+  fChain->SetBranchAddress("neu1B",&neu1B);
+  fChain->SetBranchAddress("ch1B",&ch1B);
+  fChain->SetBranchAddress("KSdecaylenSig",KSdecaylenSig);
+  fChain->SetBranchAddress("KSmass",KSmass);
+  fChain->SetBranchAddress("KScosp",KScosp);
+  //for the different track and neutral lists
+  fChain->SetBranchAddress("eUps",&eUps);
+  fChain->SetBranchAddress("pUps",&pUps);
+  fChain->SetBranchAddress("thetaUps",&thetaUps);
+  fChain->SetBranchAddress("phiUps",&phiUps);
+  fChain->SetBranchAddress("eB",&eB);
+  fChain->SetBranchAddress("pB",&pB);
+  fChain->SetBranchAddress("elab",&elab);
+  fChain->SetBranchAddress("plab",&plab);
+  fChain->SetBranchAddress("tlab",&tlab);
+  fChain->SetBranchAddress("flab",&flab);
+  fChain->SetBranchAddress("thetaB",&thetaB);
+  fChain->SetBranchAddress("phiB",&phiB);
+  fChain->SetBranchAddress("esigBcms",&esigBcms);
+  fChain->SetBranchAddress("psigBcms",&psigBcms);
+  fChain->SetBranchAddress("thetasigBcms",&thetasigBcms);
+  fChain->SetBranchAddress("phisigBcms",&phisigBcms);
+  fChain->SetBranchAddress("elab",&elab);
+  fChain->SetBranchAddress("numchtrk",&numchtrk);
+  fChain->SetBranchAddress("trke",trke);
+  fChain->SetBranchAddress("trkp",trkp);
+  fChain->SetBranchAddress("trktheta",trktheta);
+  fChain->SetBranchAddress("trkphi",trkphi);
+  fChain->SetBranchAddress("trkecms",trkecms);
+  fChain->SetBranchAddress("trkpcms",trkpcms);
+  fChain->SetBranchAddress("trkthetacms",trkthetacms);
+  fChain->SetBranchAddress("trkphicms",trkphicms);
+  fChain->SetBranchAddress("trkK",trkK);
+  fChain->SetBranchAddress("trkel",trkel);
+  fChain->SetBranchAddress("trkmu",trkmu);
+  fChain->SetBranchAddress("numtotneutrk",&numtotneutrk);
+  fChain->SetBranchAddress("neue",neue);
+  fChain->SetBranchAddress("neup",neup);
+  fChain->SetBranchAddress("neutheta",neutheta);
+  fChain->SetBranchAddress("neuphi",neuphi);
+  fChain->SetBranchAddress("neuecms",neuecms);
+  fChain->SetBranchAddress("neupcms",neupcms);
+  fChain->SetBranchAddress("neuthetacms",neuthetacms);
+  fChain->SetBranchAddress("neuphicms",neuphicms);
+  fChain->SetBranchAddress("isneumx",isneumx);
+  fChain->SetBranchAddress("isneuphloose",isneuphloose);
+  fChain->SetBranchAddress("isneuphdefault",isneuphdefault);
+   //the new variables from my Aug08 production and Robertos FF vars
+   fChain->SetBranchAddress("Xulabpx",&Xulabpx);
+   fChain->SetBranchAddress("Xulabpy",&Xulabpy);
+   fChain->SetBranchAddress("Xulabpz",&Xulabpz);
+   fChain->SetBranchAddress("XulabpE",&XulabpE);
+   fChain->SetBranchAddress("Xudaulabpx",&Xudaulabpx);
+   fChain->SetBranchAddress("Xudaulabpy",&Xudaulabpy);
+   fChain->SetBranchAddress("Xudaulabpz",&Xudaulabpz);
+   fChain->SetBranchAddress("XudaulabpE",&XudaulabpE);
+   fChain->SetBranchAddress("pxBlab",&pxBlab);
+   fChain->SetBranchAddress("pyBlab",&pyBlab);
+   fChain->SetBranchAddress("pzBlab",&pzBlab);
+   fChain->SetBranchAddress("pEBlab",&pEBlab);
+   fChain->SetBranchAddress("KSprodratecorr",KSprodratecorr);
+   fChain->SetBranchAddress("KSp",KSp);
+   fChain->SetBranchAddress("KStheta",KStheta);
+   fChain->SetBranchAddress("KSphi",KSphi);
+   fChain->SetBranchAddress("KSe",KSe);
+   fChain->SetBranchAddress("KLnum",&KLnum);
+   fChain->SetBranchAddress("KLprodratecorr",KLprodratecorr);
+   fChain->SetBranchAddress("KLp",KLp);
+   fChain->SetBranchAddress("KLtheta",KLtheta);
+   fChain->SetBranchAddress("KLphi",KLphi);
+   fChain->SetBranchAddress("KLe",KLe);
+   fChain->SetBranchAddress("KLptrue",KLptrue);
+   fChain->SetBranchAddress("KLthetatrue",KLthetatrue);
+   fChain->SetBranchAddress("KLphitrue",KLphitrue);
+   fChain->SetBranchAddress("KLetrue",KLetrue);
+   fChain->SetBranchAddress("tnumKS",&tnumKS);
+   fChain->SetBranchAddress("tpupsKS",tpupsKS);
+   fChain->SetBranchAddress("tnumKL",&tnumKL);
+   fChain->SetBranchAddress("tpupsKL",tpupsKL);
+   fChain->SetBranchAddress("dEdxDCHPullpi",&dEdxDCHPullpi);
+   fChain->SetBranchAddress("dEdxSVTPullpi",&dEdxSVTPullpi);
+   fChain->SetBranchAddress("dEdxDCHLLRatio",&dEdxDCHLLRatio);
+   fChain->SetBranchAddress("dEdxDCHLLRatio",&dEdxDCHLLRatio);
+
+
+/*
+  fChain->SetBranchAddress("mm1pr",&mm1pr);
+  fChain->SetBranchAddress("mm2pr",&mm2pr);
+  fChain->SetBranchAddress("mm3pr",&mm3pr);
+  fChain->SetBranchAddress("costmiss",&costmiss);
+  fChain->SetBranchAddress("tmiss",&tmiss);
+  fChain->SetBranchAddress("pcmstrklo",&pcmstrklo);
+*/
+  Notify();
+}
+
+//-----------------------------------------------------------
+Bool_t mXClass::Notify()
+{
+  //   called when loading a new file
+  //   get branch pointers
+  b_run = fChain->GetBranch("run");
+  b_lower = fChain->GetBranch("lower");
+  b_upper = fChain->GetBranch("upper");
+  b_mes = fChain->GetBranch("mes");
+  b_de = fChain->GetBranch("de");
+  b_pur = fChain->GetBranch("pur");
+  b_nle = fChain->GetBranch("nle");
+  b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+  b_Gvcbtyp=    fChain->GetBranch("Gvcbtyp");
+  b_brecoidtrue=    fChain->GetBranch("brecoidtrue");
+  b_GSem=       fChain->GetBranch("GSem");  
+  b_GfDpi=      fChain->GetBranch("GfDpi");  
+  b_GfDpiz=     fChain->GetBranch("GfDpiz");
+  b_GfDk=       fChain->GetBranch("GfDk");  
+  b_GfDks=      fChain->GetBranch("GfDks"); 
+  b_GfDkl=      fChain->GetBranch("GfDkl"); 
+  b_GfDlep=     fChain->GetBranch("GfDlep");
+  b_GfDgam=     fChain->GetBranch("GfDgam");
+  b_GfK=        fChain->GetBranch("GfK");
+  b_intpur = fChain->GetBranch("intpur");
+  b_brecoflav = fChain->GetBranch("brecoflav");
+  b_brecocharge = fChain->GetBranch("brecocharge");
+  b_modeB = fChain->GetBranch("modeB");
+  b_truemodeB = fChain->GetBranch("truemodeB");
+  b_brecoqual = fChain->GetBranch("brecoqual");
+  b_vub = fChain->GetBranch("vub");
+  b_vcb = fChain->GetBranch("vcb");
+  b_other = fChain->GetBranch("other");
+  b_ctvgen = fChain->GetBranch("ctvgen");
+  b_ctlgen = fChain->GetBranch("ctlgen");
+  b_chigen = fChain->GetBranch("chigen");
+  b_pcmsgen = fChain->GetBranch("pcmsgen");
+  b_pcmsgenwph = fChain->GetBranch("pcmsgenwph");
+  b_tcmsgen = fChain->GetBranch("tcmsgen");
+  b_fcmsgen = fChain->GetBranch("fcmsgen");
+  b_ecmsgen = fChain->GetBranch("ecmsgen");
+  b_pxhadgen = fChain->GetBranch("pxhadgen");
+  b_txhadgen = fChain->GetBranch("txhadgen");
+  b_fxhadgen = fChain->GetBranch("fxhadgen");
+  b_exhadgen = fChain->GetBranch("exhadgen");
+  b_mxhadgen = fChain->GetBranch("mxhadgen");
+  b_mxhadgenwoph = fChain->GetBranch("mxhadgenwoph");
+  b_xcharge = fChain->GetBranch("xcharge");
+  b_pxhad = fChain->GetBranch("pxhad");
+  b_txhad = fChain->GetBranch("txhad");
+  b_fxhad = fChain->GetBranch("fxhad");
+  b_exhad = fChain->GetBranch("exhad");
+  b_mxhad = fChain->GetBranch("mxhad");
+  b_mxhadneucor = fChain->GetBranch("mxhadneucor");
+  b_mxhadfit = fChain->GetBranch("mxhadfit");
+  b_lcharge = fChain->GetBranch("lcharge");
+  b_pcms = fChain->GetBranch("pcms");
+  b_tcms = fChain->GetBranch("tcms");
+  b_fcms = fChain->GetBranch("fcms");
+  b_ecms = fChain->GetBranch("ecms");
+  b_pcms = fChain->GetBranch("plab");
+  b_tcms = fChain->GetBranch("tlab");
+  b_fcms = fChain->GetBranch("flab");
+  b_pnu = fChain->GetBranch("pnu");
+  b_tnu = fChain->GetBranch("tnu");
+  b_fnu = fChain->GetBranch("fnu");
+  b_pplus = fChain->GetBranch("pplus");
+  b_pplusgen = fChain->GetBranch("pplusgen");
+  b_pplusfit = fChain->GetBranch("pplusfit");
+  b_pminus = fChain->GetBranch("pminus");
+  b_pminusgen = fChain->GetBranch("pminusgen");
+  b_pminusfit = fChain->GetBranch("pminusfit");
+  b_mm2 = fChain->GetBranch("mm2");
+  b_mm2neucor = fChain->GetBranch("mm2neucor");
+  b_emiss = fChain->GetBranch("emiss");
+  b_pmiss = fChain->GetBranch("pmiss");
+  b_emissneucor = fChain->GetBranch("emissneucor");
+  b_pmissneucor = fChain->GetBranch("pmissneucor");
+  b_deltam = fChain->GetBranch("deltam");
+  b_wdeltam = fChain->GetBranch("wdeltam");
+  b_wdeltampiz = fChain->GetBranch("wdeltampiz");
+  b_nnpi0 = fChain->GetBranch("nnpi0");
+  b_q2 = fChain->GetBranch("q2");
+  b_q2neucor = fChain->GetBranch("q2neucor");
+  b_q2fit = fChain->GetBranch("q2fit");
+  b_q2Gen = fChain->GetBranch("q2Gen");
+  b_kplus = fChain->GetBranch("kplus");
+  b_neudaugen = fChain->GetBranch("neudaugen");
+  b_chgdaugen = fChain->GetBranch("chgdaugen");
+  b_neu1B = fChain->GetBranch("neu1B");
+  b_ch1B = fChain->GetBranch("ch1B");
+  b_eUps = fChain->GetBranch("eUps");
+  b_pUps = fChain->GetBranch("pUps");
+  b_thetaUps = fChain->GetBranch("thetaUps");
+  b_phiUps = fChain->GetBranch("phiUps");
+  b_eB = fChain->GetBranch("eB");
+  b_pB = fChain->GetBranch("pB");
+  b_thetaB = fChain->GetBranch("thetaB");
+  b_phiB = fChain->GetBranch("phiB");
+  b_esigBcms = fChain->GetBranch("esigBcms");
+  b_psigBcms = fChain->GetBranch("psigBcms");
+  b_thetasigBcms = fChain->GetBranch("thetasigBcms");
+  b_phisigBcms = fChain->GetBranch("phisigBcms");
+  b_elab = fChain->GetBranch("elab");
+  b_plab = fChain->GetBranch("plab");
+  b_tlab = fChain->GetBranch("tlab");
+  b_flab = fChain->GetBranch("flab");
+  b_numchtrk = fChain->GetBranch("numchtrk");
+  b_trke = fChain->GetBranch("trke");
+  b_trkp = fChain->GetBranch("trkp");
+  b_trktheta = fChain->GetBranch("trktheta");
+  b_trkphi = fChain->GetBranch("trkphi");
+  b_trkecms = fChain->GetBranch("trkecms");
+  b_trkpcms = fChain->GetBranch("trkpcms");
+  b_trkthetacms = fChain->GetBranch("trkthetacms");
+  b_trkphicms = fChain->GetBranch("trkphicms");
+  b_trkK = fChain->GetBranch("trkK");
+  b_trkel = fChain->GetBranch("trkel");
+  b_trkmu = fChain->GetBranch("trkmu");
+  b_numtotneutrk = fChain->GetBranch("numtotneutrk");
+  b_neue = fChain->GetBranch("neue");
+  b_neup = fChain->GetBranch("neup");
+  b_neutheta = fChain->GetBranch("neutheta");
+  b_neuphi = fChain->GetBranch("neuphi");
+  b_neuecms = fChain->GetBranch("neuecms");
+  b_neupcms = fChain->GetBranch("neupcms");
+  b_neuthetacms = fChain->GetBranch("neuthetacms");
+  b_neuphicms = fChain->GetBranch("neuphicms");
+  b_isneumx = fChain->GetBranch("isneumx");
+  b_isneuphloose = fChain->GetBranch("isneuphloose");
+  b_isneuphdefault = fChain->GetBranch("isneuphdefault");
+   //the new variables from my Aug08 production and Robertos FF vars
+   b_Xulabpx = fChain->GetBranch("Xulabpx");
+   b_Xulabpy = fChain->GetBranch("Xulabpy");
+   b_Xulabpz = fChain->GetBranch("Xulabpz");
+   b_XulabpE = fChain->GetBranch("XulabpE");
+   b_Xudaulabpx = fChain->GetBranch("Xudaulabpx");
+   b_Xudaulabpy = fChain->GetBranch("Xudaulabpy");
+   b_Xudaulabpz = fChain->GetBranch("Xudaulabpz");
+   b_XudaulabpE = fChain->GetBranch("XudaulabpE");
+   b_pxBlab = fChain->GetBranch("pxBlab");
+   b_pyBlab = fChain->GetBranch("pyBlab");
+   b_pzBlab = fChain->GetBranch("pzBlab");
+   b_pEBlab = fChain->GetBranch("pEBlab");
+   b_KSprodratecorr = fChain->GetBranch("KSprodratecorr");
+   b_KSp = fChain->GetBranch("KSp");
+   b_KStheta = fChain->GetBranch("KStheta");
+   b_KSphi = fChain->GetBranch("KSphi");
+   b_KSe = fChain->GetBranch("KSe");
+   b_KLnum = fChain->GetBranch("KLnum");
+   b_KLprodratecorr = fChain->GetBranch("KLprodratecorr");
+   b_KLp = fChain->GetBranch("KLp");
+   b_KLtheta = fChain->GetBranch("KLtheta");
+   b_KLphi = fChain->GetBranch("KLphi");
+   b_KLe = fChain->GetBranch("KLe");
+   b_KLptrue = fChain->GetBranch("KLptrue");
+   b_KLthetatrue = fChain->GetBranch("KLthetatrue");
+   b_KLphitrue = fChain->GetBranch("KLphitrue");
+   b_KLetrue = fChain->GetBranch("KLetrue");
+   b_tnumKS = fChain->GetBranch("tnumKS");
+   b_tpupsKS = fChain->GetBranch("tpupsKS");
+   b_tnumKL = fChain->GetBranch("tnumKL");
+   b_tpupsKL = fChain->GetBranch("tpupsKL");
+   b_dEdxDCHPullpi = fChain->GetBranch("dEdxDCHPullpi");
+   b_dEdxDVTPullpi = fChain->GetBranch("dEdxSVTPullpi");
+   b_dEdxDCHLLRatio = fChain->GetBranch("dEdxDCHLLRatio");
+   b_dEdxSVTLLRatio = fChain->GetBranch("dEdxDCHLLRatio");
+
+  return kTRUE;
+}
+
+// For the extra MC truth 
+void mXClass::InitTruth(TTree *tree)
+{
+  //   Set branch addresses
+  if (tree == 0) return;
+  fChain    = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+
+  fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+  fChain->SetBranchAddress("brecoidtrue",&brecoidtrue);
+  if (fChain->FindBranch("Gfk") != 0) {
+    fChain->SetBranchAddress("Gfk", &GfK);
+    GfK = 0;
+  }
+  fChain->SetBranchAddress("vub",&vub);
+  fChain->SetBranchAddress("vcb",&vcb);
+  fChain->SetBranchAddress("neudaugen",&neudaugen);
+  fChain->SetBranchAddress("chgdaugen",&chgdaugen);
+  fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+  fChain->SetBranchAddress("pcmsgenwph",&pcmsgenwph);
+  fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+  fChain->SetBranchAddress("q2gen",&q2Gen);
+  fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+  fChain->SetBranchAddress("mxhadgenwoph",&mxhadgenwoph);
+
+  NotifyTruth();
+}
+
+Bool_t mXClass::NotifyTruth()
+{
+  //   called when loading a new file
+  //   get branch pointers
+  b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+  b_brecoidtrue=    fChain->GetBranch("brecoidtrue");
+  b_GfK=        fChain->GetBranch("GfK");
+  b_vub = fChain->GetBranch("vub");
+  b_vcb = fChain->GetBranch("vcb");
+  b_pcmsgen = fChain->GetBranch("pcmsgen");
+  b_pcmsgenwph = fChain->GetBranch("pcmsgenwph");
+  b_ecmsgen = fChain->GetBranch("ecmsgen");
+  b_q2Gen = fChain->GetBranch("q2gen");
+  b_mxhadgenwoph = fChain->GetBranch("mxhadgenwoph");
+  b_neudaugen = fChain->GetBranch("neudaugen");
+  b_chgdaugen = fChain->GetBranch("chgdaugen");
+
+  return kTRUE;
+}
+
+// ----------------------------------------------------------------------
+void mXClass::Show(Int_t entry) {
+  // Print contents of entry.
+  // If entry is not specified, print current entry
+  if (!fChain) return;
+  fChain->Show(entry);
+}
+
+// ----------------------------------------------------------------------
+Int_t mXClass::Cut(Int_t entry) {
+  // This function may be called from Loop.
+  // returns  1 if entry is accepted.
+  // returns -1 otherwise.
+  return -1;
+}
+
+// ----------------------------------------------------------------------
+Int_t mXClass::GetEntry(Int_t entry) {
+  // Read contents of entry.
+  return 0;
+}
+
+// ----------------------------------------------------------------------
+Int_t mXClass::LoadTree(Int_t entry) {
+  return 0;
+}
+
+// ---------------------------------------------------------------------- 
+void mXClass::initRest(TString weightFile) {
+  nDATA = nVCB = nVUB = nVUBDATA= nVCBDATA = 1111111111;
+  FILEVUBTOTAL = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/newallvubcock.root";
+  FILEVCB = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/all-cocktail.root";
+  FILEDATA = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/allgeneric.root";
+
+  MXCUT = 1.6;
+  CHOPCUT = MXCUT;
+
+  USECB = 1;
+//   FIXMEANVALUE = 1;
+//   FIXSIGMA = 0;
+//   FIXARGUS1 = 0;
+//   FIXARGUS2 = 0;
+//   FIXCB1 = 0;
+//   FIXCB2 = 0;
+  LEPTONPCUT = 1.;
+  TRUELEPTONPCUT = 1.;
+  //  PCMSTRKLOCUT = -10000.;
+  MNUSQLOW = -1000.;
+  MNUSQHIGH = 0.5;
+  EMPMLOW = -0.2;
+  EMPMHIGH = 0.25;
+  CHLOW = -.5;
+  CHHIGH = .5;
+  PRMM2CUT = 1000000;
+  NEUCUT = 0.;
+  DEPL = 1.;
+  BTYPE = 2;
+  LEPTTYPE = 2;
+  MIXCORR = 2;
+  //   FITOPT = 1;
+  FITOPT = 0;
+  DOBRECOWEIGHT = 0;
+  DOBDECWEIGHT = 0;
+  DODDECWEIGHT = 0;
+  DOFFWEIGHT = 0;
+  DOSSBARWEIGHT = 0;
+  DOMESMEANCORR = 0;
+  MAXINTPUR = 1000.;
+  MININTPUR = 0.;
+  RUN = 0;
+  fprlRew = 0;
+  BRECOQUAL = 0;
+  NUCUT = 1;
+  NEUCORR = 0;
+  UNFFIT = 0;
+  RECOMPUTEVARS =0;
+
+  // --- prepare a default binning  ---
+  // chopBinning can be over written by user binning, but is not used anymore
+  // chopB1 can be over written by the InitBinning()
+
+  double mxBinning[10] = {MXBIN,1.9,2.2,2.5,2.8,3.1,3.4,3.7,4.2,5.};
+  double unfBinning[26]; // Binning for the Unfolding, KT
+  for(int u=0;u<26;u++){
+    unfBinning[u]=(double)u*5./25.;
+    chopBinningUnf[u]=(double)u*5./25.;
+  }
+ 
+  chopBinning = std::vector<double>(&mxBinning[0], &mxBinning[10]);
+  chopB1 = chopBinning;
+
+  // initialize weight file
+  fWeightFile=weightFile;
+
+  return;
+}
+
+// ----------------------------------------------------------------------
+//! init binning
+void mXClass::InitBinning()
+{
+
+  chopB1 = mxB1;
+
+  if (UNFBINNING>0) { // Equidistant mX binning, KT
+    std::cout << "UNFBINNING ON" << std::endl;
+
+    chopB1.resize(UNFBINNING+1);
+    for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*chophighB/(UNFBINNING);
+
+    if(UNFFIT==8){//Qtot
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+3.)/(UNFBINNING) -3.;
+    }
+    if(UNFFIT==9){//emiss-pmiss
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+2.)/(UNFBINNING) -2.;
+    }
+    if(UNFFIT==10 || (UNFFIT>42 && UNFFIT<50) ){//mm2
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+5.)/(UNFBINNING) - 5.;
+    }
+    if(UNFFIT==11){//wdeltam
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+15.)/(UNFBINNING) - 15.;
+    }
+    if(UNFFIT==15){//KSdecaylenSig
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+100.)/(UNFBINNING) - 100.;
+    }
+    if(UNFFIT==16){//KSmass
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB-0.47)/(UNFBINNING) + 0.47;
+    }
+    if(UNFFIT==17){//KScosp
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+1.)/(UNFBINNING) - 1.;
+    }
+    if(UNFFIT==18){//f=mm2/q2
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+1.5)/(UNFBINNING) - 1.;
+    }
+    if(UNFFIT==19){//Eneu
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB)/(UNFBINNING);
+    }
+    if(UNFFIT==20){//ptrk
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB)/(UNFBINNING);
+    }
+    if(UNFFIT==54){//wdeltampiz
+      for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*(chophighB+15.)/(UNFBINNING) - 15.;
+    }
+
+  }
+
+  nB = chopB1.size();
+
+  // --- make print out of used binning ---
+  std::string type; 
+  for (int i=0; i<chopB1.size(); i++) {
+    std::cout << " ........." << type << " .........." << chopB1[i] << std::endl;
+  }
+
+  return;
+}
+
+// ----------------------------------------------------------------------
+void mXClass::readOptions(TString filename, int dump) {
+  char  buffer[200];
+  fOptionFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char OptionName[100];
+  char OptionValue[100];
+  float isc(0);
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    //     if (buffer[0] == '/') {continue;}
+    isc = 0; sprintf(OptionName,""); sprintf(OptionValue,"");
+    sscanf(buffer, "%s %s %f", OptionName, OptionValue, &isc);
+    // -- 
+    if (!strcmp(OptionName, "fileVubTotal")) { FILEVUBTOTAL  = OptionValue; ischain[mXClass::VubTotal] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalres")) { FILEVUBTOTALRES  = OptionValue; ischain[mXClass::VubTotalres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalnres")) { FILEVUBTOTALNRES  = OptionValue; ischain[mXClass::VubTotalnres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVcb")) { FILEVCB= OptionValue; ischain[mXClass::Vcb] = bool(isc); ok = 1;}    
+    if (!strcmp(OptionName, "fileVcb1")) { FILEVCB1= OptionValue; ischain[mXClass::Vcb1] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVcb2")) { FILEVCB2= OptionValue; ischain[mXClass::Vcb2] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileData")) { FILEDATA= OptionValue; ischain[mXClass::Data] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTruthres")) { FILEVUBTRUTHRES= OptionValue; ischain[mXClass::VubTruthres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTruthnres")) { FILEVUBTRUTHNRES= OptionValue; ischain[mXClass::VubTruthnres] = bool(isc); ok = 1;}
+
+    if (ok == 0)  cout << "==> fitNtp::readOptions() Error: Don't know about variable " << OptionName << endl;
+  }
+
+  if (dump == 1) dumpOptions();
+
+}
+
+// ----------------------------------------------------------------------
+void mXClass::readCuts(const TString filename, int dump, const int runFlag)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  } else {
+    std::cout <<"Reading cut file " << filename << std::endl;
+  }
+
+  std::string buffer;
+  while(getline(is, buffer, '\n')) {
+    if (buffer.empty()) continue;
+    if (buffer[0] == '#') continue;
+    if (buffer[0] == '/') continue;
+    if (buffer[0] == '@') { //used @ just to identify the correct line
+      CMDLINE = buffer; CMDLINE.erase(0,1);
+      continue;
+    }
+
+    int ok(0);
+
+    std::istringstream bufferstream(buffer.c_str());
+    std::string CutName; 
+    float CutValue; // xxx change this to double after all modifications
+
+    bufferstream >> CutName >> CutValue;
+
+    if (CutName == "ndata")             { nDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvcb")              { nVCB = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvub")              { nVUB = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvcbdata")          { nVCBDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvubdata")          { nVUBDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "mxBin")             { MXBIN = CutValue; ok = 1;}    
+    if (CutName == "mxCut")             { MXCUT = CutValue; ok = 1;}
+    if (CutName == "q2Cut")             { Q2CUT = CutValue; ok = 1;}
+    if (CutName == "useCB")             { USECB = int(CutValue); ok = 1;}
+    if (CutName == "fixMeanValue")      { FIXMEANVALUE = int(CutValue); ok = 1;}
+    if (CutName == "fixSigma")          { FIXSIGMA = int(CutValue); ok = 1;}
+    if (CutName == "fixArgus1")         { FIXARGUS1 = int(CutValue); ok = 1;}
+    if (CutName == "fixArgus2")         { FIXARGUS2 = int(CutValue); ok = 1;}
+    if (CutName == "fixCB1")            { FIXCB1 = int(CutValue); ok = 1;}
+    if (CutName == "fixCB2")            { FIXCB2 = int(CutValue); ok = 1;}
+    if (CutName == "leptonPCut")        { LEPTONPCUT = CutValue; ok = 1;}
+    if (CutName == "TrueleptonPCut")    { TRUELEPTONPCUT = CutValue; ok = 1;}
+    if (CutName == "prmm2Cut")          { PRMM2CUT = CutValue; ok = 1;}
+    if (CutName == "neuCut")            { NEUCUT = CutValue; ok = 1;}
+    if (CutName == "mnuSqLow")          { MNUSQLOW = CutValue; ok = 1;}
+    if (CutName == "mnuSqHigh")         { MNUSQHIGH = CutValue; ok = 1;}
+    if (CutName == "EmpmLow")           { EMPMLOW = CutValue; ok = 1;}
+    if (CutName == "EmpmHigh")          { EMPMHIGH = CutValue; ok = 1;}
+    if (CutName == "chLow")             { CHLOW = CutValue; ok = 1;}
+    if (CutName == "chHigh")            { CHHIGH = CutValue; ok = 1;}
+    if (CutName == "depl")              { DEPL = CutValue; ok = 1;}
+    if (CutName == "Btype")             { BTYPE = CutValue; ok = 1;}
+    if (CutName == "lepttype")          { LEPTTYPE = CutValue; ok = 1;}
+    if (CutName == "mixcorr")           { MIXCORR = int(CutValue); ok = 1;}
+    if (CutName == "fitOption")         { FITOPT = int(CutValue); ok = 1;}
+    if (CutName == "vcbcomp")           { VCBCOMP = CutValue; ok = 1;}
+    if (CutName == "othcomp")           { OTHCOMP = CutValue; ok = 1;}
+    if (CutName == "dovarstu")          { DOVARSTU = int(CutValue); ok = 1;}
+    if (CutName == "dobrecoreweight")   { DOBRECOWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doBdecreweight")    { DOBDECWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doDdecreweight")    { DODDECWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doFFreweight")      { DOFFWEIGHT = int(CutValue); ok = 1;} // 1 Babar default
+    if (CutName == "dossbarweight")      { DOSSBARWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "domesmeancorr")     { DOMESMEANCORR = int(CutValue); ok = 1;}
+    if (CutName == "maxintpur")         { MAXINTPUR = CutValue; ok = 1;}
+    if (CutName == "minintpur")         { MININTPUR = CutValue; ok = 1;}
+    if (CutName == "run")               { RUN = CutValue; ok = 1;}
+    if (CutName == "rew")               { fprlRew = (Int_t)CutValue; ok = 1;}
+    if (CutName == "mesfitmodel")       { MESFITMODEL = (Int_t)CutValue; ok = 1;}
+    if (CutName == "brecoqual")         { BRECOQUAL = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nucut")             { NUCUT = (Int_t)CutValue; ok = 1; }
+    if (CutName == "neucorr")           { NEUCORR = (Int_t)CutValue; ok = 1;}
+    if (CutName == "unffit")            { UNFFIT = (Int_t)CutValue; ok = 1; }
+    if (CutName == "recomputevars")     { RECOMPUTEVARS = (Int_t)CutValue; ok = 1; }
+    if (CutName == "userbinning" && CutValue == 1) {
+      chopBinning.resize(nB);
+      for (int y=0;y<nB-1;y++){
+	getline(is, buffer, '\n');
+
+	std::istringstream bufferstream(buffer.c_str());
+	std::string CutName; 
+	float CutValue; // xxx change this to double after all modifications
+
+	bufferstream >> CutName >> CutValue;
+
+	chopBinning[y] = CutValue;
+	std::cout << "chop bin " << y << " " << chopBinning[y] << std::endl;
+      }
+      ok = 1;
+    }
+    
+    if (ok == 0) std::cout << "==> fitNtp::readCuts() Error: Don't know about variable " << CutName << std::endl;
+  } // while(getline())
+  
+  CHOPCUT = MXCUT;
+  CHOPBIN = MXBIN;
+
+  if (dump == 1) dumpCuts(filename);
+
+  readWeights(runFlag);
+
+  return;
+}
+
+
+// ----------------------------------------------------------------------
+void mXClass::dumpOptions() {
+  cout << "====================================" << endl;
+  cout << " Option file " << fOptionFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " fileVubTotal        :"  << FILEVUBTOTAL   <<  endl;  
+  cout << " fileVubTotalres     :"  << FILEVUBTOTALRES   <<  endl;  
+  cout << " fileVubTotalnres    :"  << FILEVUBTOTALNRES   <<  endl;  
+  cout << " fileVcb             :"  << FILEVCB   <<  endl;  
+  cout << " fileVcb1            :"  << FILEVCB1   <<  endl;  
+  cout << " fileVcb2            :"  << FILEVCB2   <<  endl;  
+  cout << " fileData            :"  << FILEDATA   <<  endl;  
+  cout << " fileVubTruthres     :"  << FILEVUBTRUTHRES << endl;
+  cout << " fileVubTruthnres    :"  << FILEVUBTRUTHNRES << endl;
+  cout << "====================================" << endl;
+}
+// ----------------------------------------------------------------------
+void mXClass::dumpWFermiFile() {	
+  cout << "====================================" << endl;
+  cout << " WFermiFile used values " << endl;
+  cout << "------------------------------------" << endl;
+  cout << " B0bar -> pi+ l- nubar + CC = "<<compmod.wfermivec[0]<<endl;
+  cout << " B- -> pi0 l- nubar + CC = "<<compmod.wfermivec[1]<<endl;
+  cout << " B- -> eta0 l- nubar + CC = "<<compmod.wfermivec[2]<<endl;
+  cout << " B0bar -> rho+ l- nubar + CC = "<<compmod.wfermivec[3]<<endl;
+  cout << " B- -> rho0 l- nubar + CC = "<<compmod.wfermivec[4]<<endl;
+  cout << " B- -> omega0 l- nubar + CC = "<<compmod.wfermivec[5]<<endl;
+  cout << " B- -> eta_prime l- nubar + CC = "<<compmod.wfermivec[6]<<endl;
+  if(IsCM2()){
+    cout << " B0bar -> Xu+ l- nubar + CC = "<<compmod.wfermivec[7]<<endl;
+    cout << " B- -> Xu0 l- nubar + CC = "<<compmod.wfermivec[9]<<endl; }
+ else {
+    cout << " B0bar -> Xu+ l- nubar + CC = "<<compmod.wfermivec[8]<<endl;
+    cout << " B- -> Xu0 l- nubar + CC = "<<compmod.wfermivec[10]<<endl;}
+  cout << "====================================" << endl;
+}
+// ----------------------------------------------------------------------
+
+void mXClass::dumpCuts(const TString filename)
+{
+  cout << "====================================" << endl;
+  cout << " Cut file " << filename << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " Command Line :"<<CMDLINE<<endl;
+  cout << " data, vub, vcb, vubdata, vcbdata ev # :"  << nDATA<<" "<<nVUB<<" "<<nVCB <<" "<<nVUBDATA <<" "<<nVCBDATA <<  endl;  
+  cout << " mxBin               :"  << MXBIN   <<  endl;  
+  cout << " mxCut               :"  << MXCUT   <<  endl;  
+  cout << " q2Cut               :"  << Q2CUT   <<  endl;  
+  cout << " useCB:              :"  << USECB   <<  endl;  
+  cout << " fixMeanValue        :"  << FIXMEANVALUE   <<  endl;  
+  cout << " fixSigma            :"  << FIXSIGMA   <<  endl;  
+  cout << " fixArgus1           :"  << FIXARGUS1   <<  endl;  
+  cout << " fixArgus2           :"  << FIXARGUS2   <<  endl;
+  cout << " fixCB1              :"  << FIXCB1   <<  endl;  
+  cout << " fixCB2              :"  << FIXCB2   <<  endl;  
+  cout << " leptonPCut          :"  << LEPTONPCUT   <<  endl; 
+  cout << " TrueleptonPCut      :"  << TRUELEPTONPCUT   <<  endl; 
+  cout << " prmm2Cut            :"  << PRMM2CUT   <<  endl;  
+  cout << " neuCut              :"  << NEUCUT   <<  endl;  
+  cout << " mnuSqLow            :"  << MNUSQLOW   <<  endl;  
+  cout << " mnuSqHigh           :"  << MNUSQHIGH   <<  endl;  
+  cout << " EmpmLow             :"  << EMPMLOW   <<  endl;  
+  cout << " EmpmHigh            :"  << EMPMHIGH   <<  endl;  
+  cout << " chLow               :"  << CHLOW   <<  endl;  
+  cout << " chHigh              :"  << CHHIGH   <<  endl;  
+  cout << " depl                :"  << DEPL   <<  endl;  
+  cout << " Btype               :"  << BTYPE   <<  endl;  
+  cout << " lepttype            :"  << LEPTTYPE   <<  endl;  
+  cout << " mixcorr             :"  << MIXCORR   <<  endl;  
+  cout << " fitOption           :"  << FITOPT  <<  endl;  
+  cout << " vcbcomp             :"  << VCBCOMP  <<  endl;  
+  cout << " othcomp             :"  << OTHCOMP  <<  endl;  
+  cout << " maxintpur           :"  << MAXINTPUR    <<  endl;
+  cout << " minintpur           :"  << MININTPUR    <<  endl;
+  cout << " run                 :"  << RUN    <<  endl;
+  cout << " rew                 :"  << fprlRew  <<  endl;
+  cout << " dssRatio            :"  << dssR    <<  endl;
+  cout << " Variables Study     :"  << DOVARSTU  <<  endl;
+  cout << " Using brecoqual     :"  << BRECOQUAL << endl;
+  cout << " Using neutrino cut  :"  << NUCUT << endl;
+  cout << " Using neutral filter:"  << NEUCORR << endl;
+  cout << " Binning variable    :"  << UNFFIT << endl;
+  cout << "====================================" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if(DOBDECWEIGHT)   cout << " B DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DODDECWEIGHT)   cout << " D DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DOFFWEIGHT)   cout << " D*lnu FF REWEIGHTING IS ON" <<  endl; 
+  if(DOMESMEANCORR)   cout << " MES MEAN CORRECTION IS ON" <<  endl; 
+  if(DOSSBARWEIGHT>0) cout << " ssbar reweighting type " << DOSSBARWEIGHT << " is on" <<  endl; 
+}
+
+// ----------------------------------------------------------------------
+
+TFile* mXClass::reopenHistFile(TString name) {
+  char thename[200];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "UPDATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  cout << "histograms on this file are" << endl; 
+  fHistFile->ls();	
+  return fHistFile;
+}
+
+TFile* mXClass::openHistFile(TString name) {
+  char thename[200];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "RECREATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  return fHistFile;
+}
+
+// ----------------------------------------------------------------------
+void mXClass::closeHistFile() {
+  cout << "Writing " << fHistFile->GetName() << endl;
+  fHistFile->cd();
+  fHistFile->Write();
+  fHistFile->Close();
+  delete fHistFile;
+  fHistFile=NULL;
+}
+// ----------------------------------------------------------------------
+void mXClass::setPrefix(TString theprefix) {
+  PREFIXOUT = theprefix;
+}
+// ----------------------------------------------------------------------
+void mXClass::setDirectory(TString dirname) {
+  DIRNAME = dirname;
+}
+// ----------------------------------------------------------------------
+void mXClass::setDataDir(TString dirname) {
+  cout <<" now setting dataset directory and file to " << dirname.Data() << endl;
+  DSETDIRNAME = dirname;
+  isWriteData = true;
+}
+//------------------------------------------------------------------------
+void mXClass::mxBinning1d(const TString filename)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  mxB1.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    mxB1.push_back(input);
+  }
+
+  // find nearest boundary to MXBIN and replace it by MXBIN
+  for (int i(1); i < mxB1.size(); ++i) {
+    if ((MXBIN<mxB1[i]) && (MXBIN>mxB1[i-1])) {
+      int pos = (std::abs(MXBIN-mxB1[i]) < std::abs(MXBIN-mxB1[i-1])) ? i : i-1;
+      mxB1[pos] = MXBIN;
+      break;
+    }
+  }
+
+  // override first boundary if requested
+  if (fnewbin==0) mxB1[1]=MXBIN;
+
+  for (int i(0); i<mxB1.size(); ++i) {
+    std::cout << " 1d Mx bin [" << i << "] = " << mxB1[i] << std::endl;
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------
+void mXClass::Bookhist()
+{
+  fHistFile->cd();
+  TH1 *h;  TH2 *h2;
+  char name[200], title[200];
+
+  //esempio di sintassi di print di un histo
+  sprintf(name, "leptondata");  sprintf(title, "mes all after lepton data bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+  for(int j=3; j<6; j++) {
+    sprintf(name,"%s%d%s", "vub",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "vcb",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "other",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "data",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  }    
+  //Histos for multiplicity categories
+  for(int i=1; i<6; i++){
+    for(int j=3; j<6; j++){
+      sprintf(name,"%s%d%s%d", "vub",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "vcb",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "other",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "data",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    }
+    sprintf(name,"%s%s%d", "vub","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "vcb","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "other","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "data","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "subdata","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  }
+  // ssbar popping weights
+  sprintf(name,"%s", "ssbar_signal");  sprintf(title, "signal: weights for ssbar pogging");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  sprintf(name,"%s", "ssbar_generic");  sprintf(title, "generic: weights for ssbar pogging");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  // Fermi weights
+  sprintf(name,"%s", "inclwei");  sprintf(title, "weights for inclusive");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  sprintf(name,"%s", "exclwei");  sprintf(title, "weights for exclusive");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  // DStarlnu weight
+  sprintf(name,"%s", "ffweight");  sprintf(title, "weights for Dstarlnu");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  // more fermi weights
+  h2 = new TH2D("signal_wfermi_2d", "signal: wfermi versus Gvxbtyp", 40, -20., 20., 100, 0., 2.); h2->Sumw2();
+  h2 = new TH2D("signal_wfermiMxhadgen_2d", "signal: wfermi weighted Mxhadgen versus Gvxbtyp", 40, -20., 20., 100, 0., 5.); h2->Sumw2();
+  h  = new TH1D("signal_wfermi", "signal: wfermi", 100, 0., 2.); h->Sumw2();
+  h  = new TH1D("signal_Mxhadgen", "signal: Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_wfermiMxhadgen", "signal: wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_nre_Mxhadgen", "signal(nre): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_nre_wfermiMxhadgen", "signal(nre): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_res_Mxhadgen", "signal(res): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_res_wfermiMxhadgen", "signal(res): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h2 = new TH2D("generic_wfermi_2d", "generic: wfermi versus Gvxbtyp", 40, -20., 20., 100, 0., 2.); h2->Sumw2();
+  h2 = new TH2D("generic_wfermiMxhadgen_2d", "generic: wfermi weighted Mxhadgen versus Gvxbtyp", 40, -20., 20., 100, 0., 5.); h2->Sumw2();
+  h  = new TH1D("generic_wfermi", "generic: wfermi", 100, 0., 2.); h->Sumw2();
+  h  = new TH1D("generic_Mxhadgen", "generic: Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_wfermiGMxhadgen", "generic: wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_wfermiMxhadgen", "generic: wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_Mxhadgen", "generic(nre): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_wfermiGMxhadgen", "generic(nre): wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_wfermiMxhadgen", "generic(nre): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_Mxhadgen", "generic(res): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_wfermiGMxhadgen", "generic(res): wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_wfermiMxhadgen", "generic(res): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+
+  //chop histos for results
+  sprintf(name,"%s", "vubchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "vcbchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "otherchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "datachop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "subdatachop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+
+  //chop scaled histos
+  sprintf(name,"%s", "SCvubchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "SCotherchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  //Bkg and MC summary
+  sprintf(name,"%s", "allbkgchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "allmcchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+
+
+//check of weights
+   h = new TH1D("plotall", "Hybrid", 40, 0, 5. ); h->Sumw2();
+   h = new TH1D("plotnres", "Mx Hybrid",40, 0, 5. ); h->Sumw2();
+   h = new TH1D("plotres", "Mx Resonant",40, 0, 5.  ); h->Sumw2();
+
+//add a histo containing mes dist. after lepton cut.
+   h = new TH1D("plotsl", "mes fit", 100, 5.2, 5.3 ); h->Sumw2();
+ 
+}
+
+// ----------------------------------------------------------------------
+//! returns filename. Please use enum mXClass::fileTypesEnum
+TString mXClass::getfile(const int i)
+{
+  if (i == mXClass::VubTotal)     return FILEVUBTOTAL;
+  if (i == mXClass::VubTotalres)  return FILEVUBTOTALRES;
+  if (i == mXClass::VubTotalnres) return FILEVUBTOTALNRES;
+  if (i == mXClass::Vcb)          return FILEVCB;
+  if (i == mXClass::Vcb1)         return FILEVCB1;
+  if (i == mXClass::Vcb2)         return FILEVCB2;
+  if (i == mXClass::Data)         return FILEDATA;
+  if (i == mXClass::VubTruthres)  return FILEVUBTRUTHRES;;
+  if (i == mXClass::VubTruthnres) return FILEVUBTRUTHNRES;;
+
+  return TString();
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVubTotal() {
+  return FILEVUBTOTAL;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVubTotalres() {
+  return FILEVUBTOTALRES;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVubTotalnres() {
+  return FILEVUBTOTALNRES;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVcb() {
+  return FILEVCB;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVcb1() {
+  return FILEVCB1;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVcb2() {
+  return FILEVCB2;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileData() {
+  return FILEDATA;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVubTruthres() {
+  return FILEVUBTRUTHRES;
+}
+// ----------------------------------------------------------------------
+TString mXClass::getfileVubTruthnres() {
+  return FILEVUBTRUTHNRES;
+}
+// ----------------------------------------------------------------------
+bool * mXClass::getfilechain() {
+  return ischain;
+}
+// ----------------------------------------------------------------------
+//! return default tree from either ROOT file or chain file
+TTree* mXClass::getchain(const char* thechain)
+{
+  bool flagRootFile = false;
+  TTree* tree = 0;
+
+  // test if file is root file 
+  std::ifstream testfile(thechain);
+  if (testfile) {
+    std::string test; 
+    getline(testfile, test,'\n');
+    if (test.find("root") == 0) flagRootFile = true;
+  }
+  testfile.close();
+
+  // open root file and get tree or chain file and add to chain
+  if (flagRootFile) {
+
+    TFile* pFile = new TFile(thechain, "READ");
+    tree = dynamic_cast<TTree*>(pFile->Get(this->GetEv()));   
+    std::cout << "Load tree from file " << thechain << std::endl;
+
+  } else {
+
+    TChain *chain = new TChain(this->GetEv()); //CM indipendent
+    std::cout << "Chaining using filenames in file " << thechain << std::endl;
+
+    std::ifstream is(thechain);  
+    std::string buffer;
+
+    while(getline(is, buffer, '\n')){
+      if (buffer[0] == '#') continue;
+
+      std::istringstream bufferstream(buffer.c_str());
+      std::string filename; 
+      bufferstream >> filename; 
+      std::cout << "   Add: " << filename << std::endl; 
+      chain->Add(filename.c_str()); 
+    }
+
+    is.close();
+
+    tree = dynamic_cast<TTree*>(chain);
+  }
+
+  return tree;
+}
+
+// ----------------------------------------------------------------------
+void mXClass::readmesParam(const TString filename, const int dump)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // modify the vector for systematics studies (only the fixed parameetrs)
+  int pos(0), sign(0);
+  std::vector<double> mesSysNsl, mesSysdatacuts, mesSysvubcuts, mesSysvcbcuts, mesSysothcuts;
+  std::vector<double> mesSysvubMC, mesSysvcbMC, mesSysvubMCchop;
+
+  std::string buffer;
+  while(getline(is, buffer, '\n')){
+    if (buffer[0] == '#') continue;
+
+    int ok = 0;
+
+    std::istringstream bufferstream(buffer.c_str());
+    std::string tag; 
+    float input; // xxx change this to double after all modifications
+    std::vector<double> inputs;
+
+    bufferstream >> tag;
+    while (bufferstream >> input) { inputs.push_back(input); }
+
+    // hack for compatibility
+    if (inputs.size() == 4) inputs.push_back(-60.);
+
+    // look up the right place to store
+    if (tag == "datacuts")     { mesdatacuts = inputs; ok = 1; }
+    if (tag == "vubcuts")      { mesvubcuts = inputs; ok = 1; }
+    if (tag == "vcbcuts")      { mesvcbcuts = inputs; ok = 1; }
+    if (tag == "othcuts")      { mesothcuts = inputs; ok = 1; }
+
+    if (ok == 0)  std::cout << "==> fitNtp::readmesParam() Error: Don't know about variable " << tag << std::endl;
+  }
+
+  is.close();
+
+  if (dump == 1) dumpmesParam(filename);
+}
+
+// ----------------------------------------------------------------------
+void mXClass::dumpmesParam(const TString filename)
+{
+  std::cout << "====================================" << std::endl;
+  std::cout << " Mes fit parameters file " << filename << std::endl; 
+  std::cout << "------------------------------------" << std::endl;
+
+  cout << " datacuts parameters     :  mean = "<<  mesdatacuts[0]  << ";   sigma = "<< mesdatacuts[1] << ";   cb1 = "<< mesdatacuts[2]  << ";   cb2 = "<<  mesdatacuts[3] <<  endl;  
+  cout << " vubcuts parameters     :  mean = "<<  mesvubcuts[0]  << ";   sigma = "<< mesvubcuts[1] << ";   cb1 = "<< mesvubcuts[2]  << ";   cb2 = "<<  mesvubcuts[3] <<  endl;  
+  cout << " vcbcuts parameters     :  mean = "<<  mesvcbcuts[0]  << ";   sigma = "<< mesvcbcuts[1] << ";   cb1 = "<< mesvcbcuts[2]  << ";   cb2 = "<<  mesvcbcuts[3] <<  endl;  
+  cout << " othcuts parameters     :  mean = "<<  mesothcuts[0]  << ";   sigma = "<<  mesothcuts[1] << ";   cb1 = "<< mesothcuts[2]  << ";   cb2 = "<<  mesothcuts[3] <<  endl;  	
+  
+  std::cout << "====================================" << std::endl;
+}
+
+void mXClass::readUnfParam(TString filename, int dump) {
+  char  buffer[200];
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char VarName[100];
+  float value;
+  int ok(0);
+
+  for(int i=0; i<5; i++)
+    vcbcompcat[i] = errvcbcompcat[i] = othcompcat[i] = errothcompcat[i] = 0;
+
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    sscanf(buffer, "%s %f", VarName, &value);
+    // -- 
+    if (!strcmp(VarName, "vubcomp")) { vubcomp = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp")) { vcbcomp = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp")) { errvcbcomp = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp")) { othcomp = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp")) { errothcomp = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp1")) { vcbcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp1")) { errvcbcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp1")) { othcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp1")) { errothcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp2")) { vcbcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp2")) { errvcbcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp2")) { othcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp2")) { errothcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp3")) { vcbcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp3")) { errvcbcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp3")) { othcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp3")) { errothcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp4")) { vcbcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp4")) { errvcbcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp4")) { othcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp4")) { errothcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp5")) { vcbcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp5")) { errvcbcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp5")) { othcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp5")) { errothcompcat[4] = value; ok = 1;}
+
+    if (ok == 0)  cout << "==> fitNtp::readUnfParam() Error: Don't know about variable " << VarName << endl;
+  }
+
+  // Variation of fit result for the covariance matrix for measured spectrum
+  //    vcbcomp = vcbcomp + errvcbcomp;
+  //    othcomp = othcomp + errothcomp;
+
+  if (dump == 1) dumpUnfParam(filename);
+  
+}
+
+// ----------------------------------------------------------------------
+void mXClass::dumpUnfParam(const TString filename)
+{
+  cout << "====================================" << endl;
+  cout << " Unfolding parameters file: " << filename << endl; 
+  cout << "------------------------------------" << endl;
+  cout << "vubcomp " << vubcomp << endl;
+  cout << "vcbcomp " << vcbcomp << endl;
+  cout << "errvcbcomp " << errvcbcomp << endl;
+  cout << "othcomp " << othcomp << endl;
+  cout << "errothcomp " << errothcomp << endl;
+  cout << "vcbcomp1 " << vcbcompcat[0] << endl;
+  cout << "errvcbcomp1 " << errvcbcompcat[0] << endl;
+  cout << "othcomp1 " << othcompcat[0] << endl;
+  cout << "errothcomp1 " << errothcompcat[0] << endl;
+  cout << "vcbcomp2 " << vcbcompcat[1] << endl;
+  cout << "errvcbcomp2 " << errvcbcompcat[1] << endl;
+  cout << "othcomp2 " << othcompcat[1] << endl;
+  cout << "errothcomp2 " << errothcompcat[1] << endl;
+  cout << "vcbcomp3 " << vcbcompcat[2] << endl;
+  cout << "errvcbcomp3 " << errvcbcompcat[2] << endl;
+  cout << "othcomp3 " << othcompcat[2] << endl;
+  cout << "errothcomp3 " << errothcompcat[2] << endl;
+  cout << "vcbcomp4 " << vcbcompcat[3] << endl;
+  cout << "errvcbcomp4 " << errvcbcompcat[3] << endl;
+  cout << "othcomp4 " << othcompcat[3] << endl;
+  cout << "errothcomp4 " << errothcompcat[3] << endl;
+  cout << "vcbcomp5 " << vcbcompcat[4] << endl;
+  cout << "errvcbcomp5 " << errvcbcompcat[4] << endl;
+  cout << "othcomp5 " << othcompcat[4] << endl;
+  cout << "errothcomp5 " << errothcompcat[4] << endl;
+  cout << "====================================" << endl;
+
+  return;
+}
+
+
+int mXClass::getMxBin(double mxHad){
+  if(mxHad<=mxB1[0]) return 0;
+  for(int i =0; i < mxB1.size(); i++) {
+    if(mxHad>mxB1[i] && mxHad<=mxB1[i+1]) return i;
+  }
+  return (mxB1.size()-1);
+  
+}

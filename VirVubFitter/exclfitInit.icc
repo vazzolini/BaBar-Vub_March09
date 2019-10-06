@@ -1,0 +1,1075 @@
+void exclfitNtp::Init(TTree *tree)
+{
+  //   Set branch addresses
+  if (tree == 0) return;
+  fChain    = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+  
+  fChain->SetBranchAddress("nchg",&nchg);
+  fChain->SetBranchAddress("nneu",&nneu);
+  fChain->SetBranchAddress("brecoflav",&brecoflav);
+  fChain->SetBranchAddress("mes",&mes);
+  fChain->SetBranchAddress("de",&de);
+  fChain->SetBranchAddress("pur",&pur);
+  fChain->SetBranchAddress("intpur",&intpur);
+  fChain->SetBranchAddress("nle",&nle);
+  fChain->SetBranchAddress("nlept500",&nlept500); 
+  fChain->SetBranchAddress("nel",&nel);
+  fChain->SetBranchAddress("nmu",&nmu);
+  fChain->SetBranchAddress("isele",&isele);  
+  fChain->SetBranchAddress("plab",&plab);
+  fChain->SetBranchAddress("pcms",&pcms);
+  fChain->SetBranchAddress("lcharge",&lcharge);
+  fChain->SetBranchAddress("vub",&vub);
+  fChain->SetBranchAddress("vcb",&vcb);
+  fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+
+  fChain->SetBranchAddress("run",&run);
+  fChain->SetBranchAddress("lower",&lower);
+  fChain->SetBranchAddress("upper",&upper);
+
+  fChain->SetBranchAddress("GSem",&GSem);  
+  fChain->SetBranchAddress("GfDpi",&GfDpi); 
+  fChain->SetBranchAddress("GfDpiz",&GfDpiz);
+  fChain->SetBranchAddress("GfDk",&GfDk);  
+  fChain->SetBranchAddress("GfDks",&GfDks); 
+  fChain->SetBranchAddress("GfDlep",&GfDlep);
+  fChain->SetBranchAddress("GfDgam",&GfDgam);
+ 
+  fChain->SetBranchAddress("brecocharge",&brecocharge);
+  fChain->SetBranchAddress("other",&other);
+  
+  fChain->SetBranchAddress("nkp",&nkp);
+  fChain->SetBranchAddress("nks",&nks);
+
+  fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+  fChain->SetBranchAddress("tcmsgen",&tcmsgen);
+  fChain->SetBranchAddress("fcmsgen",&fcmsgen);
+  fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+  fChain->SetBranchAddress("pxhadgen",&pxhadgen);
+  fChain->SetBranchAddress("txhadgen",&txhadgen);
+  fChain->SetBranchAddress("fxhadgen",&fxhadgen);
+  fChain->SetBranchAddress("exhadgen",&exhadgen);
+  fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+  fChain->SetBranchAddress("xcharge",&xcharge);
+ 
+  fChain->SetBranchAddress("mcreweight",&mcreweight); 
+  fChain->SetBranchAddress("eBrecoilgen",&eBrecoilgen);
+  fChain->SetBranchAddress("pxBrecoilgen",&pxBrecoilgen);
+  fChain->SetBranchAddress("pyBrecoilgen",&pyBrecoilgen);
+  fChain->SetBranchAddress("pzBrecoilgen",&pzBrecoilgen);
+  fChain->SetBranchAddress("mBrecoilgen",&mBrecoilgen);
+  fChain->SetBranchAddress("eLeptongen",&eLeptongen);
+  fChain->SetBranchAddress("pxLeptongen",&pxLeptongen);
+  fChain->SetBranchAddress("pyLeptongen",&pyLeptongen);
+  fChain->SetBranchAddress("pzLeptongen",&pzLeptongen);
+  fChain->SetBranchAddress("mLeptongen",&mLeptongen);
+  fChain->SetBranchAddress("eMesongen",&eMesongen);
+  fChain->SetBranchAddress("pxMesongen",&pxMesongen);
+  fChain->SetBranchAddress("pyMesongen",&pyMesongen);
+  fChain->SetBranchAddress("pzMesongen",&pzMesongen);
+  fChain->SetBranchAddress("mMesongen",&mMesongen);
+
+  fChain->SetBranchAddress("tcms",&tcms);
+  fChain->SetBranchAddress("fcms",&fcms);
+  fChain->SetBranchAddress("ecms",&ecms);
+ 
+  fChain->SetBranchAddress("tlab",&tlab);
+  fChain->SetBranchAddress("flab",&flab);
+ 
+  fChain->SetBranchAddress("wdeltam",&wdeltam);
+
+  fChain->SetBranchAddress("q2Gen",&q2Gen);
+  
+  fChain->SetBranchAddress("Eneualt",&Eneualt);
+  fChain->SetBranchAddress("ass_deltapB",&ass_deltapB);
+
+  //pi and pi0 variables
+  fChain->SetBranchAddress("nrecoPi",&nrecoPi);
+  fChain->SetBranchAddress("nrecoPi0",&nrecoPi0);
+  fChain->SetBranchAddress("chbestPi",&chbestPi);
+  fChain->SetBranchAddress("indexbestPi",&indexbestPi);
+  fChain->SetBranchAddress("indexbestPi0",&indexbestPi0);
+  fChain->SetBranchAddress("Estar1dauPi0",Estar1dauPi0);
+  fChain->SetBranchAddress("Estar2dauPi0",Estar2dauPi0);
+  fChain->SetBranchAddress("q2bestPi",&q2bestPi); 
+  fChain->SetBranchAddress("q2bestPi0",&q2bestPi0);
+  fChain->SetBranchAddress("mm2Pi", mm2Pi);
+  fChain->SetBranchAddress("mm2Pi0", mm2Pi0);
+  fChain->SetBranchAddress("q2Pi",q2Pi);
+  fChain->SetBranchAddress("q2Pi0",q2Pi0);
+  fChain->SetBranchAddress("chPi",chPi);
+  fChain->SetBranchAddress("baremPi0",baremPi0);
+  fChain->SetBranchAddress("mm2bestPi",&mm2bestPi);
+  fChain->SetBranchAddress("baremassjpsiPi",baremassjpsiPi);
+  fChain->SetBranchAddress("barembestPi0",&barembestPi0);
+  fChain->SetBranchAddress("mm2bestPi0",&mm2bestPi0);
+  
+  //rho variables
+  fChain->SetBranchAddress("nrecoRho",&nrecoRho); 
+  fChain->SetBranchAddress("indexbestRho",&indexbestRho); 
+  fChain->SetBranchAddress("barembestRho",&barembestRho);
+  fChain->SetBranchAddress("mm2bestRho",&mm2bestRho);
+  fChain->SetBranchAddress("q2bestRho",&q2bestRho);
+  fChain->SetBranchAddress("Estar1dauRho",Estar1dauRho); 
+  fChain->SetBranchAddress("Estar2dauRho",Estar2dauRho); 
+  fChain->SetBranchAddress("mm2Rho", mm2Rho); 
+  fChain->SetBranchAddress("q2Rho", q2Rho);
+  fChain->SetBranchAddress("baremRho",baremRho); 
+  fChain->SetBranchAddress("PimomdauRho",PimomdauRho); 
+  fChain->SetBranchAddress("Pi0momdauRho",Pi0momdauRho); 
+  fChain->SetBranchAddress("truemrho",&truemrho);
+  fChain->SetBranchAddress("truemompirho",&truemompirho);
+  fChain->SetBranchAddress("truemompi0rho",&truemompi0rho);
+
+  //rho0 variables
+  fChain->SetBranchAddress("nrecoRho0",&nrecoRho0);  
+  fChain->SetBranchAddress("indexbestRho0",&indexbestRho0);  
+  fChain->SetBranchAddress("barembestRho0",&barembestRho0); 
+  fChain->SetBranchAddress("mm2bestRho0",&mm2bestRho0); 
+  fChain->SetBranchAddress("q2bestRho0",&q2bestRho0); 
+  fChain->SetBranchAddress("Estar1dauRho0",Estar1dauRho0);  
+  fChain->SetBranchAddress("Estar2dauRho0",Estar2dauRho0);  
+  fChain->SetBranchAddress("mm2Rho0", mm2Rho0);  
+  fChain->SetBranchAddress("q2Rho0", q2Rho0); 
+  fChain->SetBranchAddress("baremRho0",baremRho0);  
+  fChain->SetBranchAddress("truemrho0",&truemrho0);
+  fChain->SetBranchAddress("truemom1pirho0",&truemom1pirho0);
+  fChain->SetBranchAddress("truemom2pirho0",&truemom2pirho0);
+
+  //omega variables
+  fChain->SetBranchAddress("nrecoOmega",&nrecoOmega);  
+  fChain->SetBranchAddress("indexbestOmega",&indexbestOmega);  
+  fChain->SetBranchAddress("barembestOmega",&barembestOmega); 
+  fChain->SetBranchAddress("mm2bestOmega",&mm2bestOmega); 
+  fChain->SetBranchAddress("q2bestOmega",&q2bestOmega); 
+  fChain->SetBranchAddress("Estar1dauOmega",Estar1dauOmega);  
+  fChain->SetBranchAddress("Estar2dauOmega",Estar2dauOmega);
+  fChain->SetBranchAddress("Estar3dauOmega",Estar3dauOmega);  
+  fChain->SetBranchAddress("mm2Omega", mm2Omega);  
+  fChain->SetBranchAddress("q2Omega", q2Omega); 
+  fChain->SetBranchAddress("baremOmega",baremOmega);  
+  fChain->SetBranchAddress("Pi1momdauOmega",Pi1momdauOmega);
+  fChain->SetBranchAddress("Pi2momdauOmega",Pi2momdauOmega); 
+  fChain->SetBranchAddress("Pi0momdauOmega",Pi0momdauOmega);  
+  fChain->SetBranchAddress("truemomega",&truemomega);
+  fChain->SetBranchAddress("truemom1piome",&truemom1piome);
+  fChain->SetBranchAddress("truemom2piome",&truemom2piome);
+  fChain->SetBranchAddress("truemompi0ome",&truemompi0ome);
+  fChain->SetBranchAddress("truedalitzpi1pi2ome",&truedalitzpi1pi2ome);
+  fChain->SetBranchAddress("truedalitzpi1pi0ome",&truedalitzpi1pi0ome);
+  fChain->SetBranchAddress("truecosthome",&truecosthome);
+  fChain->SetBranchAddress("dalitzpi1pi2ome",&dalitzpi1pi2ome);
+  fChain->SetBranchAddress("dalitzpi1pi0ome",&dalitzpi1pi0ome);
+  fChain->SetBranchAddress("costhome",&costhome);
+
+  //eta variables
+  fChain->SetBranchAddress("nrecoEta",&nrecoEta);
+  fChain->SetBranchAddress("indexbestEta",&indexbestEta);
+  fChain->SetBranchAddress("baremEta",baremEta);
+  fChain->SetBranchAddress("barembestEta",&barembestEta);
+  fChain->SetBranchAddress("mm2bestEta",&mm2bestEta);
+  fChain->SetBranchAddress("modeEta",modeEta);
+  fChain->SetBranchAddress("q2Eta",q2Eta);
+  fChain->SetBranchAddress("q2bestEta",&q2bestEta);
+  fChain->SetBranchAddress("mm2Eta", mm2Eta);
+
+  //etap variables
+  fChain->SetBranchAddress("nrecoEtap",&nrecoEtap);
+  fChain->SetBranchAddress("indexbestEtap",&indexbestEtap);
+  fChain->SetBranchAddress("baremEtap",baremEtap);
+  fChain->SetBranchAddress("barembestEtap",&barembestEtap);
+  fChain->SetBranchAddress("mm2bestEtap",&mm2bestEtap);
+  fChain->SetBranchAddress("modeEtap",modeEtap);
+  fChain->SetBranchAddress("EtamassdauEtap",EtamassdauEtap);
+  fChain->SetBranchAddress("GammamomdauEtap",GammamomdauEtap);
+  fChain->SetBranchAddress("Rho0massdauEtap",Rho0massdauEtap);
+  fChain->SetBranchAddress("q2Etap",q2Etap);
+  fChain->SetBranchAddress("q2bestEtap",&q2bestEtap);
+  fChain->SetBranchAddress("mm2Etap", mm2Etap);
+
+  //a0 variables
+  fChain->SetBranchAddress("ma0",&ma0);
+  fChain->SetBranchAddress("mm2a0",&mm2a0);
+  fChain->SetBranchAddress("a0massetadau",&a0massetadau);
+  fChain->SetBranchAddress("modea0",&modea0);
+  fChain->SetBranchAddress("ma0p",&ma0p);
+  fChain->SetBranchAddress("mm2a0p",&mm2a0p);
+  fChain->SetBranchAddress("a0pmassetadau",&a0pmassetadau);
+  fChain->SetBranchAddress("modea0p",&modea0p);    
+
+  Notify();
+}
+
+Bool_t exclfitNtp::Notify()
+{
+//   called when loading a new file
+//   get branch pointers
+  b_run = fChain->GetBranch("run");
+  b_lower = fChain->GetBranch("lower");
+  b_upper = fChain->GetBranch("upper");
+  b_mes = fChain->GetBranch("mes");
+  b_de = fChain->GetBranch("de");
+  b_pur = fChain->GetBranch("pur");
+  b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+  b_GSem=       fChain->GetBranch("GSem");  
+  b_GfDpi=      fChain->GetBranch("GfDpi");  
+  b_GfDpiz=     fChain->GetBranch("GfDpiz");
+  b_GfDk=       fChain->GetBranch("GfDk");  
+  b_GfDks=      fChain->GetBranch("GfDks"); 
+  b_GfDlep=     fChain->GetBranch("GfDlep");
+  b_GfDgam=     fChain->GetBranch("GfDgam");
+  b_q2Gen = fChain->GetBranch("q2Gen");
+  b_intpur = fChain->GetBranch("intpur");
+  b_brecoflav = fChain->GetBranch("brecoflav");
+  b_brecocharge = fChain->GetBranch("brecocharge");
+  b_vub = fChain->GetBranch("vub");
+  b_vcb = fChain->GetBranch("vcb");
+  b_other = fChain->GetBranch("other");
+  b_pcmsgen = fChain->GetBranch("pcmsgen");
+  b_tcmsgen = fChain->GetBranch("tcmsgen");
+  b_fcmsgen = fChain->GetBranch("fcmsgen");
+  b_ecmsgen = fChain->GetBranch("ecmsgen");
+  b_pxhadgen = fChain->GetBranch("pxhadgen");
+  b_txhadgen = fChain->GetBranch("txhadgen");
+  b_fxhadgen = fChain->GetBranch("fxhadgen");
+  b_exhadgen = fChain->GetBranch("exhadgen");
+  b_mxhadgen = fChain->GetBranch("mxhadgen");
+  b_mcreweight =  fChain->GetBranch("mcreweight");
+  b_ebrecoilgen = fChain->GetBranch("eBrecoilgen");
+  b_pxbrecoilgen = fChain->GetBranch("pxBrecoilgen");
+  b_pybrecoilgen = fChain->GetBranch("pyBrecoilgen");
+  b_pzbrecoilgen = fChain->GetBranch("pzBrecoilgen");
+  b_mbrecoilgen = fChain->GetBranch("mBrecoilgen");
+  b_eleptongen = fChain->GetBranch("eLeptongen");
+  b_pxleptongen = fChain->GetBranch("pxLeptongen");
+  b_pyleptongen = fChain->GetBranch("pyLeptongen");
+  b_pzleptongen = fChain->GetBranch("pzLeptongen");
+  b_mleptongen = fChain->GetBranch("mLeptongen");
+  b_emesongen = fChain->GetBranch("eMesongen");
+  b_pxmesongen = fChain->GetBranch("pxMesongen");
+  b_pymesongen = fChain->GetBranch("pyMesongen");
+  b_pzmesongen = fChain->GetBranch("pzMesongen");
+  b_mmesongen = fChain->GetBranch("mMesongen");
+  b_xcharge = fChain->GetBranch("xcharge");
+  b_lcharge = fChain->GetBranch("lcharge");
+  b_isele = fChain->GetBranch("isele");
+  b_nlept500 = fChain->GetBranch("nlept500");
+  b_pcms = fChain->GetBranch("pcms");
+  b_tcms = fChain->GetBranch("tcms");
+  b_fcms = fChain->GetBranch("fcms");
+  b_ecms = fChain->GetBranch("ecms");
+  b_pcms = fChain->GetBranch("plab");
+  b_tcms = fChain->GetBranch("tlab");
+  b_fcms = fChain->GetBranch("flab");
+  b_wdeltam = fChain->GetBranch("wdeltam");
+  b_eneualt = fChain->GetBranch("Eneualt");
+  b_ass_deltapB=    fChain->GetBranch("ass_deltapB");
+
+  //pi and pi0 variables
+  b_nrecopi = fChain->GetBranch("nrecoPi");
+  b_chbestpi = fChain->GetBranch("chbestPi");
+  b_nrecopi0 = fChain->GetBranch("nrecoPi0");
+  b_indexbestpi = fChain->GetBranch("indexbestPi");
+  b_indexbestpi0 = fChain->GetBranch("indexbestPi0");
+  b_estar1daupi0 = fChain->GetBranch("Estar1dauPi0");
+  b_estar2daupi0 = fChain->GetBranch("Estar2dauPi0");
+  b_mm2pi = fChain->GetBranch("mm2Pi");
+  b_mm2pi0 = fChain->GetBranch("mm2Pi0");
+  b_q2pi = fChain->GetBranch("q2Pi");
+  b_q2pi0 = fChain->GetBranch("q2Pi0");
+  b_chpi = fChain->GetBranch("chPi");
+  b_barempi0 = fChain->GetBranch("baremPi0");
+  b_mm2bestpi = fChain->GetBranch("mm2bestPi");
+  b_q2bestpi = fChain->GetBranch("q2bestPi");
+  b_baremassjpsipi = fChain->GetBranch("baremassjpsiPi");
+  b_barembestpi0 = fChain->GetBranch("barembestPi0");
+  b_mm2bestpi0 = fChain->GetBranch("mm2bestPi0");
+  b_q2bestpi0 = fChain->GetBranch("q2bestPi0");
+
+  //rho variables
+  b_nrecorho = fChain->GetBranch("nrecoRho");
+  b_indexbestrho = fChain->GetBranch("indexbestRho");
+  b_barembestrho = fChain->GetBranch("barembestRho");
+  b_mm2bestrho = fChain->GetBranch("mm2bestRho"); 
+  b_q2bestrho = fChain->GetBranch("q2bestRho"); 
+  b_estar1daurho = fChain->GetBranch("Estar1dauRho"); 
+  b_estar2daurho = fChain->GetBranch("Estar2dauRho"); 
+  b_mm2rho = fChain->GetBranch("mm2Rho"); 
+  b_q2rho = fChain->GetBranch("q2Rho"); 
+  b_baremrho = fChain->GetBranch("baremRho"); 
+  b_pimomdaurho = fChain->GetBranch("PimomdauRho"); 
+  b_pi0momdaurho = fChain->GetBranch("Pi0momdauRho"); 
+  b_truemrho = fChain->GetBranch("truemrho");
+  b_truemompirho = fChain->GetBranch("truemompirho");
+  b_truemompi0rho = fChain->GetBranch("truemompi0rho");
+
+  //rho0 variables
+  b_nrecorho0 = fChain->GetBranch("nrecoRho0"); 
+  b_indexbestrho0 = fChain->GetBranch("indexbestRho0"); 
+  b_barembestrho0 = fChain->GetBranch("barembestRho0"); 
+  b_mm2bestrho0 = fChain->GetBranch("mm2bestRho0");  
+  b_q2bestrho0 = fChain->GetBranch("q2bestRho0");  
+  b_estar1daurho0 = fChain->GetBranch("Estar1dauRho0");  
+  b_estar2daurho0 = fChain->GetBranch("Estar2dauRho0");  
+  b_mm2rho0 = fChain->GetBranch("mm2Rho0");  
+  b_q2rho0 = fChain->GetBranch("q2Rho0");  
+  b_baremrho0 = fChain->GetBranch("baremRho0");  
+  b_truemrho0 = fChain->GetBranch("truemrho0");
+  b_truemom1pirho0 = fChain->GetBranch("truemom1pirho0");
+  b_truemom2pirho0 = fChain->GetBranch("truemom2pirho0");
+
+  //omega variables
+  b_nrecoomega = fChain->GetBranch("nrecoOmega"); 
+  b_indexbestomega = fChain->GetBranch("indexbestOmega"); 
+  b_barembestomega = fChain->GetBranch("barembestOmega"); 
+  b_mm2bestomega = fChain->GetBranch("mm2bestOmega");  
+  b_q2bestomega = fChain->GetBranch("q2bestOmega");  
+  b_estar1dauomega = fChain->GetBranch("Estar1dauOmega");  
+  b_estar2dauomega = fChain->GetBranch("Estar2dauOmega");  
+  b_estar3dauomega = fChain->GetBranch("Estar3dauOmega");   
+  b_mm2omega = fChain->GetBranch("mm2Omega");  
+  b_q2omega = fChain->GetBranch("q2Omega");  
+  b_baremomega = fChain->GetBranch("baremOmega");  
+  b_pi1momdauomega = fChain->GetBranch("Pi1momdauOmega");  
+  b_pi2momdauomega = fChain->GetBranch("Pi2momdauOmega"); 
+  b_pi0momdauomega = fChain->GetBranch("Pi0momdauOmega");  
+  b_truemomega = fChain->GetBranch("truemomega");
+  b_truemom1piome = fChain->GetBranch("truemom1piome");
+  b_truemom2piome = fChain->GetBranch("truemom2piome");
+  b_truemompi0ome = fChain->GetBranch("truemompi0ome");
+  b_truedalitzpi1pi2ome = fChain->GetBranch("truedalitzpi1pi2ome");
+  b_truedalitzpi1pi0ome = fChain->GetBranch("truedalitzpi1pi0ome");
+  b_truecosthome = fChain->GetBranch("truecosthome");
+  b_dalitzpi1pi2ome = fChain->GetBranch("dalitzpi1pi2ome");
+  b_dalitzpi1pi0ome = fChain->GetBranch("dalitzpi1pi0ome");
+  b_costhome = fChain->GetBranch("costhome");
+
+  //eta variables
+  b_nrecoeta = fChain->GetBranch("nrecoEta");
+  b_indexbesteta = fChain->GetBranch("indexbestEta");
+  b_baremeta = fChain->GetBranch("baremEta");
+  b_barembesteta = fChain->GetBranch("barembestEta");
+  b_mm2besteta = fChain->GetBranch("mm2bestEta");
+  b_modeeta = fChain->GetBranch("modeEta");
+  b_q2eta = fChain->GetBranch("q2Eta");
+  b_q2besteta = fChain->GetBranch("q2bestEta");
+  b_mm2eta = fChain->GetBranch("mm2Eta");
+
+  //etap variables
+  b_nrecoetap = fChain->GetBranch("nrecoEtap");
+  b_indexbestetap = fChain->GetBranch("indexbestEtap");
+  b_baremetap = fChain->GetBranch("baremEtap");
+  b_barembestetap = fChain->GetBranch("barembestEtap");
+  b_mm2bestetap = fChain->GetBranch("mm2bestEtap");
+  b_modeetap = fChain->GetBranch("modeEtap");
+  b_rho0massdauetap = fChain->GetBranch("Rho0massdauEtap");
+  b_gammamomdauetap = fChain->GetBranch("GammamomdauEtap");
+  b_etamassdauetap = fChain->GetBranch("EtamassdauEtap");
+  b_q2etap = fChain->GetBranch("q2Etap");
+  b_q2bestetap = fChain->GetBranch("q2bestEtap");
+  b_mm2etap = fChain->GetBranch("mm2Etap"); 
+
+  //a0 variables
+  b_ma0 = fChain->GetBranch("ma0");
+  b_mm2a0 = fChain->GetBranch("mm2a0");
+  b_ma0p = fChain->GetBranch("ma0p");
+  b_mm2a0p = fChain->GetBranch("mm2a0p");
+  return kTRUE;
+}
+
+// ----------------------------------------------------------------------
+TFile* exclfitNtp::openHistFile(TString name) {
+  char thename[100];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "RECREATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  return fHistFile;
+}
+
+
+// ----------------------------------------------------------------------
+void exclfitNtp::closeHistFile() {
+  cout << "Writing " << fHistFile->GetName() << endl;
+  fHistFile->cd();
+  fHistFile->Write();
+  fHistFile->Close();
+  delete fHistFile;
+
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::openEpsFile(TString name) {
+  fPostScriptFile = new TPostScript(name.Data(),113);
+  gROOT->SetStyle("Plain");
+  cout << "Opened " << fPostScriptFile->GetName() << endl;
+}
+
+
+// ----------------------------------------------------------------------
+void exclfitNtp::closeEpsFile() {
+  cout << "Writing " << fPostScriptFile->GetName() << endl;
+  fPostScriptFile->Close();
+  delete fPostScriptFile;
+
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::Show(Int_t entry) {
+// Print contents of entry.
+// If entry is not specified, print current entry
+   if (!fChain) return;
+   fChain->Show(entry);
+}
+
+// ----------------------------------------------------------------------
+Int_t exclfitNtp::Cut(Int_t entry) {
+// This function may be called from Loop.
+// returns  1 if entry is accepted.
+// returns -1 otherwise.
+  return -1;
+}
+
+
+// ----------------------------------------------------------------------
+Int_t exclfitNtp::GetEntry(Int_t entry) {
+// Read contents of entry.
+  return 0;
+}
+
+
+// ----------------------------------------------------------------------
+Int_t exclfitNtp::LoadTree(Int_t entry) {
+  return 0;
+}
+
+// ---------------------------------------------------------------------- 
+void exclfitNtp::initRest(TString filename) {
+
+  FILEVUBTOTAL = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/newallvubcock.root";
+  FILEVCB = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/all-cocktail.root";
+  FILEDATA = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/allgeneric.root";
+  PSTARFACT = 1.17;
+  FITCATEGORY = 11;
+  USECB = 1;
+  GAUSSFIT = 0;
+  FIXMEANVALUE = 1;
+  FIXSIGMA = 0;
+  FIXARGUS1 = 0;
+  FIXARGUS2 = 0;
+  FIXCB1 = 0;
+  FIXCB2 = 0;
+  LEPTONPCUT = 1.;
+  ELECTRONPCUT = 1.;
+  MUONPCUT = 1.;
+  NLEP = 1;
+  DELTAM = 0.1;
+  PRMM2CUT = 1000000.;
+  MNUSQLOW = -1000.;
+  MNUSQHIGH = 0.5;
+  CHLOW = -.5;
+  CHHIGH = .5;
+  BTYPE = 2;
+  LEPTTYPE = 2;
+  BLINDING = 1;
+  RANDOMSEED = 990717;
+  BLINDSIZE = 0.51;
+//   DOBRECOWEIGHT = 0;
+  DOBDECWEIGHT = 0;
+  DODDECWEIGHT = 0;
+  DOBUDECWEIGHT = 0;
+//   DOTRKWEIGHT = 0;
+//   DONEUWEIGHT = 0;
+  MAXINTPUR = 1000.;
+  MININTPUR = 0.; 
+  MINPUR = 0.;
+  RUN = 0;
+  DOTHEO = 0;
+
+  MXCUTLOWEXCL=-1000.;
+  MXCUTHIGHEXCL=1000.;
+  MXCUTLOWEXCL1=-1000.; 
+  MXCUTHIGHEXCL1=1000.; 
+  MXCUTLOWEXCL2=-1000.; 
+  MXCUTHIGHEXCL2=1000.; 
+  MXCUTLOWEXCL3=-1000.; 
+  MXCUTHIGHEXCL3=1000.; 
+  MXCUTLOWEXCL4=-1000.; 
+  MXCUTHIGHEXCL4=1000.; 
+  NCHGLOWEXCL=0;
+  NCHGHIGHEXCL=1000;
+  NCOMBLOWEXCL=-1000;
+  NCOMBHIGHEXCL=1000;
+  NPI0LOWEXCL=-1000;
+  NPI0HIGHEXCL=1000;
+  MOM1MIN=-1000;
+  MOM2MIN=1000;
+  KSELE=0;
+  RATIOBR=0.02;
+  SPTYPE=8;
+  DALITZCUT=-1000;
+  DAUETAMASS=1000.;
+  DAUETAMASS2=1000.; 
+  DAUETAMASS3=1000.; 
+  DAUETAMASS4=1000.; 
+  DAURHOMASS=1000.;
+  DAUGAMMAMOM = -1000.;
+  DORIGHTNCHG = 0;
+
+  MNUSQPI0LOW =  0.;
+  MNUSQPI0HIGH = 0.;
+  MNUSQETALOW =  0.;
+  MNUSQETAHIGH = 0.;
+  MNUSQETALOW =  0.;
+  MNUSQETAHIGH = 0.;
+  MNUSQRHOLOW =  0.;
+  MNUSQRHOHIGH = 0.;
+  MNUSQRHO0LOW =  0.;
+  MNUSQRHO0HIGH = 0.;
+  MNUSQOMEGALOW =  0.;
+  MNUSQOMEGAHIGH = 0.;
+  MAXENEU = 1000.;
+  JPSIWIN = 1000.;
+  
+  BINSMM2 = 40;
+  MINMM2 = -3.;
+  MAXMM2 = 8.;	
+  
+  Q2LOWCUT = -1000.;
+  Q2HIGHCUT = 1000.;
+  Q2CORR = 1.;
+
+  vcbcounter = 0;
+
+  for(int u=0;u<4;u++){
+     mesNsl[u] =-1111111;
+     mesdatacuts[u] = -1111111.;
+     mesvubcuts[u] = -1111111.;
+     mesvcbcuts[u] = -1111111.;
+     mesothcuts[u] = -1111111.;
+     mesNslMC[u] = -1111111.;
+     messigcuts[u] = -1111111.;
+     messigleptcuts[u] = -1111111.;
+  }
+  double TrueMxWeight1[42] = {1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
+  
+  for(int uaw=0;uaw<42;uaw++){
+    TrueMxWeight[uaw] = TrueMxWeight1[uaw];
+  }  
+
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::readOptions(TString filename, int dump) {
+  char  buffer[200];
+  fOptionFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char OptionName[100];
+  char OptionValue[100];
+  float isc;
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+//     if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %s %f", OptionName, OptionValue, &isc);
+
+    // -- 
+    if (!strcmp(OptionName, "fileVubTotal")) { FILEVUBTOTAL  = OptionValue; ischain[0] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalres")) { FILEVUBTOTALRES  = OptionValue; ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalnres")) { FILEVUBTOTALNRES  = OptionValue; ischain[3] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVcb")) { FILEVCB= OptionValue; ischain[1] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileData")) { FILEDATA= OptionValue; ischain[2] = bool(isc); ok = 1;}
+
+    if (ok == 0)  cout << "==> exclfitNtp::readOptions() Error: Don't know about variable " << OptionName << endl;
+  }
+
+  if (dump == 1) dumpOptions();
+
+}
+
+
+// ----------------------------------------------------------------------
+void exclfitNtp::readCuts(TString filename, int dump) {
+  char  buffer[200],buffer2[200];
+  fCutFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  sprintf(buffer2, "%s", filename.Data());
+  ifstream is(buffer);
+  ifstream is2(buffer2);
+  char CutName[100];
+  char OptionValue[100];
+  float CutValue;
+  sprintf(VAR,"");
+  int ok(0);
+  int okvar(0);
+  while (is2.getline(buffer2, 200, '\n')) {
+    okvar = 0;
+    if (buffer2[0] == '#') {continue;}
+    if (buffer2[0] == '/') {continue;}
+    sscanf(buffer2, "%s %s", CutName, &OptionValue);
+    if (!strcmp(CutName, "var")) {sprintf(VAR,OptionValue); okvar = 1;}    
+  }  
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    if (buffer[0] == '/') {continue;}
+    sscanf(buffer, "%s %f", CutName, &CutValue);
+    // -- 
+    if (!strcmp(CutName, "pstarfact")) { PSTARFACT  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "fitcategory")) { FITCATEGORY= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "useCB")) { USECB= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "gauss")) { GAUSSFIT= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "q2lowCut")) { Q2LOWCUT= CutValue; ok = 1;}
+    if (!strcmp(CutName, "q2highCut")) { Q2HIGHCUT= CutValue; ok = 1;}
+    if (!strcmp(CutName, "q2corr")) { Q2CORR= CutValue; ok = 1;}
+    if (!strcmp(CutName, "fixMeanValue")) { FIXMEANVALUE= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixSigma")) { FIXSIGMA= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixArgus1")) { FIXARGUS1= int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixArgus2")) { FIXARGUS2 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixCB1")) { FIXCB1 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "fixCB2")) { FIXCB2 = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "leptonPCut")) { LEPTONPCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "electronPCut")) { ELECTRONPCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "muonPCut")) { MUONPCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "nlep")) { NLEP = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "deltam")) { DELTAM= CutValue; ok = 1;}
+    if (!strcmp(CutName, "prmm2Cut")) { PRMM2CUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqLow")) { MNUSQLOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqHigh")) { MNUSQHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "chLow")) { CHLOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "chHigh")) { CHHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "Btype")) { BTYPE = CutValue; ok = 1;}
+    if (!strcmp(CutName, "lepttype")) { LEPTTYPE = CutValue; ok = 1;}
+    if (!strcmp(CutName, "blinding")) { BLINDING = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "randomseed")) { RANDOMSEED = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "blindsize")) { BLINDSIZE = CutValue; ok = 1; }
+//     if (!strcmp(CutName, "dobrecoreweight")) { DOBRECOWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doBdecreweight")) { DOBDECWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doDdecreweight")) { DODDECWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "doBudecreweight")) { DOBUDECWEIGHT = int(CutValue); ok = 1;}
+//     if (!strcmp(CutName, "dotrkreweight")) { DOTRKWEIGHT = int(CutValue); ok = 1;}
+//     if (!strcmp(CutName, "doneureweight")) { DONEUWEIGHT = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "maxintpur")) {MAXINTPUR = CutValue; ok = 1;}
+    if (!strcmp(CutName, "minintpur")) {MININTPUR = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "minpur")) {MINPUR = CutValue; ok = 1;}
+    if (!strcmp(CutName, "run")) {RUN = CutValue; ok = 1;}
+    if (!strcmp(CutName, "ratioBR")) {RATIOBR = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "SPtype")) {SPTYPE = int(CutValue); ok = 1;}
+
+    if (!strcmp(CutName, "mxCutLowExcl")) { MXCUTLOWEXCL  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mxCutHighExcl")) { MXCUTHIGHEXCL  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mxCutLowExcl1")) { MXCUTLOWEXCL1  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutHighExcl1")) { MXCUTHIGHEXCL1  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutLowExcl2")) { MXCUTLOWEXCL2  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutHighExcl2")) { MXCUTHIGHEXCL2  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutLowExcl3")) { MXCUTLOWEXCL3  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutHighExcl3")) { MXCUTHIGHEXCL3  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutLowExcl4")) { MXCUTLOWEXCL4  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "mxCutHighExcl4")) { MXCUTHIGHEXCL4  = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "nchgLowExcl")) { NCHGLOWEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "nchgHighExcl")) { NCHGHIGHEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "ncombLowExcl")) { NCOMBLOWEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "ncombHighExcl")) { NCOMBHIGHEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "npi0LowExcl")) { NPI0LOWEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "npi0HighExcl")) { NPI0HIGHEXCL = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mom1min")) { MOM1MIN = CutValue; ok = 1;}
+    if (!strcmp(CutName, "mom2min")) { MOM2MIN = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "ksele")) { KSELE = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "dalitzcut")) { DALITZCUT = CutValue; ok = 1;}
+    if (!strcmp(CutName, "dauetamass")) { DAUETAMASS = CutValue; ok = 1;}    
+    if (!strcmp(CutName, "dauetamass2")) { DAUETAMASS2 = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "dauetamass3")) { DAUETAMASS3 = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "dauetamass4")) { DAUETAMASS4 = CutValue; ok = 1;} 
+    if (!strcmp(CutName, "daurhomass")) { DAURHOMASS = CutValue; ok = 1;}    
+    if (!strcmp(CutName, "daugammamom")) { DAUGAMMAMOM = CutValue; ok = 1;}    
+    if (!strcmp(CutName, "dorightnchg")) { DORIGHTNCHG = CutValue; ok = 1;}    
+
+    if (!strcmp(CutName, "mnuSqpi0Low")) { MNUSQPI0LOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqpi0High")) { MNUSQPI0HIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqetaLow")) { MNUSQETALOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqetaHigh")) { MNUSQETAHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqetaLow")) { MNUSQETALOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqetaHigh")) { MNUSQETAHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqrhoLow")) { MNUSQRHOLOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqrhoHigh")) { MNUSQRHOHIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqrho0Low")) { MNUSQRHO0LOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqrho0High")) { MNUSQRHO0HIGH= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqomegaLow")) { MNUSQOMEGALOW= CutValue; ok = 1;}
+    if (!strcmp(CutName, "mnuSqomegaHigh")) { MNUSQOMEGAHIGH= CutValue; ok = 1;}
+    
+    if (!strcmp(CutName, "binsmass")) {BINSMASS  = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "minmass")) {MINMASS  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "maxmass")) {MAXMASS  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "binsmm2")) {BINSMM2  = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "minmm2")) {MINMM2  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "maxmm2")) {MAXMM2  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "binspcms")) {BINSPCMS  = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "minpcms")) {MINPCMS  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "maxpcms")) {MAXPCMS  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "binsvar")) {BINSVAR  = int(CutValue); ok = 1;}
+    if (!strcmp(CutName, "minvar")) {MINVAR  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "maxvar")) {MAXVAR  = CutValue; ok = 1;}
+    if (!strcmp(CutName, "maxeneu")) {MAXENEU  = CutValue; ok = 1;}    
+    if (!strcmp(CutName, "jpsiwindow")) {JPSIWIN  = CutValue; ok = 1;}
+    
+
+    if (ok == 0)  cout << "==> exclfitNtp::readCuts() Error: Don't know about variable " << CutName << endl;
+  }
+  
+  if( !( (!strcmp(VAR, "mass")) || (!strcmp(VAR, "pcms")) || (!strcmp(VAR, "q2")) ) ) { 
+    cout << endl;
+    cout << "var == " << VAR << " is not available. I set var = mass" << endl;	
+    sprintf(VAR,"mass");
+    BINSVAR = BINSMASS;
+    MINVAR = MINMASS;
+    MAXVAR = MAXMASS;
+  }
+  if (dump == 1) dumpCuts();
+  
+  //  readWeights();
+  readpstarfactor();
+
+  ifstream iss("sysWd/refWeights");
+  char  bufferd[200];
+  for (int y=0;y<42;y++){
+    iss.getline(bufferd, 200, '\n');
+    sscanf(bufferd, "%s %f", CutName, &CutValue);
+    TrueMxWeight[y] = CutValue*0.6;
+    cout << "mx bin weight" << y << " " << TrueMxWeight[y] << endl;
+  }
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::dumpOptions() {
+  cout << "====================================" << endl;
+  cout << " Option file " << fOptionFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " fileVubTotal        :"  << FILEVUBTOTAL   <<  endl;  
+  cout << " fileVubTotalres     :"  << FILEVUBTOTALRES   <<  endl;  
+  cout << " fileVubTotalnres    :"  << FILEVUBTOTALNRES   <<  endl;  
+  cout << " fileVcb             :"  << FILEVCB   <<  endl;  
+  cout << " fileData            :"  << FILEDATA   <<  endl;  
+  cout << "====================================" << endl;
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::dumpCuts() {
+  cout << "====================================" << endl;
+  cout << " Cut file " << fCutFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " fitcategory         :"  << FITCATEGORY   <<  endl;  
+  cout << " pstarfact           :"  << getPstarFactor(LEPTONPCUT) <<  endl;  
+  cout << " useCB               :"  << USECB   <<  endl;  
+  cout << " gauss               :"  << GAUSSFIT << endl;  
+  cout << " fixMeanValue        :"  << FIXMEANVALUE   <<  endl;  
+  cout << " fixSigma            :"  << FIXSIGMA   <<  endl;  
+  cout << " fixArgus1           :"  << FIXARGUS1   <<  endl;  
+  cout << " fixArgus2           :"  << FIXARGUS2   <<  endl;  
+  cout << " fixCB1              :"  << FIXCB1   <<  endl;  
+  cout << " fixCB2              :"  << FIXCB2   <<  endl;  
+  cout << " leptonPCut          :"  << LEPTONPCUT   <<  endl;  
+  cout << " electronPCut        :"  << ELECTRONPCUT   <<  endl;
+  cout << " muonPCut            :"  << MUONPCUT   <<  endl;  
+  cout << " nlep                :"  << NLEP   <<  endl;  
+  cout << " deltam              :"  << DELTAM  <<  endl;  
+  cout << " prmm2Cut            :"  << PRMM2CUT   <<  endl;  
+  cout << " mnuSqLow            :"  << MNUSQLOW   <<  endl;  
+  cout << " mnuSqHigh           :"  << MNUSQHIGH   <<  endl;  
+  cout << " chLow               :"  << CHLOW   <<  endl;  
+  cout << " chHigh              :"  << CHHIGH   <<  endl;  
+  cout << " q2lowCut            :"  << Q2LOWCUT   <<  endl;  
+  cout << " q2highCut           :"  << Q2HIGHCUT   <<  endl;  
+  cout << " q2corr              :"  << Q2CORR   <<  endl;  
+  cout << " Btype               :"  << BTYPE   <<  endl;  
+  cout << " lepttype            :"  << LEPTTYPE   <<  endl;  
+  cout << " blinding            :"  << BLINDING   <<  endl;  
+  cout << " randomseed          :"  << RANDOMSEED   <<  endl;  
+  cout << " blindsize           :"  << BLINDSIZE   <<  endl;  
+  cout << " ratioBR             :"  << RATIOBR   <<  endl;   
+  cout << " SPtype              :"  << SPTYPE  <<  endl;
+  cout << " maxintpur           :"  << MAXINTPUR    <<  endl;
+  cout << " minintpur           :"  << MININTPUR    <<  endl; 
+  cout << " minpur              :"  << MINPUR    <<  endl;
+  cout << " run                 :"  << RUN    <<  endl;
+  cout << " mxCutLowExcl        :"  << MXCUTLOWEXCL   <<  endl;  
+  cout << " mxCutHighExcl       :"  << MXCUTHIGHEXCL   <<  endl;  
+  cout << " mxCutLowExcl1        :"  << MXCUTLOWEXCL1   <<  endl; 
+  cout << " mxCutHighExcl1       :"  << MXCUTHIGHEXCL1   <<  endl; 
+  cout << " mxCutLowExcl2        :"  << MXCUTLOWEXCL2   <<  endl; 
+  cout << " mxCutHighExcl2       :"  << MXCUTHIGHEXCL2   <<  endl; 
+  cout << " mxCutLowExcl3        :"  << MXCUTLOWEXCL3   <<  endl; 
+  cout << " mxCutHighExcl3       :"  << MXCUTHIGHEXCL3   <<  endl; 
+  cout << " mxCutLowExcl4        :"  << MXCUTLOWEXCL4   <<  endl; 
+  cout << " mxCutHighExcl4       :"  << MXCUTHIGHEXCL4   <<  endl; 
+  cout << " nchgLowExcl         :"  << NCHGLOWEXCL   <<  endl;  
+  cout << " nchgHighExcl        :"  << NCHGHIGHEXCL   <<  endl;  
+  cout << " ncombLowExcl        :"  << NCOMBLOWEXCL   <<  endl;  
+  cout << " ncombHighExcl       :"  << NCOMBHIGHEXCL   <<  endl;  
+  cout << " npi0LowExcl         :"  << NPI0LOWEXCL   <<  endl;  
+  cout << " npi0HighExcl        :"  << NPI0HIGHEXCL   <<  endl;  
+  cout << " mom1min             :"  << MOM1MIN   <<  endl;  
+  cout << " mom2min             :"  << MOM2MIN   <<  endl;   
+  cout << " ksele               :"  << KSELE   <<  endl;  
+  cout << " dalitzcut           :"  << DALITZCUT   <<  endl;  
+  cout << " dauetamass          :"  << DAUETAMASS   <<  endl;  
+  cout << " dauetamass2          :"  << DAUETAMASS2   <<  endl; 
+  cout << " dauetamass3          :"  << DAUETAMASS3   <<  endl; 
+  cout << " dauetamass4          :"  << DAUETAMASS4   <<  endl; 
+  cout << " daurhomass          :"  << DAURHOMASS   <<  endl;  
+  cout << " daugammamom         :"  << DAUGAMMAMOM   <<  endl;  
+  cout << " dorightnchg         :"  << DORIGHTNCHG   <<  endl;  
+  cout << " mnuSqpi0Low         :"  << MNUSQPI0LOW   <<  endl;  
+  cout << " mnuSqpi0High        :"  << MNUSQPI0HIGH   <<  endl;  
+  cout << " mnuSqetaLow         :"  << MNUSQETALOW   <<  endl;  
+  cout << " mnuSqetaHigh        :"  << MNUSQETAHIGH   <<  endl;  
+  cout << " mnuSqetaLow         :"  << MNUSQETALOW   <<  endl;  
+  cout << " mnuSqetaHigh        :"  << MNUSQETAHIGH   <<  endl;  
+  cout << " mnuSqrhoLow         :"  << MNUSQRHOLOW   <<  endl;  
+  cout << " mnuSqrhoHigh        :"  << MNUSQRHOHIGH   <<  endl;  
+  cout << " mnuSqrho0Low        :"  << MNUSQRHO0LOW   <<  endl;  
+  cout << " mnuSqrho0High       :"  << MNUSQRHO0HIGH   <<  endl;  
+  cout << " mnuSqomegaLow       :"  << MNUSQOMEGALOW   <<  endl;  
+  cout << " mnuSqomegaHigh      :"  << MNUSQOMEGAHIGH   <<  endl;  
+  cout << " var                 :"  << VAR   <<  endl;  
+  cout << " binsvar             :"  << BINSVAR   <<  endl;  
+  cout << " minvar              :"  << MINVAR   <<  endl;  
+  cout << " maxvar              :"  << MAXVAR   <<  endl;  
+  cout << " binsmass            :"  << BINSMASS   <<  endl;  
+  cout << " minmass             :"  << MINMASS   <<  endl;  
+  cout << " maxmass             :"  << MAXMASS   <<  endl;  
+  cout << " binsmm2             :"  << BINSMM2   <<  endl;  
+  cout << " minmm2              :"  << MINMM2   <<  endl;  
+  cout << " maxmm2              :"  << MAXMM2   <<  endl;  
+  cout << " binspcms            :"  << BINSPCMS   <<  endl;  
+  cout << " minpcms             :"  << MINPCMS   <<  endl;  
+  cout << " maxpcms             :"  << MAXPCMS   <<  endl;  
+  cout << " maxeneu             :"  << MAXENEU   <<  endl;  
+  cout << " jpsiwindow          :"  << JPSIWIN   <<  endl;  
+  cout << "====================================" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+//   if(DOTRKWEIGHT)   cout << " TRK REWEIGHTING IS ON" <<  endl; 
+//   if(DONEUWEIGHT)   cout << " NEU REWEIGHTING IS ON" <<  endl; 
+   if(DOBDECWEIGHT)   cout << " B DECAYS REWEIGHTING IS ON" <<  endl; 
+   if(DODDECWEIGHT)   cout << " D DECAYS REWEIGHTING IS ON" <<  endl; 
+   if(DOBUDECWEIGHT)   cout << " B->ulnu DECAYS REWEIGHTING IS ON" <<  endl; 
+//   if(DOBRECOWEIGHT)   cout << " BRECO REWEIGHTING IS ON" <<  endl; 
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "   ######  #         ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "   #     # #          #    ##    # #     #    #    ##    # #     #" << endl;
+  cout << "   #     # #          #    # #   # #     #    #    # #   # #" << endl;
+  cout << "   ######  #          #    #  #  # #     #    #    #  #  # #  ####" << endl;
+  cout << "   #     # #          #    #   # # #     #    #    #   # # #     #" << endl;
+  cout << "   #     # #          #    #    ## #     #    #    #    ## #     #" << endl;
+  cout << "   ######  #######   ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if (!BLINDING) {
+    cout << "                      ####### ####### #######" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #####   #####" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      ####### #       #" << endl;
+  }else{
+    cout << "                         ####### #     #" << endl;
+    cout << "                         #     # ##    #" << endl;
+    cout << "                         #     # # #   #" << endl;
+    cout << "                         #     # #  #  #" << endl;
+    cout << "                         #     # #   # #" << endl;
+    cout << "                         #     # #    ##" << endl;
+    cout << "                         ####### #     #" << endl;
+  }                                                                                                              
+  
+  cout << "" << endl;
+  cout << "" << endl;
+
+}
+// ----------------------------------------------------------------------
+double exclfitNtp::getblindfact() {
+   TRandom random;
+   double blindbias; 
+   random.SetSeed(RANDOMSEED);  
+   blindbias = 2*BLINDSIZE*random.Rndm()-BLINDSIZE; 
+   return blindbias+1;
+}
+
+// ----------------------------------------------------------------------
+TString exclfitNtp::getfileVubTotal() {
+  return FILEVUBTOTAL;
+}
+// ----------------------------------------------------------------------
+TString exclfitNtp::getfileVubTotalres() {
+  return FILEVUBTOTALRES;
+}
+// ----------------------------------------------------------------------
+TString exclfitNtp::getfileVubTotalnres() {
+  return FILEVUBTOTALNRES;
+}
+// ----------------------------------------------------------------------
+TString exclfitNtp::getfileVcb() {
+  return FILEVCB;
+}
+// ----------------------------------------------------------------------
+TString exclfitNtp::getfileData() {
+  return FILEDATA;
+}
+// ----------------------------------------------------------------------
+bool * exclfitNtp::getfilechain() {
+  return ischain;
+}
+// ----------------------------------------------------------------------
+TChain * exclfitNtp::getchain(char *thechain, const TString * treeName ) {
+  TString chainName("events");	
+  if ( treeName != 0 ) {
+    chainName = *treeName ;
+  }			
+  TChain *chain = new TChain( chainName.Data() );
+  cout << "Chaining ... " << thechain << endl;
+  char pName[2000]; 
+  char buffer[200];
+  sprintf(buffer, "%s", thechain);
+  ifstream is(buffer);  
+  while(is.getline(buffer, 200, '\n')){
+    if (buffer[0] == '#') continue; 
+    sscanf(buffer, "%s", pName); 
+    cout << "   Add: " << buffer << endl; 
+    chain->Add(pName); 
+  }
+  is.close();
+  return chain;
+}
+// ----------------------------------------------------------------------
+void exclfitNtp::setPrefix(TString theprefix) {
+  PREFIXOUT = theprefix;
+}
+// ----------------------------------------------------------------------
+void exclfitNtp::setDirectory(TString dirname) {
+  DIRNAME = dirname;
+}
+// ----------------------------------------------------------------------
+Int_t exclfitNtp::isBlind() {
+  return BLINDING;
+}
+
+// ----------------------------------------------------------------------
+void exclfitNtp::readpstarfactor() {
+  char buffer[200];
+  float pmax, thefactor;
+  int i;
+  char name[100];
+  if(LEPTTYPE==2) sprintf(name,"%s%d%s","filepstar_",FITCATEGORY,".dat");
+  if(LEPTTYPE==0) sprintf(name,"%s%d%s","filepstarele_",FITCATEGORY,".dat"); 
+  if(LEPTTYPE==1) sprintf(name,"%s%d%s","filepstarmu_",FITCATEGORY,".dat"); 
+  ifstream is3(name);
+  i = 15;  
+  while (is3.getline(buffer, 200, '\n')) {
+    if (buffer[0] == '#') {continue;}
+    sscanf(buffer, "%f %f", &pmax, &thefactor);
+    pstarfactor[i] = thefactor; 
+    i--;
+  }    
+}
+// ----------------------------------------------------------------------
+double exclfitNtp::getBsysweight(int decType,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  if(DOBDECWEIGHT) theweight = Bsem->weight(decType); 
+  if(thevub) theweight = 1.;
+  return theweight;
+}
+// ----------------------------------------------------------------------
+double exclfitNtp::getDsysweight(int decDpi,int decDk,int decDks,int decDpiz,int decDlep,int decImode,int thevub) {
+  double theweight;
+  theweight = 1.;  
+  int bla(1);
+  if(DODDECWEIGHT){
+   theweight = Dvar->weight(decDpi,decDk,decDks,decDpiz,decDlep,decImode,bla);    
+  }
+  if(thevub) theweight = 1.;
+  return theweight;
+}
+// ----------------------------------------------------------------------
+double exclfitNtp::getBusysweight(int decType) {
+  double theweight;
+  theweight = 1.;  
+  if(DOBUDECWEIGHT) theweight = Busem->weight(decType); 
+  return theweight;
+}
+
+// ----------------------------------------------------------------------
+double exclfitNtp::getPstarFactor(double thepcms) {
+  int thebin = int((thepcms-1)/.1);
+  double prevalue = thebin * .1 + 1.0; 
+  double thevalue;
+  thevalue = pstarfactor[thebin] + (pstarfactor[thebin+1] - pstarfactor[thebin])/.1 * (thepcms-prevalue); 
+  if (thepcms<1)thevalue = pstarfactor[0]; 
+  if (thepcms>2.5)thevalue = pstarfactor[15]; 
+  return thevalue;
+}
+
+void exclfitNtp::Bookhist()
+{
+  
+  fHistFile->cd();
+  TH1 *h;
+  char name[100], title[100];
+
+  sprintf(name,"%s%s",VAR,"sigexcl");  sprintf(title, "sig events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );  h->Sumw2();
+  sprintf(name,"%s%s",VAR,"vubexcl");  sprintf(title, "vub events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );  h->Sumw2();
+  sprintf(name,"%s%s",VAR,"vcbexcl");  sprintf(title, "vcb events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );  h->Sumw2();
+  sprintf(name,"%s%s",VAR,"othexcl");  sprintf(title, "oth events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );  h->Sumw2();
+  sprintf(name,"%s%s",VAR,"dataexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );  h->Sumw2();
+
+  sprintf(name,"%s%s",VAR,"scalesigexcl");  sprintf(title, "sig events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR ); 
+  sprintf(name,"%s%s",VAR,"scalevubexcl");  sprintf(title, "vub events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR ); 
+  sprintf(name,"%s%s",VAR,"scalevcbexcl");  sprintf(title, "vcb events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR ); 
+  sprintf(name,"%s%s",VAR,"scaleothexcl");  sprintf(title, "oth events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR ); 
+  sprintf(name,"%s%s",VAR,"scaledataexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );
+
+  sprintf(name,"%s%s",VAR,"nonvubexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );
+  sprintf(name,"%s%s",VAR,"allbkgexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );
+  sprintf(name,"%s%s",VAR,"allbkgexclerr");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );
+  sprintf(name,"%s%s",VAR,"allmcexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSVAR, MINVAR, MAXVAR );
+
+
+  sprintf(name,"mm2sigexcl");  sprintf(title, "sig events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );  h->Sumw2();
+  sprintf(name,"mm2vubexcl");  sprintf(title, "vub events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );  h->Sumw2();
+  sprintf(name,"mm2vcbexcl");  sprintf(title, "vcb events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );  h->Sumw2();
+  sprintf(name,"mm2othexcl");  sprintf(title, "oth events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );  h->Sumw2();
+  sprintf(name,"mm2dataexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );  h->Sumw2();
+
+  sprintf(name,"mm2scalesigexcl");  sprintf(title, "sig events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 ); 
+  sprintf(name,"mm2scalevubexcl");  sprintf(title, "vub events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 ); 
+  sprintf(name,"mm2scalevcbexcl");  sprintf(title, "vcb events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 ); 
+  sprintf(name,"mm2scaleothexcl");  sprintf(title, "oth events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 ); 
+  sprintf(name,"mm2scaledataexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );
+
+  sprintf(name,"mm2nonvubexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );
+  sprintf(name,"mm2allbkgexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );
+  sprintf(name,"mm2allbkgexclerr");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );
+  sprintf(name,"mm2allmcexcl");  sprintf(title, "data events exclusive");  h = new TH1D(name, title, BINSMM2, MINMM2, MAXMM2 );
+
+  h = new TH1D("plotall", "Hibryd", 40, 0, 5. ); 
+  h = new TH1D("plotnres", "Mx Hybrid",40, 0, 5. ); 
+  h = new TH1D("plotres", "Mx Resonant",40, 0, 5.  ); 
+  h = new TH1D("plotallnonres", "Mx NON Resonant",40, 0, 5.  ); 
+  
+  h = new TH1D("nsldata", "mes nsl cuts",40, 5.2, 5.3  ); 
+  h = new TH1D("allcutsdata", "mes allcuts cuts",40, 5.2, 5.3  ); 
+  h = new TH1D("vuballcutnorm","mes vub 1<mm2<4",40,5.2,5.3);
+  h = new TH1D("vcballcutnorm","mes vcb 1<mm2<4",40,5.2,5.3);
+  h = new TH1D("othallcutnorm","mes other 1<mm2<4",40,5.2,5.3);	
+  h = new TH1D("dataallcutnorm","mes data 1<mm2<4",40,5.2,5.3);
+  h = new TH1D("nslvubmm2","mes vub nsl 1<mm2<4",40,5.2,5.3);
+
+}
+

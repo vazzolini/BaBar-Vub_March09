@@ -1,0 +1,2372 @@
+
+void VirClass::Init(TTree *tree)
+{
+  //   Set branch addresses
+  if (tree == 0) return;
+  fChain    = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+
+  fChain->SetBranchAddress("run",&run);
+  fChain->SetBranchAddress("lower",&lower);
+  fChain->SetBranchAddress("upper",&upper);
+  fChain->SetBranchAddress("mes",&mes);
+  fChain->SetBranchAddress("de",&de);
+  fChain->SetBranchAddress("pur",&pur);
+  fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+  fChain->SetBranchAddress("GSem",&GSem);  
+  fChain->SetBranchAddress("GfDpi",&GfDpi); 
+  fChain->SetBranchAddress("GfDpiz",&GfDpiz);
+  fChain->SetBranchAddress("GfDk",&GfDk);  
+  fChain->SetBranchAddress("GfDks",&GfDks); 
+  fChain->SetBranchAddress("GfDlep",&GfDlep);
+  fChain->SetBranchAddress("GfDgam",&GfDgam);
+  if (fChain->FindBranch("GfK") != 0) {
+    fChain->SetBranchAddress("GfK", &GfK);
+    GfK = 0;
+  }
+  fChain->SetBranchAddress("intpur",&intpur);
+  fChain->SetBranchAddress("brecoflav",&brecoflav);
+  fChain->SetBranchAddress("brecocharge",&brecocharge);
+  fChain->SetBranchAddress("brecoidtrue",&brecoidtrue);
+  fChain->SetBranchAddress("brecoid",&brecoid);
+  fChain->SetBranchAddress("modeB",&modeB);
+  fChain->SetBranchAddress("truemodeB",&truemodeB);
+  fChain->SetBranchAddress("brecoqual",&brecoqual);
+  fChain->SetBranchAddress("vub",&vub);
+  fChain->SetBranchAddress("vcb",&vcb);
+  fChain->SetBranchAddress("other",&other);
+  fChain->SetBranchAddress("nle",&nle);
+  fChain->SetBranchAddress("nel",&nel);
+  fChain->SetBranchAddress("nmu",&nmu);
+  fChain->SetBranchAddress("nkp",&nkp);
+  fChain->SetBranchAddress("nks",&nks);
+  fChain->SetBranchAddress("nchg",&nchg);
+  fChain->SetBranchAddress("chgdaugen",&chgdaugen);
+  fChain->SetBranchAddress("nneu",&nneu);
+  fChain->SetBranchAddress("neudaugen",&neudaugen);
+  fChain->SetBranchAddress("nneu80_160",&nneu80_160);
+  fChain->SetBranchAddress("nneu160_320",&nneu160_320);
+  fChain->SetBranchAddress("ctvgen",&ctvgen);
+  fChain->SetBranchAddress("ctlgen",&ctlgen);
+  fChain->SetBranchAddress("chigen",&chigen);
+  fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+  fChain->SetBranchAddress("tcmsgen",&tcmsgen);
+  fChain->SetBranchAddress("fcmsgen",&fcmsgen);
+  fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+  fChain->SetBranchAddress("pxhadgen",&pxhadgen);
+  fChain->SetBranchAddress("txhadgen",&txhadgen);
+  fChain->SetBranchAddress("fxhadgen",&fxhadgen);
+  fChain->SetBranchAddress("exhadgen",&exhadgen);
+  fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+  fChain->SetBranchAddress("mxhadgenwoph",&mxhadgenwoph);
+  fChain->SetBranchAddress("xcharge",&xcharge);
+  fChain->SetBranchAddress("pxhad",&pxhad);
+  fChain->SetBranchAddress("txhad",&txhad);
+  fChain->SetBranchAddress("fxhad",&fxhad);
+  fChain->SetBranchAddress("exhad",&exhad);
+  fChain->SetBranchAddress("mxhad",&mxhad);
+  fChain->SetBranchAddress("mxhadfit",&mxhadfit);
+  fChain->SetBranchAddress("lcharge",&lcharge);
+  fChain->SetBranchAddress("pcms",&pcms);
+  fChain->SetBranchAddress("tcms",&tcms);
+  fChain->SetBranchAddress("fcms",&fcms);
+  fChain->SetBranchAddress("ecms",&ecms);
+  fChain->SetBranchAddress("plab",&plab);
+  fChain->SetBranchAddress("tlab",&tlab);
+  fChain->SetBranchAddress("flab",&flab);
+  fChain->SetBranchAddress("pnu",&pnu);
+  fChain->SetBranchAddress("tnu",&tnu);
+  fChain->SetBranchAddress("fnu",&fnu);
+  fChain->SetBranchAddress("pplus",&pplus);
+  fChain->SetBranchAddress("pplusgen",&pplusgen);
+  fChain->SetBranchAddress("pplusfit",&pplusfit);
+  fChain->SetBranchAddress("pminus",&pminus);
+  fChain->SetBranchAddress("pminusgen",&pminusgen);
+  fChain->SetBranchAddress("pminusfit",&pminusfit);
+  fChain->SetBranchAddress("mm2",&mm2);
+  fChain->SetBranchAddress("deltam",&deltam);
+  fChain->SetBranchAddress("wdeltam",&wdeltam);
+  fChain->SetBranchAddress("q2",&q2);
+  fChain->SetBranchAddress("q2fit",&q2fit);
+  fChain->SetBranchAddress("q2Gen",&q2Gen);
+  fChain->SetBranchAddress("nnpi0",&nnpi0);
+  fChain->SetBranchAddress("totweight",&totweight);
+  fChain->SetBranchAddress("totweightNutMult",&totweightNutMult);
+  fChain->SetBranchAddress("totweightTrkMult",&totweightTrkMult);
+  fChain->SetBranchAddress("kplus",&fkplus);
+  fChain->SetBranchAddress("emiss",&emiss);
+  fChain->SetBranchAddress("pmiss",&pmiss);
+  fChain->SetBranchAddress("neu1B",&neu1B);
+  fChain->SetBranchAddress("ch1B",&ch1B);
+  fChain->SetBranchAddress("cascade",&cascade);
+  fChain->SetBranchAddress("wdeltampiz",&wdeltampiz);
+  fChain->SetBranchAddress("nkpL",&nkpL);
+  fChain->SetBranchAddress("nkpT",&nkpT);
+  fChain->SetBranchAddress("nkpVT",&nkpVT);
+  fChain->SetBranchAddress("nkpNNL",&nkpNNL);
+  fChain->SetBranchAddress("nkpNNL",&nkpNNT);
+  fChain->SetBranchAddress("nkpNNVT",&nkpNNVT);
+  fChain->SetBranchAddress("pchi2xlbs",&pchi2xlbs);
+  fChain->SetBranchAddress("Xulabpx",&Xulabpx);
+  fChain->SetBranchAddress("Xulabpy",&Xulabpy);
+  fChain->SetBranchAddress("Xulabpz",&Xulabpz);
+  fChain->SetBranchAddress("XulabpE",&XulabpE);
+  fChain->SetBranchAddress("Xudaulabpx",&Xudaulabpx);
+  fChain->SetBranchAddress("Xudaulabpy",&Xudaulabpy);
+  fChain->SetBranchAddress("Xudaulabpz",&Xudaulabpz);
+  fChain->SetBranchAddress("XudaulabpE",&XudaulabpE);
+  fChain->SetBranchAddress("pxBlab",&pxBlab);
+  fChain->SetBranchAddress("pyBlab",&pyBlab);
+  fChain->SetBranchAddress("pzBlab",&pzBlab);
+  fChain->SetBranchAddress("pEBlab",&pEBlab);
+  fChain->SetBranchAddress("pxleptgen",&pxleptgen);
+  fChain->SetBranchAddress("pyleptgen",&pyleptgen);
+  fChain->SetBranchAddress("pzleptgen",&pzleptgen);
+  fChain->SetBranchAddress("elabgen",&elabgen);
+
+/*
+  fChain->SetBranchAddress("mm1pr",&mm1pr);
+  fChain->SetBranchAddress("mm2pr",&mm2pr);
+  fChain->SetBranchAddress("mm3pr",&mm3pr);
+  fChain->SetBranchAddress("costmiss",&costmiss);
+  fChain->SetBranchAddress("tmiss",&tmiss);
+  fChain->SetBranchAddress("pcmstrklo",&pcmstrklo);
+*/
+  Notify();
+}
+
+//-----------------------------------------------------------
+Bool_t VirClass::Notify()
+{
+  //   called when loading a new file
+  //   get branch pointers
+  b_run = fChain->GetBranch("run");
+  b_lower = fChain->GetBranch("lower");
+  b_upper = fChain->GetBranch("upper");
+  b_mes = fChain->GetBranch("mes");
+  b_de = fChain->GetBranch("de");
+  b_pur = fChain->GetBranch("pur");
+  b_nle = fChain->GetBranch("nle");
+  b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+  b_GSem=       fChain->GetBranch("GSem");  
+  b_GfDpi=      fChain->GetBranch("GfDpi");  
+  b_GfDpiz=     fChain->GetBranch("GfDpiz");
+  b_GfDk=       fChain->GetBranch("GfDk");  
+  b_GfDks=      fChain->GetBranch("GfDks"); 
+  b_GfDlep=     fChain->GetBranch("GfDlep");
+  b_GfDgam=     fChain->GetBranch("GfDgam");
+  b_GfK=        fChain->GetBranch("GfK");
+  b_intpur = fChain->GetBranch("intpur");
+  b_brecoflav = fChain->GetBranch("brecoflav");
+  b_brecocharge = fChain->GetBranch("brecocharge");
+  b_brecoidtrue = fChain->GetBranch("brecoidtrue");
+  b_brecoidtrue = fChain->GetBranch("brecoid");
+  b_modeB = fChain->GetBranch("modeB");
+  b_truemodeB = fChain->GetBranch("truemodeB");
+  b_brecoqual = fChain->GetBranch("brecoqual");
+  b_vub = fChain->GetBranch("vub");
+  b_vcb = fChain->GetBranch("vcb");
+  b_other = fChain->GetBranch("other");
+  b_ctvgen = fChain->GetBranch("ctvgen");
+  b_ctlgen = fChain->GetBranch("ctlgen");
+  b_chigen = fChain->GetBranch("chigen");
+  b_pcmsgen = fChain->GetBranch("pcmsgen");
+  b_tcmsgen = fChain->GetBranch("tcmsgen");
+  b_fcmsgen = fChain->GetBranch("fcmsgen");
+  b_ecmsgen = fChain->GetBranch("ecmsgen");
+  b_pxhadgen = fChain->GetBranch("pxhadgen");
+  b_txhadgen = fChain->GetBranch("txhadgen");
+  b_fxhadgen = fChain->GetBranch("fxhadgen");
+  b_exhadgen = fChain->GetBranch("exhadgen");
+  b_mxhadgen = fChain->GetBranch("mxhadgen");
+  b_mxhadgenwoph = fChain->GetBranch("mxhadgenwoph");
+  b_xcharge = fChain->GetBranch("xcharge");
+  b_pxhad = fChain->GetBranch("pxhad");
+  b_txhad = fChain->GetBranch("txhad");
+  b_fxhad = fChain->GetBranch("fxhad");
+  b_exhad = fChain->GetBranch("exhad");
+  b_mxhad = fChain->GetBranch("mxhad");
+  b_mxhadfit = fChain->GetBranch("mxhadfit");
+  b_lcharge = fChain->GetBranch("lcharge");
+  b_pcms = fChain->GetBranch("pcms");
+  b_tcms = fChain->GetBranch("tcms");
+  b_fcms = fChain->GetBranch("fcms");
+  b_ecms = fChain->GetBranch("ecms");
+  b_pcms = fChain->GetBranch("plab");
+  b_tcms = fChain->GetBranch("tlab");
+  b_fcms = fChain->GetBranch("flab");
+  b_pnu = fChain->GetBranch("pnu");
+  b_tnu = fChain->GetBranch("tnu");
+  b_fnu = fChain->GetBranch("fnu");
+  b_pplus = fChain->GetBranch("pplus");
+  b_pplusgen = fChain->GetBranch("pplusgen");
+  b_pplusfit = fChain->GetBranch("pplusfit");
+  b_pminus = fChain->GetBranch("pminus");
+  b_pminusgen = fChain->GetBranch("pminusgen");
+  b_pminusfit = fChain->GetBranch("pminusfit");
+  b_mm2 = fChain->GetBranch("mm2");
+  b_emiss = fChain->GetBranch("emiss");
+  b_pmiss = fChain->GetBranch("pmiss");
+  b_deltam = fChain->GetBranch("deltam");
+  b_wdeltam = fChain->GetBranch("wdeltam");
+  b_nnpi0 = fChain->GetBranch("nnpi0");
+  b_q2 = fChain->GetBranch("q2");
+  b_q2fit = fChain->GetBranch("q2fit");
+  b_q2Gen = fChain->GetBranch("q2Gen");
+  b_kplus = fChain->GetBranch("kplus");
+  b_neudaugen = fChain->GetBranch("neudaugen");
+  b_chgdaugen = fChain->GetBranch("chgdaugen");
+  b_neu1B = fChain->GetBranch("neu1B");
+  b_ch1B = fChain->GetBranch("ch1B");
+  b_cascade = fChain->GetBranch("cascade");
+  b_wdeltampiz = fChain->GetBranch("wdeltampiz");
+  b_nkpL = fChain->GetBranch("nkpL");
+  b_nkpT = fChain->GetBranch("nkpT");
+  b_nkpVT = fChain->GetBranch("nkpVT");
+  b_nkpNNL = fChain->GetBranch("nkpNNL");
+  b_nkpNNT = fChain->GetBranch("nkpNNT");
+  b_nkpNNVT = fChain->GetBranch("nkpNNVT");
+  b_Xulabpx = fChain->GetBranch("Xulabpx");
+  b_Xulabpy = fChain->GetBranch("Xulabpy");
+  b_Xulabpz = fChain->GetBranch("Xulabpz");
+  b_XulabpE = fChain->GetBranch("XulabpE");
+  b_Xudaulabpx = fChain->GetBranch("Xudaulabpx");
+  b_Xudaulabpy = fChain->GetBranch("Xudaulabpy");
+  b_Xudaulabpz = fChain->GetBranch("Xudaulabpz");
+  b_XudaulabpE = fChain->GetBranch("XudaulabpE");
+  b_pxBlab = fChain->GetBranch("pxBlab");
+  b_pyBlab = fChain->GetBranch("pyBlab");
+  b_pzBlab = fChain->GetBranch("pzBlab");
+  b_pEBlab = fChain->GetBranch("pEBlab");
+  b_pxleptgen = fChain->GetBranch("pxleptgen");
+  b_pyleptgen = fChain->GetBranch("pyleptgen");
+  b_elabgen = fChain->GetBranch("elabgen");
+
+  return kTRUE;
+}
+
+// For the extra MC truth 
+void VirClass::InitTruth(TTree *tree)
+{
+  //   Set branch addresses
+  if (tree == 0) return;
+  fChain    = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+
+  fChain->SetBranchAddress("Gvxbtyp",&Gvxbtyp);
+  if (fChain->FindBranch("Gfk") != 0) {
+    fChain->SetBranchAddress("Gfk", &GfK);
+    GfK = 0;
+  }
+  fChain->SetBranchAddress("vub",&vub);
+  fChain->SetBranchAddress("vcb",&vcb);
+  fChain->SetBranchAddress("neudaugen",&neudaugen);
+  fChain->SetBranchAddress("chgdaugen",&chgdaugen);
+  fChain->SetBranchAddress("pcmsgen",&pcmsgen);
+  fChain->SetBranchAddress("ecmsgen",&ecmsgen);
+  fChain->SetBranchAddress("q2gen",&q2Gen);
+  fChain->SetBranchAddress("mxhadgen",&mxhadgen);
+  fChain->SetBranchAddress("mxhadgenwoph",&mxhadgenwoph);
+
+  NotifyTruth();
+}
+
+Bool_t VirClass::NotifyTruth()
+{
+  //   called when loading a new file
+  //   get branch pointers
+  b_Gvxbtyp=    fChain->GetBranch("Gvxbtyp");
+  b_GfK=        fChain->GetBranch("GfK");
+  b_vub = fChain->GetBranch("vub");
+  b_vcb = fChain->GetBranch("vcb");
+  b_pcmsgen = fChain->GetBranch("pcmsgen");
+  b_ecmsgen = fChain->GetBranch("ecmsgen");
+  b_q2Gen = fChain->GetBranch("q2gen");
+  b_mxhadgenwoph = fChain->GetBranch("mxhadgenwoph");
+  b_neudaugen = fChain->GetBranch("neudaugen");
+  b_chgdaugen = fChain->GetBranch("chgdaugen");
+
+  return kTRUE;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::Show(Int_t entry) {
+  // Print contents of entry.
+  // If entry is not specified, print current entry
+  if (!fChain) return;
+  fChain->Show(entry);
+}
+
+// ----------------------------------------------------------------------
+Int_t VirClass::Cut(Int_t entry) {
+  // This function may be called from Loop.
+  // returns  1 if entry is accepted.
+  // returns -1 otherwise.
+  return -1;
+}
+
+// ----------------------------------------------------------------------
+Int_t VirClass::GetEntry(Int_t entry) {
+  // Read contents of entry.
+  return 0;
+}
+
+// ----------------------------------------------------------------------
+Int_t VirClass::LoadTree(Int_t entry) {
+  return 0;
+}
+
+// ---------------------------------------------------------------------- 
+void VirClass::initRest(TString weightFile) {
+  nDATA = nVCB = nVUB = nVUBDATA= nVCBDATA = 1111111111;
+  FILEVUBTOTAL = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/newallvubcock.root";
+  FILEVCB = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/all-cocktail.root";
+  FILEDATA = "/nfs/farm/babar/AWG7/ISL/tmp/rootfitfiles/allgeneric.root";
+  TOTALSTAT = 270. ;
+  TOTALSTATMODEL = 270.;
+  BRRATIOGENVALUE = 0.0017 ;
+  BRRATIOVALUETAIL_U = 0.0017 ;
+  BRRATIOVALUETAIL_C = 0.104 ;
+  
+  PSTARFACT = 1.17;
+
+  Q2CUT = 0.;
+  MXCUT = 1.6;
+  PPLUSCUT = 5.28;
+  if (FITQ2 == 0) {
+    CHOPCUT = MXCUT;
+  } else if(FITQ2 == 1) {
+    CHOPCUT = Q2CUT;
+  } else if (FITQ2 == 2) {
+    CHOPCUT = PPLUSCUT;
+  }
+
+  USECB = 1;
+  //  GAUSSFIT = 0;
+  FIXMEANVALUE = 1;
+  FIXSIGMA = 0;
+  FIXARGUS1 = 0;
+  FIXARGUS2 = 0;
+  FIXCB1 = 0;
+  FIXCB2 = 0;
+  LEPTONPCUT = 1.;
+  TRUELEPTONPCUT = 1.;
+  PRMM1CUT = 1000000.;
+  PRMM2CUT = 1000000.;
+  PRMM3CUT = 1000000.;
+  PMISSCUTLO = -1.;
+  COSTMISSCUTLO = -2.;
+  COSTMISSCUTHI = 2.;
+  PCMSTRKLOCUT = -10000.;
+  MNUSQLOW = -1000.;
+  MNUSQHIGH = 0.5;
+  EMPMLOW = -0.2;
+  EMPMHIGH = 0.25;
+  CHLOW = -.5;
+  CHHIGH = .5;
+  DEPL = 1.;
+  BTYPE = 2;
+  LEPTTYPE = 2;
+  FITTOTSHAPE = 0;
+  MIXCORR = 2;
+  FIXCORRRATIO = 0;
+  FITMC = 1;
+  DONTWEIGHTVUB = 0;
+  //   FITOPT = 1;
+  FITOPT = 0;
+  TOYMC = 0.; 
+  MULTIFIT = 0;
+  BLINDING = 1;
+  SAVEPDFTREE = false;
+  READPDFTREE = false;
+  TOYHISTOGRAMES = false;
+  RANDOMSEED = 990717;
+  SEME = 0;
+  SERVICE = -1;
+  THECASCADEWEIGHT = 1.;
+  BLINDSIZE = 0.51;
+  ISSMEARALL = 0;              
+  SMEARALLMEANVALUE = 0;
+  SMEARALLSIGMA   = 1;      
+  ISSMEARBKG      = 0;        
+  SMEARBKGMEANVALUE = 0;
+  SMEARBKGSIGMA    = 1; 
+  DOBRECOWEIGHT = 0;
+  DOBDECWEIGHT = 0;
+  DODDECWEIGHT = 0;
+  DOFFWEIGHT = 0;
+  DOEXCLFFWEIGHT = 0;
+  DOCASCADEWEIGHT = 0;
+  EFFDFN = -99;
+  DOMESMEANCORR = 0;
+  DOTRKWEIGHT = 0;
+  DONEUWEIGHT = 0;
+  DOSSBARWEIGHT = 0;
+  MAXINTPUR = 1000.;
+  MININTPUR = 0.;
+  RUN = 0;
+  CUTNNPI0 = -1000;
+  DOFERMI = 0;
+  FERMIAPP = 0;
+  MULFAC = 0;
+  DELTAMB = 0;
+  DELTAA = 0;
+
+  fprlRew = 1;
+
+  CUTBIN = 0;
+  FITDSS = 0; 	
+  BINNED = 0;
+  NOTUNBINNED = 0;
+  EPOINTCOR = false;
+  mesCor = 0;
+  BRECOQUAL = 0;
+  NUCUT = 1;
+  SMALLSTATCORR = 0;
+
+  // --- prepare a default binning  ---
+  // chopBinning can be over written by user binning, but is not used anymore
+  // chopB1 can be over written by the InitBinning()
+
+  double mxBinning[10] = {MXBIN,1.9,2.2,2.5,2.8,3.1,3.4,3.7,4.2,5.};
+  double q2Binning[13]= {0.,2.,4.,6.,8.,10.,12.,14.,16.,18.,20.,22.,24.};
+  double pplusBinning[8] = {PPLUSBIN,1.32,1.98,2.64,3.3,3.96,4.62,5.28};
+  double unfBinning[26]; // Binning for the Unfolding, KT
+  for(int u=0;u<26;u++){
+    unfBinning[u]=(double)u*5./25.;
+    chopBinningUnf[u]=(double)u*5./25.;
+  }
+ 
+  if (FITQ2 == 0) {
+    chopBinning = std::vector<double>(&mxBinning[0], &mxBinning[10]);
+  } else if (FITQ2 == 1) {
+    chopBinning = std::vector<double>(&q2Binning[0], &q2Binning[13]);
+  } else if (FITQ2 == 2) {
+    chopBinning = std::vector<double>(&pplusBinning[0], &pplusBinning[8]);
+  }
+  chopB1 = chopBinning;
+
+  // initialize weight file
+  fWeightFile=weightFile;
+
+  // debug variable
+  _debug = 3;
+
+  return;
+}
+
+// ----------------------------------------------------------------------
+//! init binning
+void VirClass::InitBinning(const int comb)
+{
+
+  // --- get the right binning for 1d fit ---
+  // this is always need because histograms are booked
+
+  double q2B1[14] = {0.,2.,4.,6.,8.,10.,12.,14.,16.,18.,20.,22.,24.,26.};
+
+  if (FITQ2 == 0) {                               // fit mx
+    chopB1 = mxB1;
+  } else if (FITQ2 == 1) {                        // fit q2
+    chopB1 = std::vector<double>(&q2B1[0], &q2B1[14]);
+  } else if (FITQ2 == 2) {                        // fit pplus
+    chopB1 = pplusB1;
+  }
+
+  if (UNFBINNING>0) { // Equidistant mX binning, KT
+    std::cout << "UNFBINNING ON" << std::endl;
+
+    chopB1.resize(UNFBINNING+1);
+    for (int i=0; i<chopB1.size(); i++) chopB1[i] = i*chophighB/(UNFBINNING);
+  }
+
+  nB = chopB1.size();
+  
+  // --- get the right binning for 2d fit ---
+
+  // nothing special needed for xB1
+  // nothing special needed for qB1
+
+  // --- make print out of used binning ---
+  if (comb == 0) { // 1d case
+
+    std::string type; 
+    if (FITQ2 == 0) type = "mxB";
+    if (FITQ2 == 1) type = "q2B";
+    if (FITQ2 == 2) type = "p+B";
+    for (int i=0; i<chopB1.size(); i++) {
+      std::cout << " ........." << type << " .........." << chopB1[i] << std::endl;;
+    }
+
+  } else { // 2d case
+
+    for (int i=0; i<nQ2B; i++) {
+      std::cout << " .........q2B .........." << qB1[i] << std::endl;
+    }
+    for (int i=0; i<nMxB; i++) {
+      std::cout << " .........mxB .........." << xB1[i] << std::endl;
+    }
+
+  } // if (comb == 0)
+
+  return;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::readOptions(TString filename, int dump) {
+  char  buffer[200];
+  fOptionFile = filename;
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char OptionName[100];
+  char OptionValue[100];
+  float isc(0);
+  int ok(0);
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    //     if (buffer[0] == '/') {continue;}
+    isc = 0; sprintf(OptionName,""); sprintf(OptionValue,"");
+    sscanf(buffer, "%s %s %f", OptionName, OptionValue, &isc);
+    // -- 
+    if (!strcmp(OptionName, "fileVubTotal")) { FILEVUBTOTAL  = OptionValue; ischain[VirClass::VubTotal] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalres")) { FILEVUBTOTALRES  = OptionValue; ischain[VirClass::VubTotalres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTotalnres")) { FILEVUBTOTALNRES  = OptionValue; ischain[VirClass::VubTotalnres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVcb")) { FILEVCB= OptionValue; ischain[VirClass::Vcb] = bool(isc); ok = 1;}    
+    if (!strcmp(OptionName, "fileVcb1")) { FILEVCB1= OptionValue; ischain[VirClass::Vcb1] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVcb2")) { FILEVCB2= OptionValue; ischain[VirClass::Vcb2] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileData")) { FILEDATA= OptionValue; ischain[VirClass::Data] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTruthres")) { FILEVUBTRUTHRES= OptionValue; ischain[VirClass::VubTruthres] = bool(isc); ok = 1;}
+    if (!strcmp(OptionName, "fileVubTruthnres")) { FILEVUBTRUTHNRES= OptionValue; ischain[VirClass::VubTruthnres] = bool(isc); ok = 1;}
+
+    if (ok == 0)  cout << "==> fitNtp::readOptions() Error: Don't know about variable " << OptionName << endl;
+  }
+
+  if (dump == 1) dumpOptions();
+
+}
+
+// ----------------------------------------------------------------------
+void VirClass::readCuts(const TString filename, int dump, double wsys, const int runFlag, int Rel)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  } else {
+    std::cout <<"Reading cut file " << filename << std::endl;
+  }
+
+  std::string buffer;
+  while(getline(is, buffer, '\n')) {
+    if (buffer.empty()) continue;
+    if (buffer[0] == '#') continue;
+    if (buffer[0] == '/') continue;
+    if (buffer[0] == '@') { //used @ just to identify the correct line
+      CMDLINE = buffer; CMDLINE.erase(0,1);
+      continue;
+    }
+
+    int ok(0);
+
+    std::istringstream bufferstream(buffer.c_str());
+    std::string CutName; 
+    float CutValue; // xxx change this to double after all modifications
+
+    bufferstream >> CutName >> CutValue;
+
+    if (CutName == "ndata")             { nDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvcb")              { nVCB = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvub")              { nVUB = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvcbdata")          { nVCBDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "nvubdata")          { nVUBDATA = (Int_t)CutValue; ok = 1;}
+    if (CutName == "totalStat")         { TOTALSTAT = CutValue; ok = 1;}
+    if (CutName == "totalStatModel")    { TOTALSTATMODEL = CutValue; ok = 1;}
+    if (CutName == "BRRatioGenValue")   { BRRATIOGENVALUE = CutValue; ok = 1;}
+    if (CutName == "BRRatioValueTailU") { BRRATIOVALUETAIL_U = CutValue; ok = 1;}
+    if (CutName == "BRRatioValueTailC") { BRRATIOVALUETAIL_C = CutValue; ok = 1;}
+    if (CutName == "pstarfact")         { PSTARFACT = CutValue; ok = 1;}
+    if (CutName == "mxBin")             { MXBIN = CutValue; ok = 1;}    
+    if (CutName == "mxCut")             { MXCUT = CutValue; ok = 1;}
+    if (CutName == "q2Bin")             { Q2BIN = CutValue; ok = 1;}
+    if (CutName == "q2Cut")             { Q2CUT = CutValue; ok = 1;}
+    if (CutName == "q2loCut")           { Q2LOCUT = CutValue; ok = 1;}
+    if (CutName == "q2hiCut")           { Q2HICUT = CutValue; ok = 1;}
+    if (CutName == "pplusBin")          { PPLUSBIN = CutValue; ok = 1;}    
+    if (CutName == "csiloCut")          { CSILOCUT = CutValue; ok = 1;}
+    if (CutName == "csihiCut")          { CSIHICUT = CutValue; ok = 1;}
+    if (CutName == "xloCut")            { XLOCUT = CutValue; ok = 1;}
+    if (CutName == "xhiCut")            { XHICUT = CutValue; ok = 1;}
+    if (CutName == "wloCut")            { WLOCUT = CutValue; ok = 1;}
+    if (CutName == "whiCut")            { WHICUT = CutValue; ok = 1;}
+    if (CutName == "ewpwloCut")         { EWPWLOCUT = CutValue; ok = 1;}
+    if (CutName == "ewpwhiCut")         { EWPWHICUT = CutValue; ok = 1;}
+    if (CutName == "useCB")             { USECB = int(CutValue); ok = 1;}
+    //    if (CutName == "gauss")             { GAUSSFIT = int(CutValue); ok = 1;}
+    if (CutName == "fixMeanValue")      { FIXMEANVALUE = int(CutValue); ok = 1;}
+    if (CutName == "fixSigma")          { FIXSIGMA = int(CutValue); ok = 1;}
+    if (CutName == "fixArgus1")         { FIXARGUS1 = int(CutValue); ok = 1;}
+    if (CutName == "fixArgus2")         { FIXARGUS2 = int(CutValue); ok = 1;}
+    if (CutName == "fixCB1")            { FIXCB1 = int(CutValue); ok = 1;}
+    if (CutName == "fixCB2")            { FIXCB2 = int(CutValue); ok = 1;}
+    if (CutName == "leptonPCut")        { LEPTONPCUT = CutValue; ok = 1;}
+    if (CutName == "TrueleptonPCut")    { TRUELEPTONPCUT = CutValue; ok = 1;}
+    if (CutName == "prmm1Cut")          { PRMM1CUT = CutValue; ok = 1;}
+    if (CutName == "prmm2Cut")          { PRMM2CUT = CutValue; ok = 1;}
+    if (CutName == "prmm3Cut")          { PRMM3CUT = CutValue; ok = 1;}
+    if (CutName == "pmissCutlo")        { PMISSCUTLO = CutValue; ok = 1;}
+    if (CutName == "costmissCutlo")     { COSTMISSCUTLO = CutValue; ok = 1;}
+    if (CutName == "costmissCuthi")     { COSTMISSCUTHI = CutValue; ok = 1;}
+    if (CutName == "pcmsTrkloCut")      { PCMSTRKLOCUT = CutValue; ok = 1;}
+    if (CutName == "mnuSqLow")          { MNUSQLOW = CutValue; ok = 1;}
+    if (CutName == "mnuSqHigh")         { MNUSQHIGH = CutValue; ok = 1;}
+    if (CutName == "EmpmLow")           { EMPMLOW = CutValue; ok = 1;}
+    if (CutName == "EmpmHigh")          { EMPMHIGH = CutValue; ok = 1;}
+    if (CutName == "chLow")             { CHLOW = CutValue; ok = 1;}
+    if (CutName == "chHigh")            { CHHIGH = CutValue; ok = 1;}
+    if (CutName == "depl")              { DEPL = CutValue; ok = 1;}
+    if (CutName == "Btype")             { BTYPE = CutValue; ok = 1;}
+    if (CutName == "lepttype")          { LEPTTYPE = (Int_t)CutValue; ok = 1;}
+    if (CutName == "fittotshape")       { FITTOTSHAPE = int(CutValue); ok = 1;}
+    if (CutName == "mixcorr")           { MIXCORR = int(CutValue); ok = 1;}
+    if (CutName == "fixcorrratio")      { FIXCORRRATIO = int(CutValue); ok = 1;}
+    if (CutName == "fitMC")             { FITMC = int(CutValue); ok = 1;}
+    if (CutName == "dontweightvub")     { DONTWEIGHTVUB = int(CutValue); ok = 1;}
+    if (CutName == "fitOption")         { FITOPT = int(CutValue); ok = 1;}
+    if (CutName == "vcbcomp")           { VCBCOMP = CutValue; ok = 1;}
+    if (CutName == "othcomp")           { OTHCOMP = CutValue; ok = 1;}
+    if (CutName == "dovarstu")          { DOVARSTU = int(CutValue); ok = 1;}
+    if (CutName == "toyMC")             { TOYMC = CutValue; ok = 1;}
+    if (CutName == "multifit")          { MULTIFIT = int(CutValue); ok = 1;}
+    if (CutName == "blinding")          { BLINDING = int(CutValue); ok = 1;}
+    if (CutName == "randomseed")        { RANDOMSEED = int(CutValue); ok = 1;}
+    //    if (CutName == "seme")              { SEME = int(CutValue); ok = 1;}
+    //    cout << " reading cuts SEME = " << SEME << endl;
+    if (CutName == "service")           { SERVICE = (Int_t)CutValue; ok=1;}
+    if (CutName == "cascade")           { THECASCADEWEIGHT = (Double_t)CutValue; ok=1;}
+    if (CutName == "subtractpeaking")   { SUBTRACTPEAKING = (Int_t)CutValue; ok =1; }
+    if (CutName == "fitallmesrange")    { FITALLMESRANGE = (Int_t)CutValue; ok=1;} 
+    if (CutName == "blindsize")         { BLINDSIZE = CutValue; ok = 1; }
+    if (CutName == "issmearAll")        { ISSMEARALL = int(CutValue); ok = 1;}       
+    if (CutName == "smearAllMeanValue") { SMEARALLMEANVALUE = CutValue; ok = 1;} 
+    if (CutName == "smearAllSigma")     { SMEARALLSIGMA = CutValue; ok = 1;}     
+    if (CutName == "issmearBkg")        { ISSMEARBKG = int(CutValue); ok = 1;}       
+    if (CutName == "smearBkgMeanValue") { SMEARBKGMEANVALUE = CutValue; ok = 1;} 
+    if (CutName == "smearBkgSigma")     { SMEARBKGSIGMA = CutValue; ok = 1;}    
+    if (CutName == "dobrecoreweight")   { DOBRECOWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doBdecreweight")    { DOBDECWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doDdecreweight")    { DODDECWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doFFreweight")      { DOFFWEIGHT = int(CutValue); ok = 1;} // 1 Babar default
+    if (CutName == "doexclFFreweight")  { DOEXCLFFWEIGHT = int(CutValue); ok = 1;} 
+    if (CutName == "doCascadeReweight") { DOCASCADEWEIGHT = int(CutValue); ok = 1;} 
+    if (CutName == "EffDFN")            { EFFDFN = (Double_t)(CutValue); ok = 1;} 
+    if (CutName == "dotrkreweight")     { DOTRKWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "doneureweight")     { DONEUWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "dossbarreweight")   { DOSSBARWEIGHT = int(CutValue); ok = 1;}
+    if (CutName == "domesmeancorr")     { DOMESMEANCORR = int(CutValue); ok = 1;}
+    if (CutName == "maxintpur")         { MAXINTPUR = CutValue; ok = 1;}
+    if (CutName == "minintpur")         { MININTPUR = CutValue; ok = 1;}
+    if (CutName == "savepdftree")       { SAVEPDFTREE = CutValue; ok = 1;}
+    if (CutName == "readpdftree")       { READPDFTREE = CutValue; ok = 1;}
+    if (CutName == "toyhistogrames")    { TOYHISTOGRAMES = CutValue; ok = 1;}
+    if (CutName == "run")               { RUN = CutValue; ok = 1;}
+    if (CutName == "nnpi0")             { CUTNNPI0 = (Int_t)CutValue; ok = 1;}
+    if (CutName == "fermiapp")          { FERMIAPP = CutValue; ok = 1;}
+    if (CutName == "mulfac")            { MULFAC = CutValue; ok = 1;}
+    if (CutName == "deltamb")           { DELTAMB = CutValue; ok = 1;}
+    if (CutName == "deltaa")            { DELTAA = CutValue; ok = 1;}
+    if (CutName == "rew")               { fprlRew = (Int_t)CutValue; ok = 1;}
+    if (CutName == "binmes")            { BINNED = (Int_t)CutValue; ok = 1;}
+    if (CutName == "notunbinmes")       { NOTUNBINNED = (Int_t)CutValue; ok = 1;}
+    if (CutName == "mesfitmodel")       { MESFITMODEL = (Int_t)CutValue; ok = 1;}
+    if (CutName == "fitdss")            { FITDSS = (Int_t)CutValue; ok = 1;}
+    if (CutName == "bincut")            { CUTBIN = (Double_t)CutValue; ok = 1;}
+    if (CutName == "brecoqual")         { BRECOQUAL = (Int_t)CutValue; ok = 1;}
+    if (CutName == "Empmcut")           { NUCUT = (Int_t)CutValue+1; ok = 1; }
+    if (CutName == "smallstatcorr")     { SMALLSTATCORR = (Int_t)CutValue; ok = 1;}
+    if (CutName == "userbinning" && CutValue == 1) {
+      chopBinning.resize(nB);
+      for (int y=0;y<nB-1;y++){
+	getline(is, buffer, '\n');
+
+	std::istringstream bufferstream(buffer.c_str());
+	std::string CutName; 
+	float CutValue; // xxx change this to double after all modifications
+
+	bufferstream >> CutName >> CutValue;
+
+	chopBinning[y] = CutValue;
+	std::cout << "chop bin " << y << " " << chopBinning[y] << std::endl;
+      }
+      ok = 1;
+    }
+    
+    if (ok == 0) std::cout << "==> fitNtp::readCuts() Error: Don't know about variable " << CutName << std::endl;
+  } // while(getline())
+  
+  if (FITQ2 == 0) {
+    CHOPCUT = MXCUT;
+    CHOPBIN = MXBIN;
+  } else if (FITQ2 == 1) {
+    CHOPCUT = Q2CUT;
+    CHOPBIN = Q2BIN;
+  } else if (FITQ2 == 2) {
+    CHOPCUT = PPLUSCUT;
+    CHOPBIN = PPLUSBIN;
+  }
+  
+  readpstarfactor();
+
+  if (dump == 1) dumpCuts(filename);
+  cout<<" SETTING BR VALUES according to our SP8 MC!! TO BE CHECKED WHEN USING REAL DATA!!!!!!!!"<<endl;
+  SetBRValues(runFlag,Rel);
+  readWeights(wsys, runFlag);
+
+  return;
+}
+
+
+// ----------------------------------------------------------------------
+void VirClass::dumpOptions() {
+  cout << "====================================" << endl;
+  cout << " Option file " << fOptionFile << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " fileVubTotal        :"  << FILEVUBTOTAL   <<  endl;  
+  cout << " fileVubTotalres     :"  << FILEVUBTOTALRES   <<  endl;  
+  cout << " fileVubTotalnres    :"  << FILEVUBTOTALNRES   <<  endl;  
+  cout << " fileVcb             :"  << FILEVCB   <<  endl;  
+  cout << " fileVcb1            :"  << FILEVCB1   <<  endl;  
+  cout << " fileVcb2            :"  << FILEVCB2   <<  endl;  
+  cout << " fileData            :"  << FILEDATA   <<  endl;  
+  cout << " fileVubTruthres     :"  << FILEVUBTRUTHRES << endl;
+  cout << " fileVubTruthnres    :"  << FILEVUBTRUTHNRES << endl;
+  cout << "====================================" << endl;
+}
+// ----------------------------------------------------------------------
+void VirClass::dumpWFermiFile() {	
+  cout << "====================================" << endl;
+  cout << " WFermiFile used values " << endl;
+  cout << "------------------------------------" << endl;
+  cout << " B0bar -> pi+ l- nubar + CC = "<<compmod.wfermivec[0]<<endl;
+  cout << " B- -> pi0 l- nubar + CC = "<<compmod.wfermivec[1]<<endl;
+  cout << " B- -> eta0 l- nubar + CC = "<<compmod.wfermivec[2]<<endl;
+  cout << " B0bar -> rho+ l- nubar + CC = "<<compmod.wfermivec[3]<<endl;
+  cout << " B- -> rho0 l- nubar + CC = "<<compmod.wfermivec[4]<<endl;
+  cout << " B- -> omega0 l- nubar + CC = "<<compmod.wfermivec[5]<<endl;
+  cout << " B- -> eta_prime l- nubar + CC = "<<compmod.wfermivec[6]<<endl;
+  if(IsCM2()){
+    cout << " B0bar -> Xu+ l- nubar + CC = "<<compmod.wfermivec[7]<<endl;
+    cout << " B- -> Xu0 l- nubar + CC = "<<compmod.wfermivec[9]<<endl; }
+ else {
+    cout << " B0bar -> Xu+ l- nubar + CC = "<<compmod.wfermivec[8]<<endl;
+    cout << " B- -> Xu0 l- nubar + CC = "<<compmod.wfermivec[10]<<endl;}
+  cout << "====================================" << endl;
+}
+// ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+double VirClass::getPstarFactor(double thepcms) {
+  int thebin = (int)((thepcms-1)/.1);
+  double prevalue = thebin * .1 + 1.0; 
+  double thevalue;
+  thevalue = pstarfactor[thebin] + (pstarfactor[thebin+1] - pstarfactor[thebin])/.1 * (thepcms-prevalue); 
+  if (thepcms<.1)thevalue = pstarfactor[0]; 
+  if (thepcms>2.5)thevalue = pstarfactor[15]; 
+  return thevalue;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::dumpCuts(const TString filename)
+{
+  cout << "====================================" << endl;
+  cout << " Cut file " << filename << endl; 
+  cout << "------------------------------------" << endl;
+  cout << " Command Line :"<<CMDLINE<<endl;
+  cout << " data, vub, vcb, vubdata, vcbdata ev # :"  << nDATA<<" "<<nVUB<<" "<<nVCB <<" "<<nVUBDATA <<" "<<nVCBDATA <<  endl;  
+  cout << " totalStatModel      :"  << TOTALSTATMODEL   <<  endl;  
+  cout << " BRRatioGenValue     :"  << BRRATIOGENVALUE   <<  endl;  
+  cout << " BRRatioValueTail U  :"  << BRRATIOVALUETAIL_U   <<  endl;  
+  cout << " BRRatioValueTail C  :"  << BRRATIOVALUETAIL_C   <<  endl;  
+  cout << " pstarfact           :"  << getPstarFactor(LEPTONPCUT) <<  endl;  
+  cout << " mxBin               :"  << MXBIN   <<  endl;  
+  cout << " pplusBin            :"  << PPLUSBIN   <<  endl;  
+  cout << " mxCut               :"  << MXCUT   <<  endl;  
+  cout << " q2Bin               :"  << Q2BIN   <<  endl;  
+  cout << " q2Cut               :"  << Q2CUT   <<  endl;  
+  cout << " q2loCut             :"  << Q2LOCUT   <<  endl;  
+  cout << " q2hiCut             :"  << Q2HICUT   <<  endl;  
+  cout << " csiloCut            :"  << CSILOCUT   <<  endl;  
+  cout << " csihiCut            :"  << CSIHICUT   <<  endl;  
+  cout << " xloCut              :"  << XLOCUT   <<  endl;  
+  cout << " xhiCut              :"  << XHICUT   <<  endl;  
+  cout << " wloCut              :"  << WLOCUT   <<  endl;  
+  cout << " whiCut              :"  << WHICUT   <<  endl;  
+  cout << " ewpwloCut           :"  << EWPWLOCUT   <<  endl;  
+  cout << " ewpwhiCut           :"  << EWPWHICUT   <<  endl;  
+  cout << " useCB:              :"  << USECB   <<  endl;  
+  //  cout << " gauss               :"  << GAUSSFIT << endl;
+  cout << " fixMeanValue        :"  << FIXMEANVALUE   <<  endl;  
+  cout << " fixSigma            :"  << FIXSIGMA   <<  endl;  
+  cout << " fixArgus1           :"  << FIXARGUS1   <<  endl;  
+  cout << " fixArgus2           :"  << FIXARGUS2   <<  endl;
+  cout << " fixCB1              :"  << FIXCB1   <<  endl;  
+  cout << " fixCB2              :"  << FIXCB2   <<  endl;  
+  cout << " leptonPCut          :"  << LEPTONPCUT   <<  endl; 
+  cout << " TrueleptonPCut      :"  << TRUELEPTONPCUT   <<  endl; 
+  cout << " prmm1Cut            :"  << PRMM1CUT   <<  endl;  
+  cout << " prmm2Cut            :"  << PRMM2CUT   <<  endl;  
+  cout << " prmm3Cut            :"  << PRMM3CUT   <<  endl;  
+  cout << " pmissCutlo          :"  << PMISSCUTLO <<  endl;
+  cout << " costmissCutlo       :"  << COSTMISSCUTLO <<  endl;
+  cout << " costmissCuthi       :"  << COSTMISSCUTHI <<  endl;
+  cout << " pcmsTrkloCut        :"  << PCMSTRKLOCUT  <<  endl;
+  cout << " mnuSqLow            :"  << MNUSQLOW   <<  endl;  
+  cout << " mnuSqHigh           :"  << MNUSQHIGH   <<  endl;  
+  cout << " EmpmLow             :"  << EMPMLOW   <<  endl;  
+  cout << " EmpmHigh            :"  << EMPMHIGH   <<  endl;  
+  cout << " chLow               :"  << CHLOW   <<  endl;  
+  cout << " chHigh              :"  << CHHIGH   <<  endl;  
+  cout << " depl                :"  << DEPL   <<  endl;  
+  cout << " Btype               :"  << BTYPE   <<  endl;  
+  cout << " lepttype            :"  << LEPTTYPE   <<  endl;  
+  cout << " fittotshape         :"  << FITTOTSHAPE   <<  endl;  
+  cout << " mixcorr             :"  << MIXCORR   <<  endl;  
+  cout << " fixcorrratio        :"  << FIXCORRRATIO   <<  endl;  
+  cout << " fitMC               :"  << FITMC   <<  endl;  
+  cout << " dontweightvub       :"  << DONTWEIGHTVUB   <<  endl;  
+  cout << " fitOption           :"  << FITOPT  <<  endl;  
+  cout << " vcbcomp             :"  << VCBCOMP  <<  endl;  
+  cout << " othcomp             :"  << OTHCOMP  <<  endl;  
+  cout << " fitQ2               :"  << FITQ2  <<  endl;  
+  cout << " toyMC               :"  << TOYMC   <<  endl;  
+  cout << " multifit            :"  << MULTIFIT   <<  endl;  
+  cout << " blinding            :"  << BLINDING   <<  endl;  
+  cout << " randomseed          :"  << RANDOMSEED   <<  endl;  
+  //  cout << " seme                :"  << SEME   <<  endl;  
+  cout << " service             :"  << SERVICE << endl;
+  cout << " cascade weight      :"  << THECASCADEWEIGHT << endl;
+  cout << " subtract peaking    :"  << SUBTRACTPEAKING << endl;
+  cout << " fitallmesrange      :"  << FITALLMESRANGE << endl;
+  cout << " blindsize           :"  << BLINDSIZE   <<  endl;  
+  cout << " issmearAll          :"  << ISSMEARALL   <<  endl; 
+  cout << " smearAllMeanValue   :"  << SMEARALLMEANVALUE   <<  endl;  
+  cout << " smearAllSigma       :"  << SMEARALLSIGMA   <<  endl;  
+  cout << " issmearBkg          :"  << ISSMEARBKG   <<  endl;  
+  cout << " smearBkgMeanValue   :"  << SMEARBKGMEANVALUE   <<  endl; 
+  cout << " smearBkgSigma       :"  << SMEARBKGSIGMA    <<  endl;
+  cout << " maxintpur           :"  << MAXINTPUR    <<  endl;
+  cout << " minintpur           :"  << MININTPUR    <<  endl;
+  cout << " run                 :"  << RUN    <<  endl;
+  cout << " savepdftree         :"  << SAVEPDFTREE << endl;
+  cout << " reapdftree          :"  << READPDFTREE << endl;
+  cout << " toyhistogrames      :"  << TOYHISTOGRAMES << endl;
+  cout << " nnpi0               :"  << CUTNNPI0  <<  endl;
+  cout << " fermiapp            :"  << FERMIAPP    <<  endl;
+  cout << " mulfac              :"  << MULFAC    <<  endl;
+  cout << " deltamb             :"  << DELTAMB    <<  endl;
+  cout << " deltaa              :"  << DELTAA  <<  endl;
+  cout << " rew                 :"  << fprlRew  <<  endl;
+  cout << " binmes              :"  << BINNED  <<  endl;
+  cout << " notunbinmes         :"  << NOTUNBINNED  <<  endl;
+  cout << " fitdss              :"  << FITDSS  <<  endl;
+  cout << " dssRatio            :"  << dssR    <<  endl;
+  cout << " bincut              :"  << CUTBIN  <<  endl;
+  cout << " Variables Study     :"  << DOVARSTU  <<  endl;
+  cout << " Using brecoqual     :"  << BRECOQUAL << endl;
+  cout << " Using neutrino cut  :"  << NUCUT << endl;
+  cout << "====================================" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if(DOTRKWEIGHT)   cout << " TRK REWEIGHTING IS ON" <<  endl; 
+  if(DONEUWEIGHT)   cout << " NEU REWEIGHTING IS ON" <<  endl; 
+  if(DOBDECWEIGHT)   cout << " B DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DODDECWEIGHT)   cout << " D DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DOFFWEIGHT)   cout << " D*lnu FF REWEIGHTING IS ON" <<  endl; 
+  if(DOEXCLFFWEIGHT)   cout << " EXCLUSIVE FF REWEIGHTING IS ON" <<  endl; 
+  if(DOCASCADEWEIGHT)  cout << " CASCADE DECAYS REWEIGHTING IS ON" <<  endl; 
+  if(DOBRECOWEIGHT)   cout << " BRECO REWEIGHTING IS ON" <<  endl; 
+  if(EFFDFN != -99)   cout << " USING DFN EFFICIENCIES FROM COMMAND LINE! " << EFFDFN << endl; 
+  if(DOBRECOWEIGHT)   cout << " MES MEAN CORRECTION IS ON" <<  endl; 
+
+  if(DOSSBARWEIGHT>0) cout << " ssbar reweighting type " << DOSSBARWEIGHT << " is on" <<  endl; 
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  cout << "   ######  #         ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "   #     # #          #    ##    # #     #    #    ##    # #     #" << endl;
+  cout << "   #     # #          #    # #   # #     #    #    # #   # #" << endl;
+  cout << "   ######  #          #    #  #  # #     #    #    #  #  # #  ####" << endl;
+  cout << "   #     # #          #    #   # # #     #    #    #   # # #     #" << endl;
+  cout << "   #     # #          #    #    ## #     #    #    #    ## #     #" << endl;
+  cout << "   ######  #######   ###   #     # ######    ###   #     #  #####" << endl;
+  cout << "" << endl;
+  cout << "" << endl;
+  if (!BLINDING) {
+    cout << "                      ####### ####### #######" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #####   #####" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      #     # #       #" << endl;
+    cout << "                      ####### #       #" << endl;
+  } else {
+    cout << "                         ####### #     #" << endl;
+    cout << "                         #     # ##    #" << endl;
+    cout << "                         #     # # #   #" << endl;
+    cout << "                         #     # #  #  #" << endl;
+    cout << "                         #     # #   # #" << endl;
+    cout << "                         #     # #    ##" << endl;
+    cout << "                         ####### #     #" << endl;
+  }                                                                                                              
+  
+  cout << "" << endl;
+  cout << "" << endl;
+  
+}
+
+// ----------------------------------------------------------------------
+
+TFile* VirClass::reopenHistFile(TString name) {
+  char thename[100];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "UPDATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  cout << "histograms on this file are" << endl; 
+  fHistFile->ls();	
+  return fHistFile;
+}
+
+TFile* VirClass::openHistFile(TString name) {
+  char thename[100];
+  sprintf(thename, "%s%s%s",DIRNAME.Data(),PREFIXOUT.Data(),name.Data());
+  fHistFile = new TFile(thename, "RECREATE");
+  fHistFile->cd();
+  cout << "Opened " << fHistFile->GetName() << endl;
+  return fHistFile;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::closeHistFile() {
+  cout << "Writing " << fHistFile->GetName() << endl;
+  fHistFile->cd();
+  fHistFile->Write();
+  fHistFile->Close();
+  delete fHistFile;
+  fHistFile=NULL;
+}
+void VirClass::openDataSetFile(TString name) {
+  char thename[100];
+  sprintf(thename,"%s",name.Data());
+  fDatasetRootFile = new TFile(thename, "RECREATE");
+  fDatasetRootFile->cd();
+  cout << "Opened " << fDatasetRootFile->GetName() << endl;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::closeDataSetFile() {
+  cout << "Writing " << fDatasetRootFile->GetName() << endl;	
+  fDatasetRootFile->cd();
+  fDatasetRootFile->Write();
+  fDatasetRootFile->Close();
+  delete fDatasetRootFile;
+  fDatasetRootFile=NULL;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::setPrefix(TString theprefix) {
+  PREFIXOUT = theprefix;
+}
+// ----------------------------------------------------------------------
+void VirClass::setDirectory(TString dirname) {
+  DIRNAME = dirname;
+}
+// ----------------------------------------------------------------------
+void VirClass::setDataDir(TString dirname) {
+  cout <<" now setting dataset directory and file to " << dirname.Data() << endl;
+  DSETDIRNAME = dirname;
+  isWriteData = true;
+}
+// ----------------------------------------------------------------------
+Int_t VirClass::isfitMC() {
+  return FITMC;
+}
+
+// ----------------------------------------------------------------------
+Int_t VirClass::dontWeightVub() {
+  return DONTWEIGHTVUB;
+}
+
+//-----------------------------------------------------------------------
+void VirClass::q2Binning(const TString filename)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  qB1.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    qB1.push_back(input);
+  }
+
+  nQ2B = qB1.size();
+
+  for (int i(0); i<qB1.size(); ++i) {
+    std::cout << " 2d Q2 bin [" << i << "] = " << qB1[i] << std::endl;
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------
+void VirClass::mxBinning(const TString filename)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  xB1.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    xB1.push_back(input);
+  }
+
+  for (int i(0); i<xB1.size(); ++i) {
+    std::cout << " 2d Mx bin [" << i << "] = " << xB1[i] << std::endl;
+  }
+
+//  xB1[1] = MXBIN;
+  nMxB = xB1.size();
+
+  return;
+}
+
+//------------------------------------------------------------------------
+void VirClass::mxBinning1d(const TString filename)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  mxB1.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    mxB1.push_back(input);
+  }
+
+  // find nearest boundary to MXBIN and replace it by MXBIN
+  for (int i(1); i < mxB1.size(); ++i) {
+    if ((MXBIN<mxB1[i]) && (MXBIN>mxB1[i-1])) {
+      int pos = (TMath::Abs(MXBIN-mxB1[i]) < TMath::Abs(MXBIN-mxB1[i-1])) ? i : i-1;
+      mxB1[pos] = MXBIN;
+      break;
+    }
+  }
+
+  // override first boundary if requested
+  //if (fnewbin==0) mxB1[1]=MXBIN;
+
+  for (int i(0); i<mxB1.size(); ++i) {
+    std::cout << " 1d Mx bin [" << i << "] = " << mxB1[i] << std::endl;
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------
+void VirClass::pplusBinning1d(const TString filename)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  pplusB1.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    pplusB1.push_back(input);
+  }
+
+  // find nearest boundary to PPLUSBIN and replace it by PPLUSBIN
+  for (int i(1); i < pplusB1.size(); ++i) {
+    if ((PPLUSBIN<pplusB1[i]) && (PPLUSBIN>pplusB1[i-1])) {
+      int pos = (TMath::Abs(PPLUSBIN-pplusB1[i]) < TMath::Abs(PPLUSBIN-pplusB1[i-1])) ? i : i-1;
+      pplusB1[pos] = PPLUSBIN;
+      break;
+    }
+  }
+
+  // override first boundary if requested
+  if (fnewbin==0) pplusB1[1]=PPLUSBIN;
+
+  for (int i(0); i<pplusB1.size(); ++i) {
+    std::cout << " 1d Pplus bin [" << i << "] = " << pplusB1[i] << std::endl;
+  }
+
+  return;
+}
+
+//------------------------------------------------------------------------
+void VirClass::Bookhist()
+{
+  fHistFile->cd();
+  TH1 *h;  TH2 *h2;
+  char name[200], title[200];
+
+  //esempio di sintassi di print di un histo
+  sprintf(name, "leptondata");  sprintf(title, "mes all after lepton data bch");  h = new TH1D(name, title, 40, 5.2, 5.3);  h->Sumw2();
+  for(int j=3; j<6; j++) {
+    sprintf(name,"%s%d%s", "vub",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "vcb",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "other",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "data",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    //1D study + unfolding    -Sun flag
+    sprintf(name,"%s%d%s", "vubin",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "vubout",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%d%s", "vcboth",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    // sprintf(name,"%s%d%s", "data",j,"chop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    //Comb study
+    sprintf(name,"%s%d%s", "vub",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0], (int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    sprintf(name,"%s%d%s", "vcb",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0], (int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    sprintf(name,"%s%d%s", "other",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    sprintf(name,"%s%d%s", "data",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    //Comb study + unfolding    -Sun flag      
+    sprintf(name,"%s%d%s", "vubin",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    sprintf(name,"%s%d%s", "vubout",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    sprintf(name,"%s%d%s", "vcboth",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+    // sprintf(name,"%s%d%s", "data",j,"comb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0], nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  }    
+  //Histos for multiplicity categories
+  for(int i=1; i<6; i++){
+    for(int j=3; j<6; j++){
+      sprintf(name,"%s%d%s%d", "vub",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "vcb",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "other",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+      sprintf(name,"%s%d%s%d", "data",j,"chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    }
+    sprintf(name,"%s%s%d", "vub","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "vcb","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "other","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "data","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+    sprintf(name,"%s%s%d", "subdata","chop",i);  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  }
+  //comb histos for results
+  sprintf(name,"%s", "vubcomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "vcbcomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "othercomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "datacomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "subdatacomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  //comb histos for results + unfolding    -Sun flag
+  sprintf(name,"%s", "vubincomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0], (int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "vuboutcomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "vcbothcomb");  sprintf(title, "mX,q2 study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  // ssbar popping weights
+  sprintf(name,"%s", "ssbar_signal");  sprintf(title, "signal: weights for ssbar pogging");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  sprintf(name,"%s", "ssbar_generic");  sprintf(title, "generic: weights for ssbar pogging");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  // Fermi weights
+  sprintf(name,"%s", "inclwei");  sprintf(title, "weights for inclusive");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  sprintf(name,"%s", "exclwei");  sprintf(title, "weights for exclusive");  h = new TH1D(name, title, 100, 0.,2.);  h->Sumw2();
+  // DStarlnu weight
+  sprintf(name,"%s", "ffweight");  sprintf(title, "weights for Dstarlnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // pilnu weight 
+  sprintf(name,"%s", "pilnuweight");  sprintf(title, "weights for pilnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // rholnu weight 
+  sprintf(name,"%s", "rholnuweight");  sprintf(title, "weights for rholnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // omegalnu weight
+  sprintf(name,"%s", "omegalnuweight");  sprintf(title, "weights for omegalnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // etalnu weight
+  sprintf(name,"%s", "etalnuweight");  sprintf(title, "weights for etalnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // etaplnu weight
+  sprintf(name,"%s", "etaplnuweight");  sprintf(title, "weights for etaplnu");  h = new TH1D(name, title, 200, 0.,2.);  h->Sumw2();
+  // Debug histos
+  sprintf(name,"%s", "totalweightvcb");  sprintf(title, "Total Weight VCB");  h = new TH1D(name, title, 200, 0.,200.);  h->Sumw2();
+  // pilnu spectrum in q2 
+  sprintf(name,"%s", "pilnuq2");  sprintf(title, "pilnu q2 spectrum");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "pilnuq2Ball");  sprintf(title, "pilnu q2 spectrum, Ball FF");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  // rholnu spectrum in q2
+  sprintf(name,"%s", "rholnuq2");  sprintf(title, "rholnu q2 spectrum");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "rholnuq2Ball");  sprintf(title, "rholnu q2 spectrum, Ball FF");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "rholnuweightvsq2");  sprintf(title, "FF weight vs q2 for rholnu");  h2 = new TH2D(name, title, 7, 0., 28., 200, -1., 3.);  h2->Sumw2();
+  // omegalnu spectrum in q2 
+  sprintf(name,"%s", "omegalnuq2");  sprintf(title, "omegalnu q2 spectrum");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "omegalnuq2Ball");  sprintf(title, "omegalnu q2 spectrum, Ball FF");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  // etalnu spectrum in q2 
+  sprintf(name,"%s", "etalnuq2");  sprintf(title, "etalnu q2 spectrum");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "etalnuq2Ball");  sprintf(title, "etalnu q2 spectrum, Ball FF");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  // etaplnu spectrum in q2
+  sprintf(name,"%s", "etaplnuq2");  sprintf(title, "etaplnu q2 spectrum");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+  sprintf(name,"%s", "etaplnuq2Ball");  sprintf(title, "etaplnu q2 spectrum, Ball FF");  h = new TH1D(name, title, 7, 0., 28.);  h->Sumw2();
+
+  // more fermi weights
+  h2 = new TH2D("signal_wfermi_2d", "signal: wfermi versus Gvxbtyp", 40, -20., 20., 100, 0., 2.); h2->Sumw2();
+  h2 = new TH2D("signal_wfermiMxhadgen_2d", "signal: wfermi weighted Mxhadgen versus Gvxbtyp", 40, -20., 20., 100, 0., 5.); h2->Sumw2();
+  h  = new TH1D("signal_wfermi", "signal: wfermi", 100, 0., 2.); h->Sumw2();
+  h  = new TH1D("signal_Mxhadgen", "signal: Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_wfermiMxhadgen", "signal: wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_nre_Mxhadgen", "signal(nre): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_nre_wfermiMxhadgen", "signal(nre): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_res_Mxhadgen", "signal(res): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("signal_res_wfermiMxhadgen", "signal(res): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h2 = new TH2D("generic_wfermi_2d", "generic: wfermi versus Gvxbtyp", 40, -20., 20., 100, 0., 2.); h2->Sumw2();
+  h2 = new TH2D("generic_wfermiMxhadgen_2d", "generic: wfermi weighted Mxhadgen versus Gvxbtyp", 40, -20., 20., 100, 0., 5.); h2->Sumw2();
+  h  = new TH1D("generic_wfermi", "generic: wfermi", 100, 0., 2.); h->Sumw2();
+  h  = new TH1D("generic_Mxhadgen", "generic: Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_wfermiGMxhadgen", "generic: wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_wfermiMxhadgen", "generic: wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_Mxhadgen", "generic(nre): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_wfermiGMxhadgen", "generic(nre): wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_nre_wfermiMxhadgen", "generic(nre): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_Mxhadgen", "generic(res): Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_wfermiGMxhadgen", "generic(res): wfermiG weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+  h  = new TH1D("generic_res_wfermiMxhadgen", "generic(res): wfermi weighted Mxhadgen", 100, 0., 5.); h->Sumw2();
+
+  //chop histos for results
+  sprintf(name,"%s", "vubchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "vcbchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "otherchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "datachop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "subdatachop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  //chop histos for results + unfolding    -Sun flag
+  sprintf(name,"%s", "vubinchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "vuboutchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "vcbothchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+
+  //chop scaled histos
+  sprintf(name,"%s", "SCvubchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "SCvcbchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "SCotherchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  //Same as before but for unfolding    -Sun flag 
+  sprintf(name,"%s", "SCvubinchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "SCvcbothchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "SCvuboutchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  //Bkg and MC summary
+  sprintf(name,"%s", "allbkgchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+  sprintf(name,"%s", "allmcchop");  sprintf(title, "Variable under study");  h = new TH1D(name, title, nB - 1, &chopB1[0]);  h->Sumw2();
+
+//check of weights
+   h = new TH1D("plotall", "Hybrid", 40, 0, 5. ); h->Sumw2();
+   h = new TH1D("plotnres", "Mx Hybrid",40, 0, 5. ); h->Sumw2();
+   h = new TH1D("plotres", "Mx Resonant",40, 0, 5.  ); h->Sumw2();
+   h = new TH1D("plotallnonres", "Mx NON Resonant",40, 0, 5.  ); h->Sumw2();
+
+   // pstar factor
+   h = new TH1D("pstar_res", "P* Vub res", 50, 0., 5.); h->Sumw2();
+   h = new TH1D("pstar_nre", "P* Vub non-res", 50, 0., 5.); h->Sumw2();
+   h = new TH1D("pstar_all", "P* Vub" , 50, 0., 5.); h->Sumw2();
+
+//add a histo containing mes dist. after lepton cut.
+   h = new TH1D("plotsl", "mes fit", 100, 5.2, 5.3 ); h->Sumw2();
+ 
+
+  //Same as before but for combined cut strategy
+  sprintf(name,"%s", "SCvubcomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "SCvcbcomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "SCothercomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  //Same as before but for combined cut strategy + unfolding    -Sun flag 
+  sprintf(name,"%s", "SCvubincomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "SCvuboutcomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "SCvcbothcomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  //Bkg and MC summary
+  sprintf(name,"%s", "allbkgcomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+  sprintf(name,"%s", "allmccomb");  sprintf(title, "Variable under study");  h2 = new TH2D(name, title, 4, &xB1[0],(int)nQ2B - 1, &qB1[0]);  h2->Sumw2();
+
+  //THIS IS NEEDED BY BINNED MES FITS
+  TH1D *histo = new TH1D("dummy","dummy histo",40,5.2,5.3); histo->Sumw2();
+
+
+  //ADD HISTOGRAMS FOR PROJECTIONS IN mX, q2
+  for(int i=1;i<nQ2B;i++){
+    sprintf(name,"%s%i","datHmx_",i); sprintf(title,"Variable under study"); h = new TH1D(name,title,4,&xB1[0]); h->Sumw2();
+  }
+}
+
+// ----------------------------------------------------------------------
+//! returns filename. Please use enum VirClass::fileTypesEnum
+TString VirClass::getfile(const int i)
+{
+  if (i == VirClass::VubTotal)     return FILEVUBTOTAL;
+  if (i == VirClass::VubTotalres)  return FILEVUBTOTALRES;
+  if (i == VirClass::VubTotalnres) return FILEVUBTOTALNRES;
+  if (i == VirClass::Vcb)          return FILEVCB;
+  if (i == VirClass::Vcb1)         return FILEVCB1;
+  if (i == VirClass::Vcb2)         return FILEVCB2;
+  if (i == VirClass::Data)         return FILEDATA;
+  if (i == VirClass::VubTruthres)  return FILEVUBTRUTHRES;;
+  if (i == VirClass::VubTruthnres) return FILEVUBTRUTHNRES;;
+
+  return TString();
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVubTotal() {
+  return FILEVUBTOTAL;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVubTotalres() {
+  return FILEVUBTOTALRES;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVubTotalnres() {
+  return FILEVUBTOTALNRES;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVcb() {
+  return FILEVCB;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVcb1() {
+  return FILEVCB1;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVcb2() {
+  return FILEVCB2;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileData() {
+  return FILEDATA;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVubTruthres() {
+  return FILEVUBTRUTHRES;
+}
+// ----------------------------------------------------------------------
+TString VirClass::getfileVubTruthnres() {
+  return FILEVUBTRUTHNRES;
+}
+// ----------------------------------------------------------------------
+bool * VirClass::getfilechain() {
+  return ischain;
+}
+// ----------------------------------------------------------------------
+//! return default tree from either ROOT file or chain file
+TTree* VirClass::getchain(const char* thechain)
+{
+  bool flagRootFile = false;
+  TTree* tree = 0;
+
+  // test if file is root file 
+  std::ifstream testfile(thechain);
+  if (testfile) {
+    std::string test; 
+    getline(testfile, test,'\n');
+    if (test.find("root") == 0) flagRootFile = true;
+  }
+  testfile.close();
+
+  // open root file and get tree or chain file and add to chain
+  if (flagRootFile) {
+
+    TFile* pFile = new TFile(thechain, "READ");
+    tree = dynamic_cast<TTree*>(pFile->Get(this->GetEv()));   
+    std::cout << "Load tree from file " << thechain << std::endl;
+
+  } else {
+
+    TChain *chain = new TChain(this->GetEv()); //CM indipendent
+    std::cout << "Chaining using filenames in file " << thechain << std::endl;
+
+    std::ifstream is(thechain);  
+    std::string buffer;
+
+    while(getline(is, buffer, '\n')){
+      if (buffer[0] == '#') continue;
+
+      std::istringstream bufferstream(buffer.c_str());
+      std::string filename; 
+      bufferstream >> filename; 
+      std::cout << "   Add: " << filename << std::endl; 
+      chain->Add(filename.c_str()); 
+    }
+
+    is.close();
+
+    tree = dynamic_cast<TTree*>(chain);
+  }
+
+  return tree;
+}
+
+// ----------------------------------------------------------------------
+double VirClass::getblindfact() {
+  TRandom random;
+  double blindbias; 
+  random.SetSeed((unsigned int)RANDOMSEED);  
+  blindbias = 2*BLINDSIZE*random.Rndm()-BLINDSIZE; 
+  return blindbias+1;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::readmesParam(const TString filename, const int dump)
+{
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // modify the vector for systematics studies (only the fixed parameetrs)
+  int pos(0), sign(0);
+  std::vector<double> mesSysNsl, mesSysdatacuts, mesSysvubcuts, mesSysvcbcuts, mesSysothcuts;
+  std::vector<double> mesSysvubMC, mesSysvcbMC, mesSysvubMCchop, mesSysvuboutMC, mesSyspstarMC, mesSyspstarcuts;
+
+  if (ME!=0) {
+    //    if (ME== 1) { pos = VirClass::iSigma_r1;    sign = +1; }
+    //    if (ME== 2) { pos = VirClass::iThoSigXc;    sign = +1; }
+    //    if (ME== 3) { pos = VirClass::iSigma_l;     sign = +1; }
+    if (ME== 4) { pos = VirClass::iArgus;       sign = +1; }
+
+    //    if (ME== 5) { pos = VirClass::iSigma_r1;    sign = -1; }
+    //    if (ME== 6) { pos = VirClass::iThoSigXc;    sign = -1; }
+    //    if (ME== 7) { pos = VirClass::iSigma_l;     sign = -1; }
+    if (ME== 8) { pos = VirClass::iArgus;       sign = -1; }
+
+    if (ME== 9) { pos = VirClass::iThoSigAlpha; sign = +1; }
+    if (ME==10) { pos = VirClass::iThoSigN;     sign = +1; }
+    if (ME==11) { pos = VirClass::iSigma_r2;    sign = +1; }
+    if (ME==12) { pos = VirClass::iThoSigR;     sign = +1; }
+    if (ME==13) { pos = VirClass::iMean;        sign = +1; }
+    if (ME==14) { pos = VirClass::iSigma;       sign = +1; }
+    if (ME==15) { pos = VirClass::iAlpha;       sign = +1; }
+    if (ME==16) { pos = VirClass::iN;           sign = +1; }
+
+    if (ME==17) { pos = VirClass::iThoSigAlpha; sign = -1; }
+    if (ME==18) { pos = VirClass::iThoSigN;     sign = -1; }
+    if (ME==19) { pos = VirClass::iSigma_r2;    sign = -1; }
+    if (ME==20) { pos = VirClass::iThoSigR;     sign = -1; }
+    if (ME==21) { pos = VirClass::iMean;        sign = -1; }
+    if (ME==22) { pos = VirClass::iSigma;       sign = -1; }
+    if (ME==23) { pos = VirClass::iAlpha;       sign = -1; }
+    if (ME==24) { pos = VirClass::iN;           sign = -1; }
+
+    if (ME==25) { pos = VirClass::iEndpoint;    sign = +1; }
+    if (ME==26) { pos = VirClass::iCutOff;      sign = +1; }
+    if (ME==27) { pos = VirClass::iEndpoint;    sign = -1; }
+    if (ME==28) { pos = VirClass::iCutOff;      sign = -1; }
+  } // if (ME!=0)
+
+  std::string buffer;
+  while(getline(is, buffer, '\n')){
+    if (buffer[0] == '#') continue;
+
+    int ok = 0;
+
+    std::istringstream bufferstream(buffer.c_str());
+    std::string tag; 
+    //    float input; // xxx change this to double after all modifications
+    double input; // Done As prescription
+    std::vector<double> inputs;
+
+    bufferstream >> tag;
+    while (bufferstream >> input) { inputs.push_back(input); }
+
+    if (_debug > 2) std::cout << "Found tag: " << tag << " values: " << inputs << std::endl; 
+    
+    // hack for compatibility
+    if (inputs.size() == 4) inputs.push_back(-60.);
+
+    // look up the right place to store
+    if (tag == "Nsl")          { mesNsl = inputs; ok = 1; }
+    if (tag == "datacuts")     { mesdatacuts = inputs; ok = 1; }
+    if (tag == "vubcuts")      { mesvubcuts = inputs; ok = 1; }
+    if (tag == "vcbcuts")      { mesvcbcuts = inputs; ok = 1; }
+    if (tag == "othcuts")      { mesothcuts = inputs; ok = 1; }
+    if (tag == "NslMC")        { mesNslMC = inputs; ok = 1; }
+    if (tag == "vubMC")        { mesvubMC = inputs; ok = 1; }
+    if (tag == "vcbMC")        { mesvcbMC = inputs; ok = 1; }
+    if (tag == "vubMCchop")    { mesvubMCchop = inputs; ok = 1; }
+    if (tag == "vubMCall")     { mesvubMCall = inputs; ok = 1; }
+    if (tag == "vcbMCall")     { mesvcbMCall = inputs; ok = 1; }
+    if (tag == "vubMClepteff") { mesvubMClepteff = inputs; ok = 1; }
+    if (tag == "vubMCalleff")  { mesvubMCalleff = inputs; ok = 1; }
+    if (tag == "vuboutMC" )    { mesvuboutMC = inputs; ok = 1; }
+    if (tag == "pstarMC" )     { mespstarMC = inputs; ok = 1; }
+    if (tag == "pstarcuts" )   { mespstarcuts = inputs; ok = 1; }
+
+    if (tag == "Nslerror")       { mesSysNsl = inputs; ok = 1; }
+    if (tag == "datacutserror")  { mesSysdatacuts = inputs; ok = 1; }
+    if (tag == "vubcutserror")   { mesSysvubcuts = inputs; ok = 1; }
+    if (tag == "vcbcutserror")   { mesSysvcbcuts = inputs; ok = 1; }
+    if (tag == "othcutserror")   { mesSysothcuts = inputs; ok = 1; }
+    if (tag == "vubMCerror")     { mesSysvubMC = inputs; ok = 1; }
+    if (tag == "vcbMCerror")     { mesSysvcbMC = inputs; ok = 1; }
+    if (tag == "vubMCchoperror") { mesSysvubMCchop = inputs; ok = 1; }
+    if (tag == "vuboutMCerror")  { mesSysvuboutMC = inputs; ok = 1; }
+    if (tag == "pstarMCerror")   { mesSyspstarMC = inputs; ok = 1; }
+    if (tag == "pstarcutserror") { mesSyspstarcuts = inputs; ok = 1; }
+
+    if (ok == 0)  std::cout << "==> fitNtp::readmesParam() Error: Don't know about variable " << tag << std::endl;
+  }
+
+  is.close();
+
+  if (sign != 0) {  // apply systematics changes in mes fit parameters
+    std::cout << "Systematics: changing mES fit parameter " << pos << " by " << sign << " sigma!" << std::endl;
+
+    if (mesSysNsl.size() > pos)       mesNsl[pos]       += sign*mesSysNsl[pos];
+    if (mesSysdatacuts.size() > pos)  mesdatacuts[pos]  += sign*mesSysdatacuts[pos];
+    if (mesSysvubcuts.size() > pos)   mesvubcuts[pos]   += sign*mesSysvubcuts[pos];
+    if (mesSysvcbcuts.size() > pos)   mesvcbcuts[pos]   += sign*mesSysvcbcuts[pos];
+    if (mesSysothcuts.size() > pos)   mesothcuts[pos]   += sign*mesSysothcuts[pos];
+    if (mesSysvubMC.size() > pos)     mesvubMC[pos]     += sign*mesSysvubMC[pos];
+    if (mesSysvcbMC.size() > pos)     mesvcbMC[pos]     += sign*mesSysvcbMC[pos];
+    if (mesSysvubMCchop.size() > pos) mesvubMCchop[pos] += sign*mesSysvubMCchop[pos];
+    if (mesSysvuboutMC.size() > pos)  mesvuboutMC[pos] += sign*mesSysvuboutMC[pos];
+    if (mesSyspstarMC.size() > pos)    mespstarMC[pos] += sign*mesSyspstarMC[pos];
+    if (mesSyspstarcuts.size() > pos)  mespstarcuts[pos] += sign*mesSyspstarcuts[pos];
+  }
+
+  if (dump == 1) dumpmesParam(filename);
+}
+
+// ----------------------------------------------------------------------
+void VirClass::dumpmesParam(const TString filename)
+{
+  std::cout << "====================================" << std::endl;
+  std::cout << " Mes fit parameters file " << filename << std::endl; 
+  std::cout << "------------------------------------" << std::endl;
+
+  if (MESFITMODEL==ThreePDFs || MESFITMODEL==ArgusAndThosig) { //maybe we can split this
+    std::string tag; std::vector<double> *pVector;
+
+    tag =  "Nsl parameters          "; pVector = &mesNsl;          std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "datacuts parameters     "; pVector = &mesdatacuts;     std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vubcuts parameters      "; pVector = &mesvubcuts;      std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vcbcuts parameters      "; pVector = &mesvcbcuts;      std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "othcuts parameters      "; pVector = &mesothcuts;      std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "NslMC parameters        "; pVector = &mesNslMC;        std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vcbMC parameters        "; pVector = &mesvcbMC;        std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vubMC chop parameters   "; pVector = &mesvubMCchop;    std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vubMCall parameters     "; pVector = &mesvubMCall;     std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vcbMCall parameters     "; pVector = &mesvcbMCall;     std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vubMClepteff parameters "; pVector = &mesvubMClepteff; std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vubMCalleff parameters  "; pVector = &mesvubMCalleff;  std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "vuboutMC parameters     "; pVector = &mesvuboutMC;     std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "pstarMC parameters      "; pVector = &mespstarMC;      std::cout << tag << ": " << *pVector << std::endl;
+    tag =  "pstarcuts parameters    "; pVector = &mespstarcuts;    std::cout << tag << ": " << *pVector << std::endl;
+  } else { 
+    cout << " Nsl parameters     :  mean = "<<  mesNsl[0]  << ";   sigma = "<<  mesNsl[1]  << ";   cb1 = "<<  mesNsl[2]  << ";   cb2 = "<<  mesNsl[3]  <<  endl; 
+    cout << " datacuts parameters     :  mean = "<<  mesdatacuts[0]  << ";   sigma = "<< mesdatacuts[1] << ";   cb1 = "<< mesdatacuts[2]  << ";   cb2 = "<<  mesdatacuts[3] <<  endl;  
+    cout << " vubcuts parameters     :  mean = "<<  mesvubcuts[0]  << ";   sigma = "<< mesvubcuts[1] << ";   cb1 = "<< mesvubcuts[2]  << ";   cb2 = "<<  mesvubcuts[3] <<  endl;  
+    cout << " vcbcuts parameters     :  mean = "<<  mesvcbcuts[0]  << ";   sigma = "<< mesvcbcuts[1] << ";   cb1 = "<< mesvcbcuts[2]  << ";   cb2 = "<<  mesvcbcuts[3] <<  endl;  
+    cout << " othcuts parameters     :  mean = "<<  mesothcuts[0]  << ";   sigma = "<<  mesothcuts[1] << ";   cb1 = "<< mesothcuts[2]  << ";   cb2 = "<<  mesothcuts[3] <<  endl;  	
+    cout << " NslMC parameters     :  mean = "<<  mesNslMC[0]  << ";   sigma = "<< mesNslMC[1] << ";   cb1 = "<< mesNslMC[2]  << ";   cb2 = "<<  mesNslMC[3] <<  endl;  
+    cout << " vcbMC parameters     :  mean = "<<  mesvcbMC[0]  << ";   sigma = "<< mesvcbMC[1] << ";   cb1 = "<< mesvcbMC[2]  << ";   cb2 = "<<  mesvcbMC[3] <<  endl;  
+    cout << " vubMC chop parameters     :  mean = "<<  mesvubMCchop[0]  << ";   sigma = "<< mesvubMCchop[1] << ";   cb1 = "<< mesvubMCchop[2]  << ";   cb2 = "<<  mesvubMCchop[3] <<  endl;
+    cout << " vubMCall parameters     :  mean = "<<  mesvubMCall[0]  << ";   sigma = "<< mesvubMCall[1] << ";   cb1 = "<< mesvubMCall[2]  << ";   cb2 = "<<  mesvubMCall[3] <<  endl;  
+    cout << " vcbMcall parameters     :  mean = "<<  mesvcbMCall[0]  << ";   sigma = "<< mesvcbMCall[1] << ";   cb1 = "<< mesvcbMCall[2]  << ";   cb2 = "<<  mesvcbMCall[3] <<  endl;  
+    cout << " vubMClepteff parameters     :  mean = "<<  mesvubMClepteff[0]  << ";   sigma = "<< mesvubMClepteff[1] << ";   cb1 = "<< mesvubMClepteff[2]  << ";   cb2 = "<<  mesvubMClepteff[3] << endl;
+    cout << " vubMCalleff parameters     :  mean = "<<  mesvubMCalleff[0]  << ";   sigma = "<< mesvubMCalleff[1] << ";   cb1 = "<< mesvubMCalleff[2]  << ";   cb2 = "<<  mesvubMCalleff[3] <<  endl;  
+  }
+
+  std::cout << "====================================" << std::endl;
+}
+
+// ----------------------------------------------------------------------
+void VirClass::readmxcorrratiosigpeak(TString filename){
+  char buffer[200];
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  float mxlow,mxhigh,corr,errcorr;
+  int cont=0;
+
+  if(_debug>2)
+    cout<<" Now reading correction for fixing signal to peaking BKG ratio from "<<filename.Data()<<endl;
+  
+  unsigned int seme=SEME;
+  cout << "   SEME    ==== " << seme << endl;
+  TRandom rndm(seme); 
+
+  while(is.getline(buffer,200,'\n')){
+    if(buffer[0]=='#') continue;
+    sscanf(buffer,"%f %f %f %*s %f",&mxlow,&mxhigh,&corr,&errcorr);
+    if(_debug>2)
+      std::cout<<mxlow<<" "<<mxhigh<<" "<<corr<<" +- "<<errcorr<<std::endl;
+    if(SEME !=0){
+      corr = SPrandomized(corr,errcorr,errcorr,rndm,seme);
+      std::cout << "randomizing S/P ratio for " << mxlow << " < mX < " << mxhigh << " : new value is " << corr << std::endl;
+    }
+    sigtopeakratiocorrmx.push_back(corr);
+    sigtopeakratioerrcorrmx.push_back(errcorr);
+    cont++;
+  }
+  if(cont != (mxB1.size()-1)){
+    cout<<" +++++++++++++++++ WARNING correction ratio signal/peaking BKG binning different from actual binning size";
+    cout<<" We have "<<mxB1.size()-1<<" mx bins and "<<cont<<" corrections for ratio; these numbers should be equal!"<<endl;
+  }
+}
+void VirClass::readUnfParam(TString filename, int dump) {
+  char  buffer[200];
+  sprintf(buffer, "%s", filename.Data());
+  ifstream is(buffer);
+  char VarName[100];
+  float value;
+  int ok(0);
+
+  for(int i=0; i<5; i++)
+    vcbcompcat[i] = errvcbcompcat[i] = othcompcat[i] = errothcompcat[i] = 0;
+
+  while (is.getline(buffer, 200, '\n')) {
+    ok = 0;
+    if (buffer[0] == '#') {continue;}
+    sscanf(buffer, "%s %f", VarName, &value);
+    // -- 
+    if (!strcmp(VarName, "vubcomp")) { vubcomp = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp")) { vcbcomp = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp")) { errvcbcomp = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp")) { othcomp = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp")) { errothcomp = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp1")) { vcbcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp1")) { errvcbcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp1")) { othcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp1")) { errothcompcat[0] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp2")) { vcbcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp2")) { errvcbcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp2")) { othcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp2")) { errothcompcat[1] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp3")) { vcbcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp3")) { errvcbcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp3")) { othcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp3")) { errothcompcat[2] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp4")) { vcbcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp4")) { errvcbcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp4")) { othcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp4")) { errothcompcat[3] = value; ok = 1;}
+    if (!strcmp(VarName, "vcbcomp5")) { vcbcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "errvcbcomp5")) { errvcbcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "othcomp5")) { othcompcat[4] = value; ok = 1;}
+    if (!strcmp(VarName, "errothcomp5")) { errothcompcat[4] = value; ok = 1;}
+
+    if (ok == 0)  cout << "==> fitNtp::readUnfParam() Error: Don't know about variable " << VarName << endl;
+  }
+
+  // Variation of fit result for the covariance matrix for measured spectrum
+  //    vcbcomp = vcbcomp + errvcbcomp;
+  //    othcomp = othcomp + errothcomp;
+
+  if (dump == 1) dumpUnfParam(filename);
+  
+}
+
+// ----------------------------------------------------------------------
+void VirClass::dumpUnfParam(const TString filename)
+{
+  cout << "====================================" << endl;
+  cout << " Unfolding parameters file: " << filename << endl; 
+  cout << "------------------------------------" << endl;
+  cout << "vubcomp " << vubcomp << endl;
+  cout << "vcbcomp " << vcbcomp << endl;
+  cout << "errvcbcomp " << errvcbcomp << endl;
+  cout << "othcomp " << othcomp << endl;
+  cout << "errothcomp " << errothcomp << endl;
+  cout << "vcbcomp1 " << vcbcompcat[0] << endl;
+  cout << "errvcbcomp1 " << errvcbcompcat[0] << endl;
+  cout << "othcomp1 " << othcompcat[0] << endl;
+  cout << "errothcomp1 " << errothcompcat[0] << endl;
+  cout << "vcbcomp2 " << vcbcompcat[1] << endl;
+  cout << "errvcbcomp2 " << errvcbcompcat[1] << endl;
+  cout << "othcomp2 " << othcompcat[1] << endl;
+  cout << "errothcomp2 " << errothcompcat[1] << endl;
+  cout << "vcbcomp3 " << vcbcompcat[2] << endl;
+  cout << "errvcbcomp3 " << errvcbcompcat[2] << endl;
+  cout << "othcomp3 " << othcompcat[2] << endl;
+  cout << "errothcomp3 " << errothcompcat[2] << endl;
+  cout << "vcbcomp4 " << vcbcompcat[3] << endl;
+  cout << "errvcbcomp4 " << errvcbcompcat[3] << endl;
+  cout << "othcomp4 " << othcompcat[3] << endl;
+  cout << "errothcomp4 " << errothcompcat[3] << endl;
+  cout << "vcbcomp5 " << vcbcompcat[4] << endl;
+  cout << "errvcbcomp5 " << errvcbcompcat[4] << endl;
+  cout << "othcomp5 " << othcompcat[4] << endl;
+  cout << "errothcomp5 " << errothcompcat[4] << endl;
+  cout << "====================================" << endl;
+
+  return;
+}
+
+void VirClass::applyEndpointCor(const bool apply, const int runFlag)
+{ 
+  // set flag
+  EPOINTCOR = apply;
+
+  // create new object
+  if (mesCor != 0) delete mesCor;
+  mesCor = new TMesCor(runFlag);
+}
+
+void VirClass::setCountingFlag(bool apply){ countMC = apply;}
+
+void VirClass::setDssRatio(double dssRatio){ dssR = dssRatio;}
+
+void VirClass::setDssRatio(const TString filename)
+{
+  std::cout << "Now reweighting D** on a bin-by-bin basis using the file " << filename << std::endl;
+  std::ifstream is(filename);
+  if (!is) { 
+    std::cout << "Error: Can't open file " << filename << ". Stopping execution!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  dssRew.resize(0);
+  double input(0.);
+
+  while (is >> input) {
+    dssRew.push_back(input);
+  }
+
+  for (int i(0); i<dssRew.size(); ++i) {
+    std::cout << " dssRew in bin [" << i << "] = " << dssRew[i] << std::endl;
+  }
+
+  return;
+}
+
+int VirClass::getMxBin(double mxHad){
+  if(mxHad<=mxB1[0]) return 0;
+  for(int i =0; i < mxB1.size(); i++) {
+    if(mxHad>mxB1[i] && mxHad<=mxB1[i+1]) return i;
+  }
+  return (mxB1.size()-1);
+  
+}
+
+void VirClass::GetGeneratedEvents(Int_t runperiod, int Rel){
+  
+  std::cout << ":::::::::TEST TEST TEST release: " << Rel << std::endl;
+
+  B0B0bar_gene=B0B0bar_skimmed=BplusBminus_gene=BplusBminus_skimmed=Vub_excl_gene=Vub_excl_skimmed=Vub_incl_gene=Vub_incl_skimmed=0;
+  
+  vector<Float_t> B0B0bar_g(6),B0B0bar_s(6),BpBm_g(6),BpBm_s(6),Vub_excl_g(6),Vub_excl_s(6), Vub_incl_g(6), Vub_incl_s(6);
+
+  if(Rel==18) {
+    
+    B0B0bar_g[0] = 36536000;  //Run 1 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[0] = 2232867;   //Run 1 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[1] = 103260000; //Run 2 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[1] = 6254509;   //Run 2 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[2] = 50556000;  //Run 3 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[2] = 3214425;   //Run 3 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[3] = 167716000; //Run 4 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[3] = 10982874;  //Run 4 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[4] = 208816000; //Run 5 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[4] = 13559746;  //Run 5 skimmmed  B0B0bar SP8 (mode 1237)
+    
+    BpBm_g[0] = 36156000;  //Run 1 generated B+B- SP8 (mode 1235)
+    BpBm_s[0] = 2508083;   //Run 1 skimmmed  B+B- SP8 (mode 1235)
+    BpBm_g[1] = 103124000; //Run 2 generated B+B- SP8 (mode 1235)
+    BpBm_s[1] = 7098889;   //Run 2 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[2] = 47102000;  //Run 3 generated B+B- SP8 (mode 1235)
+    BpBm_s[2] = 3382314;   //Run 3 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[3] = 168528000; //Run 4 generated B+B- SP8 (mode 1235)
+    BpBm_s[3] = 12536374;  //Run 4 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[4] = 219758000; //Run 5 generated B+B- SP8 (mode 1235)
+    BpBm_s[4] = 16296050;  //Run 5 skimmed  B+B- SP8 (mode 1235)
+    
+    Vub_excl_g[0]= 844000; //Run1 generated Vub exclusive SP8 (mode 6333)
+    Vub_excl_s[0]= 14272;  //Run1 skimmed Vub exclusive SP8 (mode 6333)
+    Vub_excl_g[1]= 2514000;//Run2 generated Vub exclusive SP8 (mode 6333) 
+    Vub_excl_s[1]= 41860;  //Run2 skimmed Vub exclusive SP8 (mode 6333)
+    Vub_excl_g[2]= 1322000;//Run3 generated Vub exclusive SP8 (mode 6333)
+    Vub_excl_s[2]= 22921;  //Run3 skimmed Vub exclusive SP8 (mode 6333)
+    Vub_excl_g[3]= 4047000;//Run4 generated Vub exclusive SP8 (mode 6333)
+    Vub_excl_s[3]= 74726;  //Run4 skimmed Vub exclusive SP8 (mode 6333)
+    Vub_excl_g[4]= 5326000;//Run5 generated Vub exclusive SP8 (mode 6333)
+    Vub_excl_s[4]= 98606;  //Run5 skimmed Vub exclusive SP8 (mode 6333)
+    
+    Vub_incl_g[0]= 844000; //Run1 generated Vub inclusive SP8 (mode 2575)
+    Vub_incl_s[0]= 18065;  //Run1 skimmed Vub inclusive SP8 (mode 2575)
+    Vub_incl_g[1]= 2514000;//Run2 generated Vub inclusive SP8 (mode 2575) 
+    Vub_incl_s[1]= 53313;  //Run2 skimmed Vub inclusive SP8 (mode 2575)
+    Vub_incl_g[2]= 1322000;//Run3 generated Vub inclusive SP8 (mode 2575)
+    Vub_incl_s[2]= 29593;  //Run3 skimmed Vub inclusive SP8 (mode 2575)
+    Vub_incl_g[3]= 4047000;//Run4 generated Vub inclusive SP8 (mode 2575)
+    Vub_incl_s[3]= 95512;  //Run4 skimmed Vub inclusive SP8 (mode 2575)
+    Vub_incl_g[4]= 5326000;//Run5 generated Vub inclusive SP8 (mode 2575)
+    Vub_incl_s[4]= 126871; //Run5 skimmed Vub inclusive SP8 (mode 2575)
+    
+  } else if( Rel==22) {
+
+    B0B0bar_g[0] = 37200000;  //Run 1 generated B0B0bar SP8 (mode 1237) R22d-v06
+    B0B0bar_s[0] = 2220378;   //Run 1 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[1] = 103356000; //Run 2 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[1] = 6102862;   //Run 2 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[2] = 50556000;  //Run 3 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[2] = 3115772;   //Run 3 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[3] = 167332000; //Run 4 generated B0B0bar SP8 (mode 1237)
+    B0B0bar_s[3] = 10031359;  //Run 4 skimmmed  B0B0bar SP8 (mode 1237)
+    B0B0bar_g[4] = 244812000; //Run 5 generated B0B0bar SP8 (mode 1237) aggiornato a R22d-v06
+    B0B0bar_s[4] = 14099579;  //Run 5 skimmmed  B0B0bar SP8 (mode 1237) aggiornato a R22d-v06
+    B0B0bar_g[5] = 132594000; //Run 6 generated B0B0bar SP8 (mode 1237) aggiornato a R22d-v06
+    B0B0bar_s[5] = 7908581;   //Run 6 skimmmed  B0B0bar SP8  (mode 1237) aggiornato a R22d-v06
+
+    BpBm_g[0] = 36968000;  //Run 1 generated B+B- SP8 (mode 1235) R22d-v06
+    BpBm_s[0] = 2525226;   //Run 1 skimmmed  B+B- SP8 (mode 1235)
+    BpBm_g[1] = 103124000; //Run 2 generated B+B- SP8 (mode 1235)
+    BpBm_s[1] = 6990225;   //Run 2 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[2] = 49766000;  //Run 3 generated B+B- SP8 (mode 1235)
+    BpBm_s[2] = 3492636;   //Run 3 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[3] = 167994000; //Run 4 generated B+B- SP8 (mode 1235)
+    BpBm_s[3] = 11577672;  //Run 4 skimmed  B+B- SP8 (mode 1235)
+    BpBm_g[4] = 244192000; //Run 5 generated B+B- SP8 (mode 1235) aggiornato a R22d-v06
+    BpBm_s[4] = 16309144;  //Run 5 skimmed  B+B- SP8  (mode 1235) aggiornato a R22d-v06
+    BpBm_g[5] = 129102000; //Run 6 generated B+B- SP8 (mode 1235) aggiornato a R22d-v06
+    BpBm_s[5] = 8948082;   //Run 6 skimmed  B+B- SP8  (mode 1235) aggiornato a R22d-v06    
+
+    Vub_excl_g[0]= 844000; //Run1 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[0]= 14375;  //Run1 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+    Vub_excl_g[1]= 2514000;//Run2 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[1]= 42425;  //Run2 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+    Vub_excl_g[2]= 1322000;//Run3 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[2]= 22847;  //Run3 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+    Vub_excl_g[3]= 4047000;//Run4 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[3]= 70164;  //Run4 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+    Vub_excl_g[4]= 5326000;//Run5 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[4]= 90087;  //Run5 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+    Vub_excl_g[5]= 3085000;//Run6 generated Vub exclusive SP8 (mode 6333) aggiornato a R22d-v04
+    Vub_excl_s[5]= 55224;  //Run6 skimmed Vub exclusive SP8 (mode 6333)   aggiornato a R22d-v04
+
+    Vub_incl_g[0]= 844000; //Run1 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[0]= 18191;  //Run1 skimmed Vub inclusive SP8 (mode 2575)   aggiornato a R22d-v04
+    Vub_incl_g[1]= 2514000;//Run2 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[1]= 53696;  //Run2 skimmed Vub inclusive SP8 (mode 2575)   aggiornato a R22d-v04
+    Vub_incl_g[2]= 1322000;//Run3 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[2]= 29499;  //Run3 skimmed Vub inclusive SP8 (mode 2575)   aggiornato a R22d-v04
+    Vub_incl_g[3]= 4047000;//Run4 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[3]= 88918;  //Run4 skimmed Vub inclusive SP8 (mode 2575)   aggiornato a R22d-v04
+    Vub_incl_g[4]= 5326000;//Run5 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[4]= 114984; //Run5 skimmed Vub inclusive SP8 (mode 2575)   aggiornato a R22d-v04
+    Vub_incl_g[5]= 3079000;//Run6 generated Vub inclusive SP8 (mode 2575) aggiornato a R22d-v04
+    Vub_incl_s[5]= 69264;  //Run6 skimmed Vub inclusive SP8 (mode 2575)    aggiornato a R22d-v04
+    
+  } else {
+    std::cout << "VirInit:: GetGeneratedEvents :: Information for release not available!!!" << std::endl; 
+    exit(EXIT_FAILURE);
+  }
+  
+  UInt_t start,stop;
+  
+  switch(runperiod){
+    
+  case 12: start = 0; stop = 2; break;
+  case 3:  start = 2; stop = 3; break;
+  case 4:  start = 3; stop = 4; break;
+  case 5:  start = 4; stop = 5; break;
+  case 6:  start = 5; stop = 6; break;
+  case 13: start = 0; stop = 3; break;
+  case 14: start = 0; stop = 4; break;
+  case 15: start = 0; stop = 5; break;
+  case 16: start = 0; stop = 6; break;
+    
+  default: cout<<"VirInit:: GetGeneratedEvents :: RUNPERIOD NOT VALID!!!"<<endl; break;
+  }
+
+  for(UInt_t i = start; i<stop; i++){
+    B0B0bar_gene += B0B0bar_g[i];
+    B0B0bar_skimmed += B0B0bar_s[i];
+    BplusBminus_gene += BpBm_g[i];
+    BplusBminus_skimmed += BpBm_s[i];
+    Vub_excl_gene += Vub_excl_g[i];
+    Vub_excl_skimmed += Vub_excl_s[i];
+    Vub_incl_gene += Vub_incl_g[i];
+    Vub_incl_skimmed += Vub_incl_s[i];
+  }
+  
+}
+
+void VirClass::SetBRValues(Int_t runperiod, Int_t release)
+{
+  // Retrieve number of generated events for Generic MC, Signal MC.
+  GetGeneratedEvents(runperiod,release);
+  
+  const Float_t BR_B0Xulnu  = 0.004506; //SP8 BR(B0->Xulnu) //?  by error 0.001892
+  const Float_t BR_BChXulnu = 0.004824; //SP8 BR(B+->Xulnu) Summed for muons and electrons
+  const Float_t BR_B0Xclnu  = 0.204000; //SP8 BR(B0->Xclnu) Summed for muons and electrons
+  const Float_t BR_BChXclnu = 0.220800; //SP8 BR(B+->Xclnu) Summed for muons and electrons
+
+  const Float_t BR_B0Xinclnu = 0.001892;  //SP8 BR (B0->Xulnu inclusive)  average  electrons and muons
+  const Float_t BR_BChXinclnu = 0.001948;  //SP8 BR (B+->Xulnu inclusive) average electrons and muons
+
+  const Float_t BR_BChXexclnu = 0.000530; //SP8 BR (B+->Xulnu exclusive as in generic MC) average electrons and muons
+  const Float_t BR_B0Xexclnu = 0.000402;  //SP8 BR (B0->Xulnu exclusive as in generic MC) average on electrons and muons
+
+  const Float_t BR_B0Xexclnu_6333 = 0.000697;   //SP8 BR (B0->Xulnu exclusive as in SP-6333) average on electrons and muons
+  const Float_t BR_BChXexclnu_6333 = 0.000820;  //SP8 BR (B+->Xulnu exclusive as in SP-6333) average on electrons and muons
+  const Float_t BR_B0Xexctaunu_6333 = 0.000257;   //SP8 BR (B0->Xulnu exclusive as in SP-6333) average on electrons and muons
+  const Float_t BR_BChXexctaunu_6333 = 0.000337;  //SP8 BR (B+->Xulnu exclusive as in SP-6333) average on electrons and muons
+    
+
+  const Float_t kSIGMABBBAR=1.05; //crossection bbbar in nanobarn
+
+  BRRATIOVALUETAIL_U = B0B0bar_gene/(B0B0bar_gene+BplusBminus_gene)*BR_B0Xulnu + BplusBminus_gene/(BplusBminus_gene+B0B0bar_gene)*BR_BChXulnu; //has e and mu
+  
+  BRRATIOVALUETAIL_UCHAR = BR_BChXulnu;
+  BRRATIOVALUETAIL_UNEUT = BR_B0Xulnu;
+
+  if(DOBDECWEIGHT){
+    BRRATIOVALUETAIL_C = B0B0bar_gene/(B0B0bar_gene+BplusBminus_gene)*BR_B0Xclnu*(Bsem->getAllSemilepWeight(false)) +
+      BplusBminus_gene/(BplusBminus_gene+B0B0bar_gene)*BR_BChXclnu*(Bsem->getAllSemilepWeight(true)); //has e and mu
+    cout << "Weight B+ -> X_c l nu = " << Bsem->getAllSemilepWeight(true) << " Weight B0 -> X_c l nu =  " << Bsem->getAllSemilepWeight(false) << endl;
+
+    BRRATIOVALUETAIL_CCHAR  = BR_BChXclnu*Bsem->getAllSemilepWeight(true);
+    BRRATIOVALUETAIL_CNEUT  = BR_B0Xclnu*Bsem->getAllSemilepWeight(false); 
+  }   else {
+    BRRATIOVALUETAIL_C = B0B0bar_gene/(B0B0bar_gene+BplusBminus_gene)*BR_B0Xclnu +
+      BplusBminus_gene/(BplusBminus_gene+B0B0bar_gene)*BR_BChXclnu; //has e and mu
+    BRRATIOVALUETAIL_CCHAR = BR_BChXclnu;
+    BRRATIOVALUETAIL_CNEUT  = BR_B0Xclnu;
+  }						  
+
+  BRRATIOGENVALUE= BRRATIOVALUETAIL_U/(BRRATIOVALUETAIL_U+BRRATIOVALUETAIL_C);  //has e and mu
+
+  LUMI_GENERIC = (B0B0bar_gene)*2./kSIGMABBBAR *  B0B0bar_gene/(B0B0bar_gene+BplusBminus_gene) + 
+    BplusBminus_gene*2./kSIGMABBBAR * BplusBminus_gene/(BplusBminus_gene+B0B0bar_gene);
+
+  LUMI_SIGNAL = isfitMC() ? LUMI_GENERIC : 0;
+  
+  Float_t neutrals(0), charged(0);
+  Int_t start, stop;
+
+  //  Float_t _DATA_LUMI[5]= {20.433324, 61.145302, 32.312762, 100.314011, 133.265756}; //Luminosity (fb^-1) for DATA R18
+  Float_t _DATA_LUMI[6]= {20.403307, 61.075713, 32.278209, 100.282084, 133.262535, 78.374912}; //Luminosity (fb^-1) for DATA R22
+  
+  if (release==18) {
+    //Luminosity (fb^-1) for DATA R18
+    _DATA_LUMI[0] = 20.403307;
+    _DATA_LUMI[1] = 61.075713;
+    _DATA_LUMI[2] = 32.278209;
+    _DATA_LUMI[3] = 100.282084;
+    _DATA_LUMI[4] = 133.262535;
+    _DATA_LUMI[5] = 78.374912;
+  } else if (release == 22) {
+    //Luminosity (fb^-1) for DATA R22 aggiornato a R22d-v04
+    _DATA_LUMI[0] = 20.403307;
+    _DATA_LUMI[1] = 61.075713;
+    _DATA_LUMI[2] = 32.278209;
+    _DATA_LUMI[3] = 100.282084;
+    _DATA_LUMI[4] = 133.262535;
+    _DATA_LUMI[5] = 78.374912;
+  }
+
+  switch(runperiod){
+    
+  case 12: start = 0; stop = 2; break;
+  case 3:  start = 2; stop = 3; break;
+  case 4:  start = 3; stop = 4; break;
+  case 5:  start = 4; stop = 5; break;
+  case 6:  start = 5; stop = 6; break;
+  case 13: start = 0; stop = 3; break;
+  case 14: start = 0; stop = 4; break;
+  case 15: start = 0; stop = 5; break;
+  case 16: start = 0; stop = 6; break;
+    
+  default: cout << "VirInit:: setBRValues :: RUNPERIOD NOT VALID!!!" << endl; break;
+  }
+  
+  LUMI_DATA=0;
+  for(UInt_t i = start; i<stop; i++){
+    LUMI_DATA += _DATA_LUMI[i];
+  }
+
+  //CONCEZIO  getExclusiveBFRatios(neutrals,charged);
+  //CONCEZIO
+  //CONCEZIO  cout<<" VUB EXCL OLD NUMBER OF EVENTS: "<<Vub_excl_gene<<endl;
+  //CONCEZIO  Vub_excl_gene *= 0.5*(neutrals+charged);
+  //CONCEZIO
+  //CONCEZIO  LUMI_SIGNAL = Vub_excl_gene/(kSIGMABBBAR*2.*(BR_BChXexclnu+BR_B0Xexclnu));  
+  //CONCEZIO
+
+  LUMI_SIGNAL = Vub_excl_gene/(kSIGMABBBAR*(2.*(BR_BChXexclnu_6333+BR_B0Xexclnu_6333)+ BR_B0Xexctaunu_6333 + BR_BChXexctaunu_6333));
+
+  cout << " Rescaling exclusive VUB: NEUTRALS fraction " << neutrals << " CHARGED fraction" << charged << " Vub Excl New Number of events: " << Vub_excl_gene << endl;
+  cout << " VirInit:: setBRValues():: RunPeriod: " << runperiod << " GENERATION VALUES: Xulnu= "
+       << BRRATIOVALUETAIL_U << "; Xclnu= " << BRRATIOVALUETAIL_C << "; BRBR_gen= " << BRRATIOGENVALUE << endl;
+  cout << " LUMI_SIGNAL_EXCLUSIVE: " << LUMI_SIGNAL << endl;
+  cout << " LUMI_GENERIC: " << LUMI_GENERIC << endl;
+  cout << " LUMI_DATA: " << LUMI_DATA << endl;
+
+  //====================== COMPUTE MAGIC K FACTOR HERE ====================================
+  
+  //CONCEZIO magic_k_factor_B0 = Vub_excl_gene/Vub_incl_gene*BR_B0Xinclnu/BR_B0Xexclnu;
+  //CONCEZIO magic_k_factor_BCh= Vub_excl_gene/Vub_incl_gene*BR_BChXinclnu/BR_BChXexclnu;
+
+  magic_k_factor_B0 = Vub_excl_gene/Vub_incl_gene*BR_B0Xinclnu/BR_B0Xexclnu_6333*0.8443;
+  magic_k_factor_BCh= Vub_excl_gene/Vub_incl_gene*BR_BChXinclnu/BR_BChXexclnu_6333*0.8295;
+  
+  Float_t LUMI_SIGNAL_incl= Vub_incl_gene*0.5*(magic_k_factor_B0+magic_k_factor_BCh)/(kSIGMABBBAR*2*(BR_B0Xinclnu+BR_BChXinclnu));
+  cout<< " FOR CHECK PURPOSES magic_k_factor_B0: "<<magic_k_factor_B0<<
+    "  magic_k_factor_BCh: "<<magic_k_factor_BCh<<" LUMI_SIGNAL_INCL "<<LUMI_SIGNAL_incl<<endl;
+}
+
+void getExclusiveBFRatios(Float_t& fractionBneutrals, Float_t& fractionBcharged){
+
+  Float_t sumexcl_AntiB0(0), sumexcl_B0(0), sumexcl_Bminus(0), sumexcl_Bplus(0);
+  Float_t sumgen_B0(0), sumgen_Bplus(0);
+  
+  //======================>  FOR GENERIC MONTECARLO SP8: <=====================================
+  
+  // ANTI B0 (B0)
+  sumgen_B0 +=  0.000133;  //  pi+    e-   anti-nu_e         
+  sumgen_B0 +=  0.000269;  //  rho+   e-   anti-nu_e         
+  //  0.001892; //  Xu+ e-  anti-nu_e           
+  
+  sumgen_B0 +=  0.000133;  //  pi+    mu-   anti-nu_mu     
+  sumgen_B0 +=  0.000269; //  rho+   mu-   anti-nu_mu     
+  //  0.001892;  //  Xu+ mu-  anti-nu_mu         
+
+  // B+(b-)
+  sumgen_Bplus += 0.000072;  // pi0    e+   nu_e     
+  sumgen_Bplus  += 0.000084;   //eta    e+   nu_e     
+  sumgen_Bplus  += 0.000145;  // rho0   e+   nu_e     
+  sumgen_Bplus  += 0.000145;//   omega   e+   nu_e    
+  sumgen_Bplus  += 0.000084;   //eta'   e+   nu_e     
+  //  0.001948;   //Xu0 e+  nu_e         
+  
+  sumgen_Bplus  += 0.000072;  // pi0    mu+   nu_mu   
+  sumgen_Bplus  += 0.000084; //  eta    mu+   nu_mu   
+  sumgen_Bplus  += 0.000145;   //rho0   mu+   nu_mu   
+  sumgen_Bplus  += 0.000145;   //omega   mu+   nu_mu  
+  sumgen_Bplus  += 0.000084;  // eta'   mu+   nu_mu   
+  //  0.001948;  // Xu0 mu+  nu_mu       
+    
+  //======================> FOR SIGNAL MONTECARLO SP8 EXCLUSIVE (6333): <============================
+    
+  //ANTI----------- B0
+  sumexcl_AntiB0 +=  0.000133;  //  pi+    e-   anti-nu_e     
+  sumexcl_AntiB0 +=  0.000269;  //  rho+   e-   anti-nu_e     
+  sumexcl_AntiB0 +=  0.000165;  //  a_1+    e-   anti-nu_e    
+  sumexcl_AntiB0 +=  0.000102;  //  b_1+    e-   anti-nu_e    
+  sumexcl_AntiB0 +=  0.000014;  //  a_0+    e-   anti-nu_e    
+  sumexcl_AntiB0 +=  0.000014;  //  a_2+    e-   anti-nu_e    
+  sumexcl_AntiB0 +=  0.000000;  //  rho(2S)+ e-   anti-nu_e   
+  sumexcl_AntiB0 +=  0.000000;  //  D(2S)+ e-   anti-nu_e     
+  sumexcl_AntiB0 +=  0.000000;  //  D*(2S)+ e-   anti-nu_e    
+
+  sumexcl_AntiB0 +=  0.000133;  //  pi+    mu-  anti-nu_mu    
+  sumexcl_AntiB0 +=  0.000269;  //  rho+   mu-  anti-nu_mu    
+  sumexcl_AntiB0 +=  0.000165;  //  a_1+    mu-  anti-nu_mu   
+  sumexcl_AntiB0 +=  0.000102;  //  b_1+    mu-  anti-nu_mu   
+  sumexcl_AntiB0 +=  0.000014;  //  a_0+    mu-  anti-nu_mu   
+  sumexcl_AntiB0 +=  0.000014;  //  a_2+    mu-  anti-nu_mu   
+  sumexcl_AntiB0 +=  0.000000;  //  rho(2S)+ mu-  anti-nu_mu  
+  sumexcl_AntiB0 +=  0.000000;  //  D(2S)+ mu-  anti-nu_mu    
+  sumexcl_AntiB0 +=  0.000000;  //  D*(2S)+ mu-  anti-nu_mu   
+
+  sumexcl_AntiB0 +=  0.000060;  //  pi+    tau- anti-nu_tau   
+  sumexcl_AntiB0 +=  0.000083;  //  rho+   tau- anti-nu_tau   
+  sumexcl_AntiB0 +=  0.000090;  //  a_1+    tau- anti-nu_tau  
+  sumexcl_AntiB0 +=  0.000008;  //  b_1+    tau- anti-nu_tau  
+  sumexcl_AntiB0 +=  0.000008;  //  a_0+    tau- anti-nu_tau  
+  sumexcl_AntiB0 +=  0.000008;  //  a_2+    tau- anti-nu_tau  
+  sumexcl_AntiB0 +=  0.000000;  //  rho(2S)+ tau- anti-nu_tau
+  sumexcl_AntiB0 +=  0.000000;  //  D(2S)+ tau- anti-nu_tau   
+  sumexcl_AntiB0 +=  0.000000;  //  D*(2S)+ tau- anti-nu_tau  
+  
+  //------------ B0
+  sumexcl_B0 +=  0.000133; //   pi-    e+   nu_e       
+  sumexcl_B0 +=  0.000269; //   rho-   e+   nu_e       
+  sumexcl_B0 +=  0.000165; //   a_1-    e+   nu_e      
+  sumexcl_B0 +=  0.000102; //   b_1-    e+   nu_e      
+  sumexcl_B0 +=  0.000014; //   a_0-    e+   nu_e      
+  sumexcl_B0 +=  0.000014; //   a_2-    e+   nu_e      
+  sumexcl_B0 +=  0.000000; //   rho(2S)- e+   nu_e     
+  sumexcl_B0 +=  0.000000; //   D(2S)- e+   nu_e       
+  sumexcl_B0 +=  0.000000; //   D*(2S)- e+   nu_e      
+	 	    
+  sumexcl_B0 +=  0.000133; //   pi-    mu+  nu_mu      
+  sumexcl_B0 +=  0.000269; //   rho-   mu+  nu_mu      
+  sumexcl_B0 +=  0.000165; //   a_1-    mu+  nu_mu     
+  sumexcl_B0 +=  0.000102; //   b_1-    mu+  nu_mu     
+  sumexcl_B0 +=  0.000014; //   a_0-    mu+  nu_mu     
+  sumexcl_B0 +=  0.000014; //   a_2-    mu+  nu_mu     
+  sumexcl_B0 +=  0.000000; //   rho(2S)- mu+  nu_mu    
+  sumexcl_B0 +=  0.000000; //   D(2S)- mu+  nu_mu      
+  sumexcl_B0 +=  0.000000; //   D*(2S)- mu+  nu_mu     
+
+  sumexcl_B0 +=  0.000060; //   pi-    tau+ nu_tau     
+  sumexcl_B0 +=  0.000083; //   rho-   tau+ nu_tau     
+  sumexcl_B0 +=  0.000090; //   a_1-    tau+ nu_tau    
+  sumexcl_B0 +=  0.000008; //   b_1-    tau+ nu_tau    
+  sumexcl_B0 +=  0.000008; //   a_0-    tau+ nu_tau    
+  sumexcl_B0 +=  0.000008; //   a_2-    tau+ nu_tau    
+  sumexcl_B0 +=  0.000000; //   rho(2S)- tau+ nu_tau   
+  sumexcl_B0 +=  0.000000; //   D(2S)- tau+ nu_tau     
+  sumexcl_B0 +=  0.000000; //   D*(2S)- tau+ nu_tau    
+
+  //------------ B-
+
+  sumexcl_Bminus += 0.000072; // pi0    e-   anti-nu_e    
+  sumexcl_Bminus += 0.000084; // eta    e-   anti-nu_e    
+  sumexcl_Bminus += 0.000145; // rho0   e-   anti-nu_e    
+  sumexcl_Bminus += 0.000145; // omega   e-   anti-nu_e   
+  sumexcl_Bminus += 0.000084; // eta'   e-   anti-nu_e    
+  sumexcl_Bminus += 0.000082; // a_10    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000007; // a_20    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000048; // b_10    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000007; // a_00    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000004; // f_0     e-   anti-nu_e   
+  sumexcl_Bminus += 0.000004; // f'_0    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000041; // f_1      e-   anti-nu_e   
+  sumexcl_Bminus += 0.000041; // f'_1    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000024; // h_1     e-   anti-nu_e   
+  sumexcl_Bminus += 0.000024; // h'_1    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000004; // f_2     e-   anti-nu_e   
+  sumexcl_Bminus += 0.000004; // f'_2    e-   anti-nu_e   
+  sumexcl_Bminus += 0.000000; // D(2S)0 e-   anti-nu_e    
+  sumexcl_Bminus += 0.000000; // D*(2S)0 e-   anti-nu_e   
+
+  sumexcl_Bminus += 0.000072; // pi0    mu-  anti-nu_mu   
+  sumexcl_Bminus += 0.000084; // eta    mu-  anti-nu_mu   
+  sumexcl_Bminus += 0.000145; // rho0    mu-  anti-nu_mu   
+  sumexcl_Bminus += 0.000145; // omega   mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000084; // eta'   mu-  anti-nu_mu   
+  sumexcl_Bminus += 0.000082; // a_10    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000007; // a_20    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000048;// b_10    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000007;  // a_00    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000004;  // f_0     mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000004;  // f'_0    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000041;  // f_1     mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000041;  // f'_1    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000024;  // h_1     mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000024;  // h'_1    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000004;  // f_2     mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000004;  // f'_2    mu-  anti-nu_mu  
+  sumexcl_Bminus += 0.000000;  // D(2S)0 mu-  anti-nu_mu   
+  sumexcl_Bminus += 0.000000;  // D*(2S)0 mu-  anti-nu_mu  
+    
+  sumexcl_Bminus += 0.000030;  // pi0    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000012;  // eta    tau- anti-nu_tau  
+  sumexcl_Bminus += 0.000042;  // rho0   tau- anti-nu_tau  
+  sumexcl_Bminus += 0.000042;  // omega   tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000018;  // eta'   tau- anti-nu_tau  
+  sumexcl_Bminus += 0.000046;  // a_10    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000027;  // b_10    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000004;  // a_00    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000002;  // f_0     tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000002;  // f'_0    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000023;  // f_1     tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000023;  // f'_1    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000013;  // h_1     tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000013;  // h'_1    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000020;  // f_2     tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000020;  // f'_2    tau- anti-nu_tau 
+  sumexcl_Bminus += 0.000000;  // D(2S)0 tau- anti-nu_tau  
+  sumexcl_Bminus += 0.000000;  // D*(2S)0 tau- anti-nu_tau 
+
+  //------------ B+
+  sumexcl_Bplus += 0.000072;  //  pi0    e+   nu_e   	     
+  sumexcl_Bplus += 0.000084;  //  eta    e+   nu_e   	     
+  sumexcl_Bplus += 0.000145;  //  rho0   e+   nu_e   	     
+  sumexcl_Bplus += 0.000145;  //  omega   e+   nu_e  	     
+  sumexcl_Bplus += 0.000084;  //  eta'   e+   nu_e   	     
+  sumexcl_Bplus += 0.000082;  //  a_10    e+   nu_e  	     
+  sumexcl_Bplus += 0.000007;  //  a_20    e+   nu_e  	     
+  sumexcl_Bplus += 0.000048;  //  b_10    e+   nu_e  	     
+  sumexcl_Bplus += 0.000007;  //  a_00    e+   nu_e  	     
+  sumexcl_Bplus += 0.000004;  //  f_0     e+   nu_e  	     
+  sumexcl_Bplus += 0.000004;  //  f'_0    e+   nu_e  	     
+  sumexcl_Bplus += 0.000041;  //  f_1     e+   nu_e  	     
+  sumexcl_Bplus += 0.000041;  //  f'_1    e+   nu_e  	     
+  sumexcl_Bplus += 0.000024;  //  h_1     e+   nu_e  	     
+  sumexcl_Bplus += 0.000024;  //  h'_1    e+   nu_e  	     
+  sumexcl_Bplus += 0.000004;  //  f_2     e+   nu_e  	     
+  sumexcl_Bplus += 0.000004;  //  f'_2    e+   nu_e  	     
+  sumexcl_Bplus += 0.000000;  //  anti-D(2S)0 e+   nu_e    
+  sumexcl_Bplus += 0.000000;  //  anti-D*(2S)0 e+   nu_e   
+
+  sumexcl_Bplus += 0.000072;  //  pi0    mu+  nu_mu        
+  sumexcl_Bplus += 0.000084;  //  eta    mu+  nu_mu        
+  sumexcl_Bplus += 0.000145;  //  rho0   mu+  nu_mu        
+  sumexcl_Bplus += 0.000145;  //  omega   mu+  nu_mu       
+  sumexcl_Bplus += 0.000084;  //  eta'   mu+  nu_mu        
+  sumexcl_Bplus += 0.000082;  //  a_10    mu+  nu_mu       
+  sumexcl_Bplus += 0.000007;  //  a_20    mu+  nu_mu       
+  sumexcl_Bplus += 0.000048;  //  b_10    mu+  nu_mu       
+  sumexcl_Bplus += 0.000007;  //  a_00    mu+  nu_mu       
+  sumexcl_Bplus += 0.000004;  //  f_0     mu+  nu_mu       
+  sumexcl_Bplus += 0.000004;  //  f'_0    mu+  nu_mu       
+  sumexcl_Bplus += 0.000041;  //  f_1     mu+  nu_mu       
+  sumexcl_Bplus += 0.000041;  //  f'_1    mu+  nu_mu       
+  sumexcl_Bplus += 0.000024;  //  h_1     mu+  nu_mu       
+  sumexcl_Bplus += 0.000024;  //  h'_1    mu+  nu_mu       
+  sumexcl_Bplus += 0.000004;  //  f_2     mu+  nu_mu       
+  sumexcl_Bplus += 0.000004;  //  f'_2    mu+  nu_mu       
+  sumexcl_Bplus += 0.000000;  //  anti-D(2S)0 mu+  nu_mu   
+  sumexcl_Bplus += 0.000000;  //  anti-D*(2S)0 mu+  nu_mu  
+
+  sumexcl_Bplus += 0.000030;  //  pi0    tau+ nu_tau       
+  sumexcl_Bplus += 0.000012;  //  eta    tau+ nu_tau       
+  sumexcl_Bplus += 0.000042;  //  rho0   tau+ nu_tau       
+  sumexcl_Bplus += 0.000042;  //  omega   tau+ nu_tau      
+  sumexcl_Bplus += 0.000018;  //  eta'   tau+ nu_tau       
+  sumexcl_Bplus += 0.000046;  //  a_10    tau+ nu_tau      
+  sumexcl_Bplus += 0.000027;  //  b_10    tau+ nu_tau      
+  sumexcl_Bplus += 0.000004;  //  a_00    tau+ nu_tau      
+  sumexcl_Bplus += 0.000002;  //  f_0     tau+ nu_tau      
+  sumexcl_Bplus += 0.000002;  //  f'_0    tau+ nu_tau      
+  sumexcl_Bplus += 0.000023;  //  f_1     tau+ nu_tau      
+  sumexcl_Bplus += 0.000023;  //  f'_1    tau+ nu_tau      
+  sumexcl_Bplus += 0.000013;  //  h_1     tau+ nu_tau      
+  sumexcl_Bplus += 0.000013;  //  h'_1    tau+ nu_tau      
+  sumexcl_Bplus += 0.000020;  //  f_2     tau+ nu_tau      
+  sumexcl_Bplus += 0.000020;  //  f'_2    tau+ nu_tau      
+  sumexcl_Bplus += 0.000000;  //  anti-D(2S)0 tau+ nu_tau  
+  sumexcl_Bplus += 0.000000;  //  anti-D*(2S)0 tau+ nu_tau 
+        
+  fractionBneutrals = sumgen_B0/sumexcl_B0;
+  fractionBcharged = sumgen_Bplus/sumexcl_Bplus;
+}
+
+/*
+void VirClass::SetGenericHybWeights(){
+  //Weights used in Generic SP8 for Hybrid Model.
+ 
+  Double_t temp[1024] = {
+    0.00000, 1.2059, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241,  
+    0.09098, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.47335, 1.21021, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241,  
+    0.52695, 1.21011, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241,  
+    0.6304, 1.21096, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.33327, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.54178, 1.20886, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241,  
+    0.59143, 1.20802, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995,  
+    0.69332, 1.20698, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.66811, 1.20755, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.34624, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.23645, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.53769, 1.21089, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241,  
+    0.63768, 1.20843, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995,  
+    0.71713, 1.20869, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.75566, 1.20778, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.74831, 1.20916, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.21312, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.62594, 1.20926, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995,  
+    0.5902, 1.20516, 1.21241, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995,  
+    0.68809, 1.20016, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.78229, 1.20459, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.82156, 1.20561, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.72422, 1.20485, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.00423, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.55708, 1.20977, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.61225, 1.20629, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.66904, 1.20049, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.72567, 1.20029, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.78501, 1.19808, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.83037, 1.19609, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.59537, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.00000, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.45962, 1.20645, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.53276, 1.20083, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995,  
+    0.57906, 1.19669, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.68263, 1.19458, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.74222, 1.19771, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.78307, 1.19479, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.58714, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.19489, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.24451, 1.21241, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.14704, 1.20472, 1.21241, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995,  
+    0.42163, 1.19849, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.37319, 1.18877, 1.21241, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.38655, 1.1995, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.34297, 1.21241, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.31299, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.57067, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,  
+    0.57067, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995, 0.99995,
+    0.00000, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 
+    0.00000, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.11287, 1.26974, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 
+    0.10819, 1.26929, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 
+    0.27133, 1.26671, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.17256, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.18216, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029,
+    0.32091, 1.26953, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029,
+    0.52924, 1.26988, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 
+    0.51586, 1.26755, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.26794, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.21166, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 
+    0.29627, 1.26757, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986,
+    0.52168, 1.26788, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.5675, 1.26647, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.62174, 1.26467, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.00536, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.38235, 1.2678, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986,
+    0.44511, 1.26686, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986,
+    0.54476, 1.26672, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.66852, 1.26707, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.64859, 1.26542, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.53664, 1.2536, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.00000, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.22558, 1.26822, 1.27029, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986,
+    0.38409, 1.26531, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.52891, 1.26284, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.65141, 1.26648, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 
+    0.70896, 1.26227, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 
+    0.79827, 1.26101, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.4274, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 
+    0.08636, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.28546, 1.26121, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.40621, 1.26584, 1.27029, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986,
+    0.58209, 1.26637, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 
+    0.61119, 1.26424, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 
+    0.70714, 1.26297, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.73926, 1.25781, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.53898, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.52061, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.00000, 1.26726, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 
+    0.16996, 1.2649, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.23334, 1.2534, 1.27029, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986,
+    0.25078, 1.26036, 1.27029, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.27805, 1.25917, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.27337, 1.27029, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.18235, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.84654, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986,
+    0.84654, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986, 0.9986};
+  
+  for(Int_t i=0; i<1024; i++)
+    genericWeightsB[i]=temp[i];
+}
+
+*/
